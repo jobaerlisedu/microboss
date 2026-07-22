@@ -1,6 +1,6 @@
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import pre_save, post_delete
 from django.dispatch import receiver
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from .models import AuditLog
 from infrastructure.middleware.request_context import get_current_request
 
@@ -28,21 +28,22 @@ def _safe_log(sender, instance, action, created=False):
         from django.contrib.contenttypes.models import ContentType
         ct = ContentType.objects.get_for_model(instance)
 
-        if action == 'deleted':
+        if action in ('deleted',):
             changes = {'_deleted': True}
+        elif created:
+            changes = {'_created': True}
         else:
             try:
-                old = instance.__class__.objects.get(pk=instance.pk) if not created else None
-                changes = {'_created': True} if created else {}
-                if not created and old:
-                    for field in instance._meta.concrete_fields:
-                        fn = field.name
-                        if fn in ('updated_at', 'updated_by', 'last_login'):
-                            continue
-                        ov = getattr(old, fn)
-                        nv = getattr(instance, fn)
-                        if ov != nv:
-                            changes[fn] = {'old': str(ov), 'new': str(nv)}
+                old = instance.__class__.objects.get(pk=instance.pk)
+                changes = {}
+                for field in instance._meta.concrete_fields:
+                    fn = field.name
+                    if fn in ('updated_at', 'updated_by', 'last_login'):
+                        continue
+                    ov = getattr(old, fn)
+                    nv = getattr(instance, fn)
+                    if ov != nv:
+                        changes[fn] = {'old': str(ov), 'new': str(nv)}
             except instance.__class__.DoesNotExist:
                 changes = {'_note': 'compare failed'}
             except Exception:
@@ -72,11 +73,13 @@ def _should_audit(sender):
     return key in AUDIT_MODELS or key.replace('.models', '') in AUDIT_MODELS
 
 
-@receiver(post_save)
-def audit_post_save(sender, **kwargs):
+@receiver(pre_save)
+def audit_pre_save(sender, **kwargs):
     if not _should_audit(sender):
         return
-    _safe_log(sender, kwargs['instance'], 'created' if kwargs.get('created') else 'updated', created=kwargs.get('created', False))
+    instance = kwargs['instance']
+    created = instance.pk is None
+    _safe_log(sender, instance, 'created' if created else 'updated', created=created)
 
 
 @receiver(post_delete)

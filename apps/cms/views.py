@@ -199,11 +199,15 @@ def _dashboard_context(period='month'):
     analytics = get_dashboard_data(period=period)
     entries = ContentEntry.objects.filter(deleted_at__isnull=True)
     today_entries = entries.filter(entry_date=today.date())
+    from apps.analytics.services import AnalyticsService
+    svc = AnalyticsService()
+    kpi = analytics['kpi']
+    kpi['active_sessions'] = svc.session_metrics()['active_sessions']
 
     return {
         'today': _today_str(),
         'analytics': analytics,
-        'stats': analytics['kpi'],
+        'stats': kpi,
         'platforms': PLATFORMS,
         'recent_entries': entries.select_related('member').order_by('-created_at')[:6],
         'today_entries': today_entries.select_related('member').order_by('-created_at')[:5],
@@ -463,7 +467,10 @@ def scripts_tab(request):
             rows,
         )
 
-    page = int(request.GET.get('page', 1))
+    try:
+        page = max(1, int(request.GET.get('page', 1)))
+    except (ValueError, TypeError):
+        page = 1
     page_size = 20
     offset = (page - 1) * page_size
     scripts_list = list(qs.order_by('-script_date', '-created_at')[offset:offset + page_size + 1])
@@ -600,7 +607,6 @@ def save_entry(request):
             'entry_time': request.POST.get('entry_time'),
             'slug': request.POST.get('slug', ''),
             'headline': request.POST.get('headline', ''),
-            'member': request.user,
             'links': links,
             'assignment_id': assignment_id or None,
             'sponsor_id': sponsor_id or None,
@@ -613,6 +619,7 @@ def save_entry(request):
             entry.updated_by = request.user
             entry.save()
             return _toast_response('Entry updated successfully.', '/cms/entries/')
+        data['member'] = request.user
         data['created_by'] = request.user
         entry = ContentEntry.objects.create(**data)
         # Close the linked assignment as Done / Published
@@ -653,13 +660,21 @@ def duplicate_entry(request, pk):
         assign_date=timezone.now().date(),
         deleted_at__isnull=True,
     ).select_related('reporter_user', 'member').order_by('created_at')
-    original.entry_date = timezone.now().date()
-    original.entry_time = timezone.now().time()
+    initial = {
+        'entry_date': timezone.now().strftime('%Y-%m-%d'),
+        'entry_time': timezone.now().strftime('%H:%M'),
+        'slug': original.slug,
+        'headline': original.headline,
+        'links': original.links or {},
+        'comment': original.comment,
+        'sponsor_id': str(original.sponsor_id or ''),
+        'assignment_id': str(original.assignment_id or ''),
+    }
     return render(request, 'cms/new_entry.html', {
         'platforms': PLATFORMS,
         'sponsors': sponsors,
         'today_assignments': today_assignments,
-        'entry': original,
+        'initial': initial,
         'links': original.links or {},
         'user': request.user,
         'duplicating': True,

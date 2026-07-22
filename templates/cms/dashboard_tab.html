@@ -1,18 +1,19 @@
 {% load static %}
 {% load bengali_filters %}
-<!-- Dashboard Page Header -->
 <div class="dash-page-header">
   <div>
-    <h1 class="dash-title">Content Dashboard</h1>
-    <p class="dash-sub">Comprehensive overview of your digital content pipeline and active campaigns</p>
+    <h1 class="dash-title">Executive Dashboard</h1>
+    <p class="dash-sub">Real-time content pipeline analytics, team performance, and operational KPIs</p>
+  </div>
+  <div class="dash-header-actions">
+    <span class="dash-date-badge"><i class="bi bi-calendar3"></i> {% now "M d, Y" %}</span>
   </div>
 </div>
 
-<!-- Period Filter Bar -->
 <div class="toolbar-grid">
   <form hx-get="/cms/dashboard/" hx-target="#tab-content" hx-swap="innerHTML" class="dash-filter-form">
     <div class="filter-group">
-      <label>Period</label>
+      <label>Analysis Period</label>
       <select name="period" onchange="this.form.dispatchEvent(new Event('submit', {bubbles:true}))">
         <option value="week" {% if request.GET.period == 'week' %}selected{% endif %}>Last 7 Days</option>
         <option value="month" {% if not request.GET.period or request.GET.period == 'month' %}selected{% endif %}>Last 30 Days</option>
@@ -26,210 +27,240 @@
       <i class="bi bi-arrow-clockwise"></i> Refresh
     </button>
     <a class="btn btn-ghost btn-sm" href="/api/v1/analytics/export/csv/?period={{ request.GET.period|default:'month' }}" target="_blank">
-      <i class="bi bi-download"></i> CSV
+      <i class="bi bi-download"></i> Export CSV
     </a>
   </div>
 </div>
 
-<!-- Quick KPI Status Pills -->
-<div class="kpi-pills-row" id="kpiPills">
-  <div class="kpi-pill kpi-success">
-    <div class="kpi-icon" style="background:rgba(59, 130, 246, 0.15);color:#3b82f6;"><i class="bi bi-file-earmark-text-fill"></i></div>
-    <div class="kpi-text">
-      <strong id="kpiTotalEntries">{{ stats.total_entries }}</strong>
-      <span><span id="kpiTodayEntries">{{ stats.today_entries }}</span> published today</span>
+<div class="kpi-grid" id="kpiGrid">
+  <div class="kpi-card kpi-card-blue">
+    <div class="kpi-card-top">
+      <div class="kpi-icon-box"><i class="bi bi-file-earmark-text-fill"></i></div>
+      <div class="kpi-trend" id="kpiGrowthBadge">{% if stats.growth_pct >= 0 %}<span class="trend-up"><i class="bi bi-arrow-up-short"></i>+{{ stats.growth_pct }}%</span>{% else %}<span class="trend-down"><i class="bi bi-arrow-down-short"></i>{{ stats.growth_pct }}%</span>{% endif %}</div>
     </div>
+    <div class="kpi-value" id="kpiTotalEntries">{{ stats.total_entries }}</div>
+    <div class="kpi-label">Total Content Entries</div>
+    <div class="kpi-footer"><span id="kpiTodayEntries">{{ stats.today_entries }}</span> published today &middot; <span id="kpiPeriodEntries">{{ stats.period_entries }}</span> this period</div>
   </div>
-  <div class="kpi-pill kpi-warning">
-    <div class="kpi-icon" style="background:rgba(245, 158, 11, 0.15);color:#f59e0b;"><i class="bi bi-star-fill"></i></div>
-    <div class="kpi-text">
-      <strong><span id="kpiActiveSponsors">{{ stats.active_sponsors }}</span> Active Sponsors</strong>
-      <span>Out of <span id="kpiTotalSponsors">{{ stats.total_sponsors }}</span> total</span>
+  <div class="kpi-card kpi-card-amber">
+    <div class="kpi-card-top">
+      <div class="kpi-icon-box"><i class="bi bi-star-fill"></i></div>
+      <div class="kpi-trend"><span class="trend-neutral"><i class="bi bi-dot"></i>{{ stats.active_sponsors }}/{{ stats.total_sponsors }}</span></div>
     </div>
+    <div class="kpi-value" id="kpiMonthEntries">{{ stats.month_entries }}</div>
+    <div class="kpi-label">Entries This Month</div>
+    <div class="kpi-footer"><span id="kpiActiveSponsors">{{ stats.active_sponsors }}</span> active sponsors &middot; <span id="kpiTotalSponsors">{{ stats.total_sponsors }}</span> total</div>
   </div>
-  <div class="kpi-pill" style="border-left:3px solid #6366f1;">
-    <div class="kpi-icon" style="background:rgba(99, 102, 241, 0.15);color:#6366f1;"><i class="bi bi-journal-text"></i></div>
-    <div class="kpi-text">
-      <strong><span id="kpiMonthEntries">{{ stats.month_entries }}</span> This Month</strong>
-      <span>Growth: <span id="kpiGrowth" class="{% if stats.growth_pct >= 0 %}badge-pos{% else %}badge-neg{% endif %}">{% if stats.growth_pct >= 0 %}+{% endif %}{{ stats.growth_pct }}%</span></span>
+  <div class="kpi-card kpi-card-purple">
+    <div class="kpi-card-top">
+      <div class="kpi-icon-box"><i class="bi bi-journal-text"></i></div>
+      <div class="kpi-trend" id="kpiAssignTrend"><span class="trend-neutral"><i class="bi bi-dot"></i>{{ stats.total_assignments }}</span></div>
     </div>
+    <div class="kpi-value" id="kpiTotalAssignments">{{ stats.total_assignments }}</div>
+    <div class="kpi-label">Total Assignments</div>
+    <div class="kpi-footer"><span id="kpiActiveAssignments">{{ stats.active_assignments }}</span> active &middot; <span id="kpiDoneAssignments">0</span> completed</div>
   </div>
-  <div class="kpi-pill kpi-danger">
-    <div class="kpi-icon" style="background:rgba(239, 68, 68, 0.15);color:#ef4444;"><i class="bi bi-clock-history"></i></div>
-    <div class="kpi-text">
-      <strong><span id="kpiPendingTasks">{{ stats.pending_scripts|add:stats.active_assignments }}</span> Pending Tasks</strong>
-      <span><span id="kpiPendingScripts">{{ stats.pending_scripts }}</span> scripts · <span id="kpiActiveAssignments">{{ stats.active_assignments }}</span> assignments</span>
+  <div class="kpi-card kpi-card-rose">
+    <div class="kpi-card-top">
+      <div class="kpi-icon-box"><i class="bi bi-clock-history"></i></div>
+      <div class="kpi-trend" id="kpiScriptTrend"><span class="trend-neutral"><i class="bi bi-dot"></i>{{ stats.total_scripts }}</span></div>
     </div>
+    <div class="kpi-value" id="kpiTotalScripts">{{ stats.total_scripts }}</div>
+    <div class="kpi-label">Total Scripts</div>
+    <div class="kpi-footer"><span id="kpiPendingScripts">{{ stats.pending_scripts }}</span> pending &middot; <span id="kpiApprovedScripts">0</span> approved</div>
+  </div>
+  <div class="kpi-card kpi-card-emerald">
+    <div class="kpi-card-top">
+      <div class="kpi-icon-box"><i class="bi bi-people-fill"></i></div>
+      <div class="kpi-trend"><span class="trend-neutral"><i class="bi bi-people"></i> {{ stats.total_users }}</span></div>
+    </div>
+    <div class="kpi-value">{{ stats.total_users }}</div>
+    <div class="kpi-label">Active Users</div>
+    <div class="kpi-footer">{{ stats.total_notices }} active notices &middot; {{ stats.active_sessions|default:"0" }} sessions</div>
   </div>
 </div>
 
-<!-- Main Cards Grid -->
-<div class="phoenix-dash-grid">
-  <div class="card phoenix-card grid-total-sells">
+<div class="dash-grid">
+  <div class="card phoenix-card dash-span-2">
     <div class="card-header-flex">
       <div>
-        <h3 class="phoenix-card-title"><i class="bi bi-graph-up-arrow" style="color:#3b82f6;margin-right:6px;"></i> Content Publishing Trend</h3>
-        <p class="phoenix-card-sub">Publishing velocity and volume across all channels</p>
+        <h3 class="phoenix-card-title"><i class="bi bi-graph-up-arrow" style="color:#3b82f6;"></i> Content Publishing Trend</h3>
+        <p class="phoenix-card-sub">Daily publication volume with 7-day moving average and 7-day forecast</p>
       </div>
-      <div class="date-select-pill">
-        <span id="trendPeriodLabel">{{ request.GET.period|default:'Month' }}</span>
+      <div class="chart-controls">
+        <button class="chart-btn active" data-interval="day" onclick="switchTrendInterval('day')">Daily</button>
+        <button class="chart-btn" data-interval="month" onclick="switchTrendInterval('month')">Monthly</button>
       </div>
     </div>
-    <div class="chart-container" style="height: 240px; position: relative; margin-top: 14px;">
+    <div class="chart-container" style="height:260px;margin-top:8px;">
       <canvas id="chartContentTrend"></canvas>
     </div>
   </div>
 
-  <div class="card phoenix-card grid-total-orders">
-    <div class="card-header-flex align-top">
+  <div class="card phoenix-card">
+    <div class="card-header-flex">
       <div>
-        <div class="stat-meta-row">
-          <span class="stat-title">7-Day Trend</span>
-          <span class="badge-pill" id="dailyTrendBadge">Last 7 days</span>
-        </div>
-        <div class="stat-big-num" id="dailyTrendTotal">{{ stats.today_entries }}</div>
-        <div class="phoenix-card-sub">Today's entries</div>
+        <h3 class="phoenix-card-title"><i class="bi bi-calendar-week" style="color:#f59e0b;"></i> 7-Day Trend</h3>
+        <p class="phoenix-card-sub">Daily entries this week</p>
       </div>
     </div>
-    <div class="chart-container" style="height: 80px; margin-top: 10px;">
-      <canvas id="chartDailyTrend"></canvas>
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px;">
+      <div><span class="stat-big-num" id="dailyTrendTotal">{{ stats.today_entries }}</span><span class="phoenix-card-sub" style="display:block;">Today</span></div>
+      <div style="flex:1;display:flex;gap:8px;justify-content:flex-end;">
+        <div class="mini-stat"><span class="mini-stat-label">Avg</span><span class="mini-stat-value" id="dailyAvg">-</span></div>
+        <div class="mini-stat"><span class="mini-stat-label">Peak</span><span class="mini-stat-value" id="dailyPeak">-</span></div>
+      </div>
     </div>
-    <div class="chart-legend-flex" style="margin-top:12px;">
-      <div class="legend-item"><span class="dot blue"></span> Daily Avg <strong id="dailyAvg">0</strong></div>
-      <div class="legend-item"><span class="dot light-blue"></span> Peak <strong id="dailyPeak">0</strong></div>
-    </div>
+    <div class="chart-container" style="height:90px;"><canvas id="chartDailyTrend"></canvas></div>
   </div>
 
-  <div class="card phoenix-card grid-new-customers">
-    <div class="card-header-flex align-top">
+  <div class="card phoenix-card">
+    <div class="card-header-flex">
       <div>
-        <div class="stat-meta-row">
-          <span class="stat-title">Top Contributors</span>
-          <span class="badge-pill badge-pos" id="memberCount">Active</span>
-        </div>
-        <div class="stat-big-num" id="topMemberCount">-</div>
-        <div class="phoenix-card-sub">Leading contributor this period</div>
+        <h3 class="phoenix-card-title"><i class="bi bi-trophy-fill" style="color:#f59e0b;"></i> Top Contributors</h3>
+        <p class="phoenix-card-sub">Highest content publishers this period</p>
       </div>
     </div>
-    <div class="member-list-mini" id="memberMiniList" style="margin-top:8px;">
-      <div style="color:var(--text-faint);font-size:11px;">Loading...</div>
-    </div>
+    <div class="chart-container" style="height:220px;"><canvas id="chartTopContributors"></canvas></div>
   </div>
 
-  <div class="card phoenix-card grid-top-coupons">
-    <h3 class="phoenix-card-title"><i class="bi bi-pie-chart-fill" style="color:#3b82f6;margin-right:6px;"></i> Platform Breakdown</h3>
-    <p class="phoenix-card-sub">Share of published channels</p>
-    <div class="donut-chart-box" style="height: 140px; position: relative; margin-top: 10px; display: flex; justify-content: center; align-items: center;">
-      <canvas id="chartPlatformBreakdown" width="130" height="130"></canvas>
-      <div class="donut-center-text" id="donutCenterPct">-</div>
-    </div>
-    <div class="chart-legend-list" style="margin-top: 10px;" id="platformLegendList">
-      <div style="color:var(--text-faint);font-size:11px;">Loading platform data...</div>
-    </div>
-  </div>
-
-  <div class="card phoenix-card grid-paying-vs">
-    <h3 class="phoenix-card-title"><i class="bi bi-shield-check" style="color:#3b82f6;margin-right:6px;"></i> Content Ratio</h3>
-    <p class="phoenix-card-sub">Sponsored vs Organic</p>
-    <div class="arc-chart-box" style="height: 130px; position: relative; margin-top: 10px; display: flex; justify-content: center; align-items: center;">
-      <canvas id="chartContentRatio" width="140" height="100"></canvas>
-    </div>
-    <div class="chart-legend-list" style="margin-top: 10px;">
-      <div class="legend-item-row">
-        <span><span class="dot blue"></span> Sponsored</span>
-        <strong><span id="ratioSponsored">-</span> (<span id="ratioSponsoredPct">-</span>%)</strong>
-      </div>
-      <div class="legend-item-row">
-        <span><span class="dot soft-blue"></span> Organic</span>
-        <strong><span id="ratioOrganic">-</span> (<span id="ratioOrganicPct">-</span>%)</strong>
-      </div>
-    </div>
-  </div>
-
-  <div class="card phoenix-card" style="grid-column: 1;">
-    <h3 class="phoenix-card-title"><i class="bi bi-pin-angle-fill" style="color:#f59e0b;margin-right:6px;"></i> Assignment Status</h3>
-    <p class="phoenix-card-sub">Period breakdown</p>
-    <div style="margin-top:12px;" id="assignmentMetrics">
-      <div style="color:var(--text-faint);font-size:11px;">Loading...</div>
-    </div>
-  </div>
-
-  <div class="card phoenix-card" style="grid-column: 2;">
-    <h3 class="phoenix-card-title"><i class="bi bi-file-earmark-code-fill" style="color:#6366f1;margin-right:6px;"></i> Script Pipeline</h3>
-    <p class="phoenix-card-sub">Status breakdown</p>
-    <div style="margin-top:12px;" id="scriptMetrics">
-      <div style="color:var(--text-faint);font-size:11px;">Loading...</div>
-    </div>
-  </div>
-
-  <div class="card phoenix-card" style="grid-column: 3;">
-    <h3 class="phoenix-card-title"><i class="bi bi-card-checklist" style="color:#22c55e;margin-right:6px;"></i> Content List Sources</h3>
-    <p class="phoenix-card-sub">By source type</p>
-    <div style="margin-top:12px;" id="sourceMetrics">
-      <div style="color:var(--text-faint);font-size:11px;">Loading...</div>
-    </div>
-  </div>
-
-  <div class="card phoenix-card grid-latest-reviews">
-    <div class="card-header-flex" style="margin-bottom: 16px;">
+  <div class="card phoenix-card">
+    <div class="card-header-flex">
       <div>
-        <h3 class="phoenix-card-title"><i class="bi bi-clock-history" style="color:#3b82f6;margin-right:6px;"></i> Recent Content Entries</h3>
-        <p class="phoenix-card-sub">Latest content published across social channels</p>
+        <h3 class="phoenix-card-title"><i class="bi bi-pie-chart-fill" style="color:#8b5cf6;"></i> Platform Distribution</h3>
+        <p class="phoenix-card-sub">Share of publishing channels used</p>
+      </div>
+    </div>
+    <div class="chart-container" style="height:180px;"><canvas id="chartPlatformBreakdown"></canvas></div>
+    <div class="chart-legend-list" id="platformLegendList" style="margin-top:4px;"></div>
+  </div>
+
+  <div class="card phoenix-card">
+    <div class="card-header-flex">
+      <div>
+        <h3 class="phoenix-card-title"><i class="bi bi-shield-check" style="color:#22c55e;"></i> Content Ratio</h3>
+        <p class="phoenix-card-sub">Sponsored vs Organic content</p>
+      </div>
+    </div>
+    <div class="chart-container" style="height:170px;"><canvas id="chartContentRatio"></canvas></div>
+    <div class="chart-legend-list" style="margin-top:4px;">
+      <div class="legend-item-row"><span><span class="dot" style="background:#3b82f6;"></span> Sponsored</span><strong><span id="ratioSponsored">-</span> (<span id="ratioSponsoredPct">-</span>%)</strong></div>
+      <div class="legend-item-row"><span><span class="dot" style="background:#e2e8f0;"></span> Organic</span><strong><span id="ratioOrganic">-</span> (<span id="ratioOrganicPct">-</span>%)</strong></div>
+    </div>
+  </div>
+
+  <div class="card phoenix-card">
+    <div class="card-header-flex">
+      <div>
+        <h3 class="phoenix-card-title"><i class="bi bi-pin-angle-fill" style="color:#f59e0b;"></i> Assignment Pipeline</h3>
+        <p class="phoenix-card-sub">Status breakdown this period</p>
+      </div>
+    </div>
+    <div class="chart-container" style="height:200px;"><canvas id="chartAssignmentPipeline"></canvas></div>
+  </div>
+
+  <div class="card phoenix-card">
+    <div class="card-header-flex">
+      <div>
+        <h3 class="phoenix-card-title"><i class="bi bi-file-earmark-code-fill" style="color:#6366f1;"></i> Script Pipeline</h3>
+        <p class="phoenix-card-sub">Script status distribution</p>
+      </div>
+    </div>
+    <div class="chart-container" style="height:200px;"><canvas id="chartScriptPipeline"></canvas></div>
+  </div>
+
+  <div class="card phoenix-card">
+    <div class="card-header-flex">
+      <div>
+        <h3 class="phoenix-card-title"><i class="bi bi-card-checklist" style="color:#22c55e;"></i> Content List Sources</h3>
+        <p class="phoenix-card-sub">By source type this period</p>
+      </div>
+    </div>
+    <div class="chart-container" style="height:200px;"><canvas id="chartSourceMetrics"></canvas></div>
+  </div>
+
+  <div class="card phoenix-card dash-span-2">
+    <div class="card-header-flex">
+      <div>
+        <h3 class="phoenix-card-title"><i class="bi bi-calendar-range" style="color:#3b82f6;"></i> Day-of-Week Publishing Pattern</h3>
+        <p class="phoenix-card-sub">Average publication volume by day of week</p>
+      </div>
+    </div>
+    <div class="chart-container" style="height:200px;"><canvas id="chartDayOfWeek"></canvas></div>
+  </div>
+
+  <div class="card phoenix-card dash-span-2">
+    <div class="card-header-flex">
+      <div>
+        <h3 class="phoenix-card-title"><i class="bi bi-clock" style="color:#8b5cf6;"></i> Hourly Publishing Activity</h3>
+        <p class="phoenix-card-sub">Entries by hour of day</p>
+      </div>
+    </div>
+    <div class="chart-container" style="height:180px;"><canvas id="chartHourly"></canvas></div>
+  </div>
+
+  <div class="card phoenix-card">
+    <div class="card-header-flex">
+      <div>
+        <h3 class="phoenix-card-title"><i class="bi bi-arrow-left-right" style="color:#3b82f6;"></i> Period Comparison</h3>
+        <p class="phoenix-card-sub">Current vs previous period</p>
+      </div>
+    </div>
+    <div style="padding:8px 0;">
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-soft);">Current</span><strong id="periodCurrentCount">-</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-soft);">Previous</span><strong id="periodPrevCount">-</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;"><span style="color:var(--text-soft);">Change</span><strong id="periodChange" class="badge-pos">-</strong></div>
+    </div>
+  </div>
+
+  <div class="card phoenix-card">
+    <div class="card-header-flex">
+      <div>
+        <h3 class="phoenix-card-title"><i class="bi bi-activity" style="color:#22c55e;"></i> Assignment Trend</h3>
+        <p class="phoenix-card-sub">Created vs Completed</p>
+      </div>
+    </div>
+    <div class="chart-container" style="height:200px;"><canvas id="chartAssignmentTrend"></canvas></div>
+  </div>
+
+  <div class="card phoenix-card dash-span-2">
+    <div class="card-header-flex" style="margin-bottom:8px;">
+      <div>
+        <h3 class="phoenix-card-title"><i class="bi bi-clock-history" style="color:#3b82f6;"></i> Recent Content Activity</h3>
+        <p class="phoenix-card-sub">Latest content published across channels</p>
       </div>
       <div class="table-toolbar-actions">
-        <button class="btn btn-ghost btn-sm" hx-get="/cms/entries/" hx-target="#tab-content" hx-swap="innerHTML">
-          View All Entries <i class="bi bi-arrow-right"></i>
-        </button>
+        <button class="btn btn-ghost btn-sm" hx-get="/cms/entries/" hx-target="#tab-content" hx-swap="innerHTML">View All <i class="bi bi-arrow-right"></i></button>
       </div>
     </div>
-
     <div class="table-responsive">
       <table class="phoenix-table">
         <thead>
-          <tr>
-            <th>#</th>
-            <th>HEADLINE & SLUG</th>
-            <th>CREATOR</th>
-            <th>SPONSOR</th>
-            <th>PLATFORMS</th>
-            <th>DATE</th>
-          </tr>
+          <tr><th>#</th><th>Headline &amp; Slug</th><th>Creator</th><th>Sponsor</th><th>Platforms</th><th>Date</th></tr>
         </thead>
         <tbody>
           {% for e in recent_entries %}
           <tr>
             <td style="font-weight:600;color:var(--text-soft);">{{ forloop.counter }}</td>
             <td>
-              <div style="font-weight:700;color:var(--text);line-height:1.35;margin-bottom:2px;">{{ e.headline|truncatechars:45 }}</div>
-              <div style="font-size:11.5px;color:#3b82f6;font-family:monospace;">{{ e.slug }}</div>
+              <div style="font-weight:600;color:var(--text);line-height:1.3;">{{ e.headline|truncatechars:45 }}</div>
+              <div style="font-size:11px;color:#3b82f6;font-family:monospace;">{{ e.slug }}</div>
             </td>
             <td><strong>{{ e.member.full_name|default:e.member.username }}</strong></td>
-            <td>
-              {% if e.sponsor %}
-              <span class="status-pill status-success"><i class="bi bi-star-fill" style="font-size:10px;margin-right:3px;"></i> {{ e.sponsor.name }}</span>
-              {% else %}
-              <span style="color:var(--text-faint);font-size:12px;">—</span>
-              {% endif %}
-            </td>
+            <td>{% if e.sponsor %}<span class="status-pill status-success">{{ e.sponsor.name }}</span>{% else %}<span style="color:var(--text-faint);">—</span>{% endif %}</td>
             <td>
               <div class="link-row">
                 {% for p in platforms %}
                   {% with url=e.links|get_item:p.key %}
-                    {% if url %}
-                    <a class="link-pill" style="background:{{ p.color }}" href="{{ url }}" target="_blank" rel="noopener" title="{{ p.label }}">{{ p.label|first }}</a>
-                    {% else %}
-                    <span class="link-pill dim" style="background:{{ p.color }}">{{ p.label|first }}</span>
-                    {% endif %}
+                    {% if url %}<a class="link-pill" style="background:{{ p.color }}" href="{{ url }}" target="_blank" rel="noopener" title="{{ p.label }}">{{ p.label|first }}</a>{% endif %}
                   {% endwith %}
                 {% endfor %}
               </div>
             </td>
-            <td>{{ e.entry_date|date:"M d" }}</td>
+            <td style="white-space:nowrap;">{{ e.entry_date|date:"M d" }}</td>
           </tr>
           {% empty %}
-          <tr>
-            <td colspan="6" style="text-align:center;padding:24px;color:var(--text-faint);">No content entries recorded yet</td>
-          </tr>
+          <tr><td colspan="6" style="text-align:center;padding:16px;color:var(--text-faint);">No content entries recorded yet</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -238,7 +269,6 @@
 </div>
 
 <script>
-  window.dashboardPeriod = '{{ request.GET.period|default:"month" }}';
-  setTimeout(window.refreshDashboardData, 100);
+window.dashboardPeriod = '{{ request.GET.period|default:"month" }}';
+if (typeof Chart !== 'undefined') { setTimeout(window.refreshDashboardData, 100); }
 </script>
-

@@ -1,7 +1,7 @@
 from datetime import date, timedelta, datetime
 from collections import OrderedDict, defaultdict
 from django.db.models import Count, Sum, Q, Avg, F, Value, IntegerField, CharField, Case, When
-from django.db.models.functions import TruncDate, TruncMonth, ExtractYear, ExtractMonth, Coalesce
+from django.db.models.functions import TruncDate, TruncMonth, ExtractYear, ExtractMonth, ExtractWeekDay, ExtractHour, Coalesce
 from django.utils import timezone
 from apps.content.models import ContentEntry
 from apps.sponsors.models import Sponsor
@@ -11,6 +11,7 @@ from apps.scripts.models import Script
 from apps.notices.models import Notice
 from apps.accounts.models import User, UserSession
 from apps.audit.models import AuditLog
+
 
 ALIGNMENT_DAYS = 7
 PLATFORM_KEYS = ['fb', 'yt', 'ig', 'threads', 'tt', 'linkedin', 'bsky', 'dm', 'reddit']
@@ -48,7 +49,8 @@ class AnalyticsService:
             entry_date__gte=self.start_date,
             entry_date__lte=self.end_date,
         )
-        self._prev_start = self.start_date - timedelta(days=(self.end_date - self.start_date).days)
+        period_days = (self.end_date - self.start_date).days or 1
+        self._prev_start = self.start_date - timedelta(days=period_days)
 
     def kpi_summary(self):
         today = timezone.now().date()
@@ -71,12 +73,18 @@ class AnalyticsService:
         active_assignments = Assignment.objects.filter(
             deleted_at__isnull=True, status__in=['Assigned', 'Processing']
         ).count()
+        completed_assignments = Assignment.objects.filter(
+            deleted_at__isnull=True, status='Done'
+        ).count()
         total_users = User.objects.filter(is_active=True).count()
         sponsored_count = ContentEntry.objects.filter(
             deleted_at__isnull=True, sponsor__isnull=False
         ).count()
         organic_count = total_entries - sponsored_count
         total_notices = Notice.objects.filter(deleted_at__isnull=True, is_active=True).count()
+        approved_scripts = Script.objects.filter(
+            deleted_at__isnull=True, status='approved'
+        ).count()
         period_entries = self._entries.count()
         prev_period = ContentEntry.objects.filter(
             deleted_at__isnull=True,
@@ -96,6 +104,8 @@ class AnalyticsService:
             'pending_scripts': pending_scripts,
             'total_assignments': total_assignments,
             'active_assignments': active_assignments,
+            'completed_assignments': completed_assignments,
+            'approved_scripts': approved_scripts,
             'total_users': total_users,
             'total_notices': total_notices,
             'sponsored_entries': sponsored_count,
@@ -135,7 +145,16 @@ class AnalyticsService:
                 labels.append(current.strftime('%d %b'))
                 values.append(data_map.get(str(current), 0))
                 current += timedelta(days=1)
-        return {'labels': labels, 'values': values, 'interval': interval}
+
+        moving_avg = self._moving_average(values, window=min(7, len(values)))
+        forecast = self._linear_forecast(values, steps=7)
+        return {
+            'labels': labels,
+            'values': values,
+            'interval': interval,
+            'moving_avg': moving_avg,
+            'forecast': forecast,
+        }
 
     def daily_trend(self, days=7):
         today = timezone.now().date()
@@ -156,7 +175,15 @@ class AnalyticsService:
             labels.append(current.strftime('%a'))
             values.append(data_map.get(str(current), 0))
             current += timedelta(days=1)
-        return {'labels': labels, 'values': values, 'total': sum(values)}
+        avg_val = round(sum(values) / max(len(values), 1), 1)
+        peak_val = max(values) if values else 0
+        return {
+            'labels': labels,
+            'values': values,
+            'total': sum(values),
+            'average': avg_val,
+            'peak': peak_val,
+        }
 
     def weekly_trend(self, weeks=8):
         today = timezone.now().date()
@@ -172,7 +199,10 @@ class AnalyticsService:
         ).values('iso_week', 'year').annotate(
             total=Count('id')
         ).order_by('year', 'iso_week')
-        return {'labels': [f"W{r['iso_week']}" for r in qs], 'values': [r['total'] for r in qs]}
+        return {
+            'labels': [f"W{r['iso_week']}" for r in qs],
+            'values': [r['total'] for r in qs],
+        }
 
     def platform_breakdown(self):
         period_entries = list(self._entries)
@@ -239,6 +269,39 @@ class AnalyticsService:
             rank += 1
         return members
 
+    def member_trend(self, limit=5):
+        """Publishing trend for top N members over the period."""
+        top_ids = self._entries.values('member').annotate(
+            total=Count('id')
+        ).order_by('-total')[:limit]
+        member_ids = [t['member'] for t in top_ids if t['member']]
+        if not member_ids:
+            return []
+        data = []
+        for mid in member_ids:
+            try:
+                user = User.objects.get(id=mid)
+            except User.DoesNotExist:
+                continue
+            entries = ContentEntry.objects.filter(
+                deleted_at__isnull=True, member=mid,
+                entry_date__gte=self.start_date, entry_date__lte=self.end_date,
+            ).annotate(
+                day=TruncDate('entry_date')
+            ).values('day').annotate(total=Count('id')).order_by('day')
+            trend_map = {str(e['day']): e['total'] for e in entries if e['day']}
+            values = []
+            current = self.start_date
+            while current <= self.end_date:
+                values.append(trend_map.get(str(current), 0))
+                current += timedelta(days=1)
+            data.append({
+                'name': user.full_name or user.username,
+                'total': sum(values),
+                'values': values,
+            })
+        return data
+
     def assignment_metrics(self):
         assignments = Assignment.objects.filter(
             deleted_at__isnull=True,
@@ -250,8 +313,9 @@ class AnalyticsService:
         processing = assignments.filter(status='Processing').count()
         cancelled = assignments.filter(status='Cancel').count()
         total = assignments.count() or 1
+        completion_rate = round(done / total * 100, 1) if total else 0
         return {
-            'total': assignments.count(),
+            'total': total,
             'done': done,
             'assigned': assigned,
             'processing': processing,
@@ -259,7 +323,33 @@ class AnalyticsService:
             'done_pct': round(done / total * 100, 1),
             'assigned_pct': round(assigned / total * 100, 1),
             'processing_pct': round(processing / total * 100, 1),
+            'cancelled_pct': round(cancelled / total * 100, 1),
+            'completion_rate': completion_rate,
         }
+
+    def assignment_trend(self):
+        """Daily assignment completion trend."""
+        assignments = Assignment.objects.filter(
+            deleted_at__isnull=True,
+            assign_date__gte=self.start_date,
+            assign_date__lte=self.end_date,
+        )
+        created_trend = assignments.annotate(
+            day=TruncDate('assign_date')
+        ).values('day').annotate(total=Count('id')).order_by('day')
+        created_map = {str(r['day']): r['total'] for r in created_trend if r['day']}
+        done_qs = assignments.filter(status='Done').annotate(
+            day=TruncDate('assign_date')
+        ).values('day').annotate(total=Count('id')).order_by('day')
+        done_map = {str(r['day']): r['total'] for r in done_qs if r['day']}
+        labels, created_vals, done_vals = [], [], []
+        current = self.start_date
+        while current <= self.end_date:
+            labels.append(current.strftime('%d %b'))
+            created_vals.append(created_map.get(str(current), 0))
+            done_vals.append(done_map.get(str(current), 0))
+            current += timedelta(days=1)
+        return {'labels': labels, 'created': created_vals, 'done': done_vals}
 
     def script_metrics(self):
         scripts = Script.objects.filter(
@@ -271,12 +361,16 @@ class AnalyticsService:
         draft = scripts.filter(status='draft').count()
         pending = scripts.filter(status='pending').count()
         approved = scripts.filter(status='approved').count()
+        approval_rate = round(approved / total * 100, 1) if total else 0
         return {
-            'total': scripts.count(),
+            'total': total,
             'draft': draft,
             'pending': pending,
             'approved': approved,
+            'draft_pct': round(draft / total * 100, 1),
+            'pending_pct': round(pending / total * 100, 1),
             'approved_pct': round(approved / total * 100, 1),
+            'approval_rate': approval_rate,
         }
 
     def content_list_sources(self):
@@ -296,6 +390,21 @@ class AnalyticsService:
                 'pct': round(s['total'] / total * 100, 1),
             })
         return {'sources': result, 'total': items.count()}
+
+    def content_list_structure(self):
+        """Composition analysis of content list items."""
+        items = ContentListItem.objects.filter(
+            list_date__gte=self.start_date,
+            list_date__lte=self.end_date,
+        )
+        total = items.count()
+        footage = items.values('footage_source').annotate(
+            total=Count('id')
+        ).filter(footage_source__gt='').order_by('-total')
+        return {
+            'total': total,
+            'footage_breakdown': list(footage),
+        }
 
     def sponsor_performance(self):
         active = Sponsor.objects.filter(
@@ -345,15 +454,21 @@ class AnalyticsService:
         recent_logins = UserSession.objects.filter(
             login_at__gte=timezone.now() - timedelta(hours=24)
         ).count()
+        today = timezone.now().date()
+        today_logins = UserSession.objects.filter(
+            login_at__date=today
+        ).count()
         return {
             'active_sessions': total_sessions,
             'recent_24h_logins': recent_logins,
+            'today_logins': today_logins,
         }
 
     def monthly_comparison(self):
         this_month_start = self.start_date
         this_month_end = self.end_date
-        prev_month_start = this_month_start - timedelta(days=(this_month_end - this_month_start).days)
+        prev_period_days = (this_month_end - this_month_start).days or 1
+        prev_month_start = this_month_start - timedelta(days=prev_period_days)
         prev_month_end = this_month_start - timedelta(days=1)
         this_qs = ContentEntry.objects.filter(
             deleted_at__isnull=True,
@@ -373,9 +488,23 @@ class AnalyticsService:
             change_pct = round(change / prev_count * 100, 1)
         this_sponsored = this_qs.filter(sponsor__isnull=False).count()
         prev_sponsored = prev_qs.filter(sponsor__isnull=False).count()
+        this_organic = this_count - this_sponsored
+        prev_organic = prev_count - prev_sponsored
         return {
-            'current_period': {'start': this_month_start.isoformat(), 'end': this_month_end.isoformat(), 'total': this_count, 'sponsored': this_sponsored},
-            'previous_period': {'start': prev_month_start.isoformat(), 'end': prev_month_end.isoformat(), 'total': prev_count, 'sponsored': prev_sponsored},
+            'current_period': {
+                'start': this_month_start.isoformat(),
+                'end': this_month_end.isoformat(),
+                'total': this_count,
+                'sponsored': this_sponsored,
+                'organic': this_organic,
+            },
+            'previous_period': {
+                'start': prev_month_start.isoformat(),
+                'end': prev_month_end.isoformat(),
+                'total': prev_count,
+                'sponsored': prev_sponsored,
+                'organic': prev_organic,
+            },
             'change': change,
             'change_pct': change_pct,
         }
@@ -406,6 +535,54 @@ class AnalyticsService:
             ],
         }
 
+    def day_of_week_analysis(self):
+        """Content entry distribution by day of week."""
+        entries = ContentEntry.objects.filter(
+            deleted_at__isnull=True,
+            entry_date__gte=self.start_date,
+            entry_date__lte=self.end_date,
+        ).annotate(
+            dow=ExtractWeekDay('entry_date')
+        ).values('dow').annotate(
+            total=Count('id')
+        ).order_by('dow')
+        day_names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+        result = {day: 0 for day in day_names}
+        for r in entries:
+            idx = (r['dow'] - 1) % 7
+            result[day_names[idx]] = r['total']
+        total = sum(result.values()) or 1
+        labels = day_names
+        values = [result[d] for d in day_names]
+        return {
+            'labels': labels,
+            'values': values,
+            'peak_day': day_names[values.index(max(values))] if values else '',
+            'peak_value': max(values) if values else 0,
+        }
+
+    def hourly_analysis(self):
+        """Extract hourly distribution from entry_time."""
+        entries = list(ContentEntry.objects.filter(
+            deleted_at__isnull=True,
+            entry_date__gte=self.start_date,
+            entry_date__lte=self.end_date,
+        ).values('entry_time'))
+        hourly = [0] * 24
+        for e in entries:
+            t = e['entry_time']
+            if t:
+                try:
+                    hour = t.hour if hasattr(t, 'hour') else int(str(t).split(':')[0])
+                    hourly[hour] += 1
+                except (ValueError, IndexError):
+                    pass
+        labels = [f'{h:02d}:00' for h in range(24)]
+        return {
+            'labels': labels,
+            'values': hourly,
+        }
+
     def export_summary_csv(self):
         import csv
         from io import StringIO
@@ -422,6 +599,32 @@ class AnalyticsService:
             w.writerow([label, val, ''])
         buf.seek(0)
         return buf.getvalue()
+
+    def _moving_average(self, values, window=7):
+        if len(values) < window:
+            return []
+        result = []
+        for i in range(len(values)):
+            start = max(0, i - window + 1)
+            chunk = values[start:i + 1]
+            result.append(round(sum(chunk) / len(chunk), 1))
+        return result
+
+    def _linear_forecast(self, values, steps=7):
+        if len(values) < 3:
+            return []
+        n = len(values)
+        x_avg = (n - 1) / 2
+        y_avg = sum(values) / n
+        num = sum(i * values[i] for i in range(n)) - n * x_avg * y_avg
+        den = sum(i * i for i in range(n)) - n * x_avg * x_avg
+        slope = num / den if den else 0
+        intercept = y_avg - slope * x_avg
+        forecast = []
+        for i in range(steps):
+            pred = max(0, round(slope * (n + i) + intercept))
+            forecast.append(pred)
+        return forecast
 
 
 def get_dashboard_data(period='month', days=30):
@@ -442,13 +645,18 @@ def get_dashboard_data(period='month', days=30):
         'platform_breakdown': svc.platform_breakdown(),
         'sponsored_vs_organic': svc.sponsored_vs_organic(),
         'member_performance': svc.member_performance(limit=10),
+        'member_trend': svc.member_trend(limit=5),
         'assignment_metrics': svc.assignment_metrics(),
+        'assignment_trend': svc.assignment_trend(),
         'script_metrics': svc.script_metrics(),
         'content_list_sources': svc.content_list_sources(),
+        'content_list_structure': svc.content_list_structure(),
         'sponsor_performance': svc.sponsor_performance(),
         'monthly_comparison': svc.monthly_comparison(),
         'session_metrics': svc.session_metrics(),
         'content_list_stats': svc.content_list_stats(),
+        'day_of_week': svc.day_of_week_analysis(),
+        'hourly': svc.hourly_analysis(),
         'period': {
             'start': start.isoformat(),
             'end': today.isoformat(),

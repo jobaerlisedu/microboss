@@ -49,9 +49,5 @@ class Assignment(BaseModel):
         if self.assign_date and self.assign_date > timezone.now().date():
             raise ValidationError({'assign_date': _('Assign date cannot be in the future.')})
 
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return f'{self.assign_date} - {self.reporter} - {self.status}'

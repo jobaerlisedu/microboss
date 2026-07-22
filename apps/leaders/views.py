@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db.models import Count
+from django.db.models import Count, Q
 from apps.content.models import ContentEntry
 from apps.accounts.models import User
 from apps.accounts.serializers import UserSerializer
@@ -16,10 +16,9 @@ class LeaderboardView(APIView):
             limit = 5
 
         top_users = User.objects.filter(
-            content_entries__deleted_at__isnull=True,
             is_active=True,
         ).annotate(
-            entry_count=Count('content_entries'),
+            entry_count=Count('content_entries', filter=Q(content_entries__deleted_at__isnull=True)),
         ).order_by('-entry_count')[:limit]
 
         data = []

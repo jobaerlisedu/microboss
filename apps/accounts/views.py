@@ -73,7 +73,7 @@ class LoginView(APIView):
         session_key = str(uuid.uuid4())
         refresh = RefreshToken.for_user(user)
 
-        UserSession.objects.create(
+        session = UserSession.objects.create(
             user=user,
             ip_address=ip,
             device_info=ua,
