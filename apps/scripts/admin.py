@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.utils.translation import gettext_lazy as _
 from .models import Script, ScriptEditHistory
 
 
@@ -12,7 +11,7 @@ class ScriptAdmin(admin.ModelAdmin):
 
     def headline_short(self, obj):
         return obj.headline[:60] if obj.headline else ''
-    headline_short.short_description = _('হেডলাইন')
+    headline_short.short_description = 'The Headline'
 
 
 @admin.register(ScriptEditHistory)
@@ -24,4 +23,4 @@ class ScriptEditHistoryAdmin(admin.ModelAdmin):
 
     def headline_short(self, obj):
         return obj.headline[:60] if obj.headline else ''
-    headline_short.short_description = _('হেডলাইন')
+    headline_short.short_description = 'The Headline'

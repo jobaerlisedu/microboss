@@ -1,4 +1,4 @@
-{% load bengali_filters %}
+{% load common_filters %}
 <div class="card phoenix-card">
   <div class="card-header-flex" style="margin-bottom: 22px;">
     <div>
@@ -31,6 +31,13 @@
       <div class="field">
         <label><i class="bi bi-person-circle"></i> Uploader</label>
         <input type="text" value="{{ user.username }}" disabled style="opacity:0.75;background:var(--surface);">
+      </div>
+      <div class="field">
+        <label><i class="bi bi-globe2"></i> Language</label>
+        <select name="language">
+          <option value="bn" {% if entry.language == 'bn' %}selected{% endif %}>Bengali</option>
+          <option value="en" {% if entry.language == 'en' %}selected{% endif %}>English</option>
+        </select>
       </div>
       <div class="field full" style="margin-top: 4px;">
         <label><i class="bi bi-type-h1"></i> Headline *</label>

@@ -14,7 +14,7 @@ except OSError as e:
     WEASYPRINT_AVAILABLE = False
 
 
-def generate_content_report(entries, title='কন্টেন্ট রিপোর্ট'):
+def generate_content_report(entries, title='Content Report'):
     html = render_to_string('reports/content_report.html', {
         'title': title,
         'entries': entries,

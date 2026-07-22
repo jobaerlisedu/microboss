@@ -10,7 +10,12 @@ class ContentEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContentEntry
-        fields = '__all__'
+        fields = (
+            'id', 'entry_date', 'entry_time', 'slug', 'headline',
+            'member', 'member_name', 'links', 'assignment', 'sponsor',
+            'sponsor_name', 'comment', 'language', 'created_at', 'updated_at',
+            'created_by', 'updated_by', 'deleted_at',
+        )
         read_only_fields = (
             'id', 'created_at', 'updated_at',
             'created_by', 'updated_by', 'deleted_at',
@@ -18,7 +23,7 @@ class ContentEntrySerializer(serializers.ModelSerializer):
 
     def validate_links(self, value):
         if not value or not any(v for v in value.values() if v):
-            raise serializers.ValidationError('অন্তত ১টি লিংক আবশ্যক')
+            raise serializers.ValidationError('At least 1 link is required')
         return value
 
     def validate(self, attrs):
@@ -33,7 +38,7 @@ class ContentEntrySerializer(serializers.ModelSerializer):
                 dup_qs = dup_qs.exclude(id=instance_id)
             if dup_qs.exists():
                 raise serializers.ValidationError(
-                    {'headline': 'এই হেডলাইনটি আগেই তালিকায় আছে'}
+                    {'headline': 'This headline is already in the list'}
                 )
 
         links = attrs.get('links', {})
@@ -47,7 +52,7 @@ class ContentEntrySerializer(serializers.ModelSerializer):
                 dup_qs = dup_qs.exclude(id=instance_id)
             if dup_qs.exists():
                 raise serializers.ValidationError(
-                    {'links': f'এই লিংকটি ({key}) আগেই তালিকায় আছে'}
+                    {'links': f'This link ({key}) is already in the list'}
                 )
 
         return attrs

@@ -1,7 +1,8 @@
 import csv
 import io
 import json
-from datetime import date, datetime
+from collections import defaultdict
+from datetime import date, datetime, timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib.auth import login as auth_login
@@ -9,8 +10,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
+from django.core.cache import cache
 from django.utils import timezone
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from apps.accounts.models import User, UserSession
@@ -25,6 +27,7 @@ from apps.audio.models import AudioItem
 from apps.finalpackage.models import FinalPackage
 from apps.reports.models import ReportConfig
 from apps.reports.report_engine import ReportEngine
+from apps.hr.models import Shift, DutyRoster, LeaveType, LeaveRequest, LeaveBalance
 
 PLATFORMS = [
     {'key': 'fb', 'label': 'Facebook', 'color': '#3B82F6'},
@@ -265,6 +268,16 @@ def all_entries_tab(request):
     date_to = request.GET.get('date_to', '')
     if not date_from and not date_to:
         qs = qs.filter(entry_date=today)
+    else:
+        if date_from and date_to:
+            try:
+                d1 = datetime.strptime(date_from, '%Y-%m-%d').date()
+                d2 = datetime.strptime(date_to, '%Y-%m-%d').date()
+                if (d2 - d1).days > 90:
+                    date_to = (d1 + timedelta(days=90)).strftime('%Y-%m-%d')
+                    qs = qs.filter(entry_date__gte=date_from, entry_date__lte=date_to)
+            except (ValueError, TypeError):
+                pass
 
     if search:
         qs = qs.filter(
@@ -347,10 +360,8 @@ def all_entries_tab(request):
 @login_required
 def sponsors_tab(request):
     sponsors = Sponsor.objects.filter(deleted_at__isnull=True).order_by('-created_at')
-    stats = _sponsor_stats()
     return _tab_response(request, 'cms/sponsors.html', {
         'sponsors': sponsors,
-        'stats': stats,
         'user': request.user,
     })
 
@@ -403,7 +414,7 @@ def assignments_tab(request):
             ])
         return _csv_response(
             'assignments.csv',
-            ['তারিখ', 'ক্যাপশন', 'জেলা', 'রিপোর্টার', 'স্ট্যাটাস', 'সোর্স লিংক'],
+            ['The Date', 'Caption', 'District', 'Reporter', 'Status', 'Source Link'],
             rows,
         )
 
@@ -463,7 +474,7 @@ def scripts_tab(request):
             ])
         return _csv_response(
             'scripts.csv',
-            ['তারিখ', 'লেখক', 'হেডলাইন', 'উৎস', 'জেলা', 'স্ট্যাটাস'],
+            ['The Date', 'The Writer', 'The Headline', 'The Source', 'District', 'Status'],
             rows,
         )
 
@@ -534,49 +545,63 @@ def admin_panel_tab(request):
     return _admin_response(request)
 
 
-@login_required
-def leaderboard_widget(request):
+def _leaderboard_data():
     top_users = User.objects.filter(
         is_active=True,
     ).annotate(
         entry_count=Count('content_entries', filter=Q(content_entries__deleted_at__isnull=True)),
     ).order_by('-entry_count')[:5]
+    return list(top_users)
 
+
+@login_required
+def leaderboard_widget(request):
+    top_users = cache.get_or_set('widget_leaderboard', _leaderboard_data, 15)
     is_winner = bool(top_users and str(top_users[0].id) == str(request.user.id) and top_users[0].entry_count > 0)
-
     return render(request, 'cms/leaderboard_widget.html', {
         'top_users': top_users,
         'is_winner': is_winner,
     })
 
 
-@login_required
-def sponsor_track_widget(request):
+def _sponsor_track_data():
     today = timezone.now().date()
-    active = Sponsor.objects.filter(
+    active = list(Sponsor.objects.filter(
         deleted_at__isnull=True,
         start_date__lte=today,
         end_date__gte=today,
-    )
+    ))
+    return active
+
+
+@login_required
+def sponsor_track_widget(request):
+    today = timezone.now().date()
+    active = cache.get_or_set('widget_sponsor_track', _sponsor_track_data, 15)
     return render(request, 'cms/sponsor_track_widget.html', {
         'active_sponsors': active,
         'today': today,
     })
 
 
-@login_required
-def contributors_widget(request):
-    top = User.objects.filter(is_active=True).annotate(
+def _contributors_data():
+    top = list(User.objects.filter(is_active=True).annotate(
         entry_count=Count('content_entries', filter=Q(content_entries__deleted_at__isnull=True)),
         assignment_count=Count('assignments', filter=Q(assignments__deleted_at__isnull=True)),
         script_count=Count('scripts', filter=Q(scripts__deleted_at__isnull=True)),
         audio_count=Count('audio_items', filter=Q(audio_items__deleted_at__isnull=True)),
         clist_count=Count('content_list_items', filter=Q(content_list_items__deleted_at__isnull=True)),
         fp_count=Count('final_packages', filter=Q(final_packages__deleted_at__isnull=True)),
-    ).order_by('-entry_count')[:15]
+    ).order_by('-entry_count')[:15])
     for u in top:
         u.total_count = u.entry_count + u.assignment_count + u.script_count + u.audio_count + u.clist_count + u.fp_count
     top = sorted(top, key=lambda u: u.total_count, reverse=True)[:5]
+    return top
+
+
+@login_required
+def contributors_widget(request):
+    top = cache.get_or_set('widget_contributors', _contributors_data, 30)
     return render(request, 'cms/contributors_widget.html', {
         'top': top,
     })
@@ -611,6 +636,7 @@ def save_entry(request):
             'assignment_id': assignment_id or None,
             'sponsor_id': sponsor_id or None,
             'comment': request.POST.get('comment', ''),
+            'language': request.POST.get('language', 'bn'),
         }
         if entry_id:
             entry = get_object_or_404(ContentEntry, id=entry_id, deleted_at__isnull=True)
@@ -621,13 +647,19 @@ def save_entry(request):
             return _toast_response('Entry updated successfully.', '/cms/entries/')
         data['member'] = request.user
         data['created_by'] = request.user
-        entry = ContentEntry.objects.create(**data)
-        # Close the linked assignment as Done / Published
+        try:
+            entry = ContentEntry.objects.create(**data)
+        except Exception as e:
+            return _toast_response(f'Error saving entry: {str(e)[:100]}', '/cms/entries/new/', type='error')
         if assignment_id:
-            assignment = get_object_or_404(Assignment, id=assignment_id)
-            assignment.status = 'Done'
-            assignment.updated_by = request.user
-            assignment.save()
+            try:
+                assignment = get_object_or_404(Assignment, id=assignment_id)
+                assignment.status = 'Done'
+                assignment.updated_by = request.user
+                assignment.save(update_fields=['status', 'updated_by'])
+            except Exception:
+                entry.delete()
+                return _toast_response('Failed to update assignment status.', '/cms/entries/new/', type='error')
         return _toast_response('Entry saved successfully.', '/cms/entries/')
     return redirect('cms:cms-new-entry')
 
@@ -715,7 +747,10 @@ def save_sponsor(request):
             sponsor.save()
             return _toast_response('Sponsor updated successfully.', '/cms/sponsors/')
         data['created_by'] = request.user
-        Sponsor.objects.create(**data)
+        try:
+            Sponsor.objects.create(**data)
+        except Exception as e:
+            return _toast_response(f'Error saving sponsor: {str(e)[:100]}', '/cms/sponsors/', type='error')
         return _toast_response('Sponsor saved successfully.', '/cms/sponsors/')
     return redirect('cms:cms-sponsors')
 
@@ -1041,7 +1076,10 @@ def save_assignment(request):
                 data['reporter'] = reporter_name or ''
         else:
             data['reporter'] = reporter_name or ''
-        Assignment.objects.create(**data)
+        try:
+            Assignment.objects.create(**data)
+        except Exception as e:
+            return _toast_response(f'Error saving assignment: {str(e)[:100]}', reverse('cms:cms-assignments'), type='error')
         return _toast_response('Assignment saved successfully.', reverse('cms:cms-assignments'))
     return redirect(reverse('cms:cms-assignments'))
 
@@ -1889,3 +1927,287 @@ def report_export_pdf(request, pk):
         safe_name = config.name.replace(' ', '_').replace('/', '_')[:50]
         response['Content-Disposition'] = f'inline; filename="{safe_name}.html"'
         return response
+
+
+@login_required
+def content_calendar_tab(request, year=None, month=None):
+    now = timezone.now()
+    y = year or now.year
+    m = month or now.month
+    try:
+        month_date = date(int(y), int(m), 1)
+    except (ValueError, TypeError):
+        month_date = now.date().replace(day=1)
+    import calendar as cal_mod
+    _, last_day = cal_mod.monthrange(month_date.year, month_date.month)
+    month_start = month_date
+    month_end = month_date.replace(day=last_day)
+    entries_by_day = defaultdict(list)
+    qs = ContentEntry.objects.filter(
+        deleted_at__isnull=True,
+        entry_date__gte=month_start,
+        entry_date__lte=month_end,
+    ).select_related('member', 'sponsor').order_by('entry_date', 'entry_time')
+    for e in qs:
+        entries_by_day[e.entry_date.day].append(e)
+    weeks = []
+    week = [None] * month_date.weekday()
+    for day in range(1, last_day + 1):
+        d = month_date.replace(day=day)
+        week.append({'day': day, 'date': d, 'entries': entries_by_day.get(day, [])})
+        if len(week) == 7:
+            weeks.append(week)
+            week = []
+    if week:
+        while len(week) < 7:
+            week.append(None)
+        weeks.append(week)
+    prev_month = month_date - timedelta(days=1)
+    next_month = month_date + timedelta(days=last_day)
+    month_label = month_date.strftime('%B %Y')
+    user = request.user
+    return _tab_response(request, 'cms/calendar.html', {
+        'weeks': weeks,
+        'month_label': month_label,
+        'month_year': month_date.strftime('%Y-%m'),
+        'prev_year': prev_month.year,
+        'prev_month': prev_month.month,
+        'next_year': next_month.year,
+        'next_month': next_month.month,
+        'user': user,
+    })
+
+
+# ─── Duty Roster ─────────────────────────────────────────────────
+
+@login_required
+def roster_tab(request):
+    today = timezone.now().date()
+    month_param = request.GET.get('month')
+    year_param = request.GET.get('year')
+
+    if month_param and isinstance(month_param, str) and '-' in month_param:
+        try:
+            parts = month_param.split('-')
+            year = int(parts[0])
+            month = int(parts[1])
+        except (ValueError, TypeError, IndexError):
+            year = today.year
+            month = today.month
+    else:
+        try:
+            year = int(year_param) if year_param else today.year
+            month = int(month_param) if month_param else today.month
+        except (ValueError, TypeError):
+            year = today.year
+            month = today.month
+
+    import calendar as cal_mod
+    _, last_day = cal_mod.monthrange(year, month)
+    month_start = date(year, month, 1)
+    month_end = date(year, month, last_day)
+    rosters = DutyRoster.objects.filter(
+        date__gte=month_start, date__lte=month_end,
+    ).select_related('employee', 'shift').order_by('date', 'employee')
+    shifts = Shift.objects.filter(is_active=True)
+    employees = User.objects.filter(is_active=True).order_by('full_name')
+    roster_by_day = defaultdict(list)
+    for r in rosters:
+        roster_by_day[r.date.day].append(r)
+    weeks = []
+    week = [None] * month_start.weekday()
+    for day in range(1, last_day + 1):
+        d = month_start.replace(day=day)
+        week.append({'day': day, 'date': d, 'rosters': roster_by_day.get(day, [])})
+        if len(week) == 7:
+            weeks.append(week)
+            week = []
+    if week:
+        while len(week) < 7:
+            week.append(None)
+        weeks.append(week)
+    prev = month_start - timedelta(days=1)
+    next_d = month_end + timedelta(days=1)
+    return _tab_response(request, 'cms/roster.html', {
+        'weeks': weeks,
+        'today': today,
+        'month_label': month_start.strftime('%B %Y'),
+        'month_year': month_start.strftime('%Y-%m'),
+        'prev_year': prev.year,
+        'prev_month': prev.month,
+        'next_year': next_d.year,
+        'next_month': next_d.month,
+        'shifts': shifts,
+        'employees': employees,
+        'user': request.user,
+    })
+
+
+@login_required
+@require_POST
+def roster_save(request):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    employee_ids = request.POST.getlist('employee_ids')
+    shift_id = request.POST.get('shift_id')
+    roster_date = request.POST.get('date')
+    note = request.POST.get('note', '')
+    if not employee_ids or not shift_id or not roster_date:
+        return _toast_response('Please select employee, shift and date.', '', 'error')
+    try:
+        shift = Shift.objects.get(id=shift_id, is_active=True)
+        roster_date = datetime.strptime(roster_date, '%Y-%m-%d').date()
+    except (Shift.DoesNotExist, ValueError):
+        return _toast_response('Incorrect Data.', '', 'error')
+    for emp_id in employee_ids:
+        DutyRoster.objects.update_or_create(
+            employee_id=emp_id,
+            date=roster_date,
+            defaults={'shift': shift, 'note': note, 'assigned_by': request.user},
+        )
+    return _toast_response(f'Saved roster for {len(employee_ids)} people.', 'roster')
+
+
+@login_required
+def my_roster_tab(request):
+    today = timezone.now().date()
+    rosters = DutyRoster.objects.filter(
+        employee=request.user,
+        date__gte=today - timedelta(days=7),
+        date__lte=today + timedelta(days=30),
+    ).select_related('shift').order_by('date')
+    return _tab_response(request, 'cms/my_roster.html', {
+        'rosters': rosters,
+        'today': today,
+        'user': request.user,
+    })
+
+
+# ─── Leave Management ────────────────────────────────────────────
+
+@login_required
+def leave_tab(request):
+    status_filter = request.GET.get('status', '')
+    leaves = LeaveRequest.objects.filter(employee=request.user).select_related('leave_type', 'approved_by').order_by('-created_at')
+    if status_filter:
+        leaves = leaves.filter(status=status_filter)
+    
+    current_year = timezone.now().year
+    leave_types = LeaveType.objects.filter(is_active=True)
+    for lt in leave_types:
+        LeaveBalance.objects.get_or_create(
+            employee=request.user,
+            leave_type=lt,
+            year=current_year,
+            defaults={'total_days': lt.days_per_year, 'used_days': 0},
+        )
+    balances = LeaveBalance.objects.filter(employee=request.user, year=current_year).select_related('leave_type')
+    return _tab_response(request, 'cms/leave.html', {
+        'leaves': leaves,
+        'leave_types': leave_types,
+        'balances': balances,
+        'status_filter': status_filter,
+        'user': request.user,
+    })
+
+
+@login_required
+@require_POST
+def leave_save(request):
+    leave_type_id = request.POST.get('leave_type')
+    start_date = request.POST.get('start_date')
+    end_date = request.POST.get('end_date')
+    reason = request.POST.get('reason', '')
+    if not leave_type_id or not start_date or not end_date:
+        return _toast_response('Fill in all fields.', '', 'error')
+    try:
+        leave_type = LeaveType.objects.get(id=leave_type_id, is_active=True)
+        sd = datetime.strptime(start_date, '%Y-%m-%d').date()
+        ed = datetime.strptime(end_date, '%Y-%m-%d').date()
+        if ed < sd:
+            return _toast_response('The end date cannot be earlier than the start date.', '', 'error')
+    except (LeaveType.DoesNotExist, ValueError):
+        return _toast_response('Incorrect Data.', '', 'error')
+    try:
+        leave = LeaveRequest.objects.create(
+            employee=request.user,
+            leave_type=leave_type,
+            start_date=sd,
+            end_date=ed,
+            reason=reason,
+            created_by=request.user,
+        )
+    except Exception as e:
+        return _toast_response(f'Error: {E}', '', 'error')
+    return _toast_response('Leave Application Submitted.', 'leave')
+
+
+@login_required
+def leave_admin_tab(request):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    status_filter = request.GET.get('status', 'pending')
+    all_leaves = LeaveRequest.objects.select_related('employee', 'leave_type', 'approved_by').all()
+    
+    pending_count = all_leaves.filter(status=LeaveRequest.Status.PENDING).count()
+    approved_count = all_leaves.filter(status=LeaveRequest.Status.APPROVED).count()
+    rejected_count = all_leaves.filter(status=LeaveRequest.Status.REJECTED).count()
+
+    leaves = all_leaves
+    if status_filter:
+        leaves = leaves.filter(status=status_filter)
+    leaves = leaves.order_by('-created_at')
+
+    return _tab_response(request, 'cms/leave_admin.html', {
+        'leaves': leaves,
+        'status_filter': status_filter,
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
+        'user': request.user,
+    })
+
+
+@login_required
+@require_POST
+def leave_approve(request, pk):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    leave = get_object_or_404(LeaveRequest, id=pk, status=LeaveRequest.Status.PENDING)
+    action = request.POST.get('action')
+    if action == 'approve':
+        leave.status = LeaveRequest.Status.APPROVED
+        leave.approved_by = request.user
+        leave.approved_at = timezone.now()
+        leave.save(update_fields=['status', 'approved_by', 'approved_at'])
+        _update_leave_balance(leave)
+        msg = 'Leave has been approved.'
+    elif action == 'reject':
+        leave.status = LeaveRequest.Status.REJECTED
+        leave.approved_by = request.user
+        leave.approved_at = timezone.now()
+        leave.rejection_reason = request.POST.get('rejection_reason', '')
+        leave.save(update_fields=['status', 'approved_by', 'approved_at', 'rejection_reason'])
+        msg = 'Vacation Is Cancelled.'
+    else:
+        return _toast_response('Wrong Action', '', 'error')
+    return _toast_response(msg, 'leave-admin')
+
+
+def _update_leave_balance(leave):
+    balance, _ = LeaveBalance.objects.get_or_create(
+        employee=leave.employee,
+        leave_type=leave.leave_type,
+        year=leave.start_date.year,
+        defaults={'total_days': leave.leave_type.days_per_year},
+    )
+    used = LeaveRequest.objects.filter(
+        employee=leave.employee,
+        leave_type=leave.leave_type,
+        status=LeaveRequest.Status.APPROVED,
+        start_date__year=leave.start_date.year,
+    ).aggregate(total=Sum('total_days'))['total'] or 0
+
+    balance.used_days = used
+    balance.save(update_fields=['used_days'])
+

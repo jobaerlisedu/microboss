@@ -1,4 +1,4 @@
-{% load bengali_filters %}
+{% load common_filters %}
 <h3 style="margin:0 0 12px;font-size:16px;color:var(--text);">{{ target_user.full_name|default:target_user.username }} — Total {{ entries|length }} Content Entries</h3>
 {% if entries %}
 <div class="table-responsive">

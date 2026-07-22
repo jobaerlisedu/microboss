@@ -46,6 +46,7 @@ LOCAL_APPS = [
     'apps.audit',
     'apps.audio',
     'apps.finalpackage',
+    'apps.hr',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -113,9 +114,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-LANGUAGE_CODE = 'bn'
+LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Dhaka'
-USE_I18N = True
+USE_I18N = False
 USE_L10N = True
 USE_TZ = True
 LOCALE_PATHS = [BASE_DIR / 'locale']

@@ -5,13 +5,13 @@ from .models import Assignment
 from apps.notifications.models import Notification
 
 
-@receiver(post_save, sender=Assignment)
+@receiver(post_save, sender=Assignment, dispatch_uid='notify_assignment_reporter')
 def notify_assignment_reporter(sender, instance, created, **kwargs):
     if created and instance.reporter_user and instance.reporter_user != instance.member:
         Notification.objects.create(
             recipient=instance.reporter_user,
             notification_type='assignment',
-            title='নতুন এসাইনমেন্ট',
+            title='New Assignment',
             message=instance.caption[:200],
             link=reverse('cms:cms-assignments'),
             created_by=instance.created_by,

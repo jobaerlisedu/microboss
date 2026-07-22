@@ -36,7 +36,7 @@ class UserEntriesDetailView(APIView):
         try:
             user = User.objects.get(id=user_id, is_active=True)
         except User.DoesNotExist:
-            return Response({'error': 'ব্যবহারকারী পাওয়া যায়নি'}, status=404)
+            return Response({'error': 'User not found'}, status=404)
 
         entries = ContentEntry.objects.filter(
             member=user, deleted_at__isnull=True,

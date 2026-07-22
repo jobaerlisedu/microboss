@@ -20,140 +20,140 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: apps/accounts/models.py
-msgid "ডাকনাম"
-msgstr "ডাকনাম"
+msgid "Nickname"
+msgstr "Nickname"
 
-msgid "পূর্ণ নাম"
-msgstr "পূর্ণ নাম"
+msgid "Full Name"
+msgstr "Full Name"
 
-msgid "অফিস আইডি"
-msgstr "অফিস আইডি"
+msgid "Office Id"
+msgstr "Office Id"
 
-msgid "ডেজিগনেশন"
-msgstr "ডেজিগনেশন"
+msgid "Designation"
+msgstr "Designation"
 
-msgid "ফোন"
-msgstr "ফোন"
+msgid "The Phone"
+msgstr "The Phone"
 
-msgid "ব্লাড গ্রুপ"
-msgstr "ব্লাড গ্রুপ"
+msgid "Blood Group"
+msgstr "Blood Group"
 
-msgid "জন্ম তারিখ"
-msgstr "জন্ম তারিখ"
+msgid "Date Of Birth"
+msgstr "Date Of Birth"
 
-msgid "ফেসবুক আইডি"
-msgstr "ফেসবুক আইডি"
+msgid "Facebook Id"
+msgstr "Facebook Id"
 
-msgid "অ্যাডমিন"
-msgstr "অ্যাডমিন"
+msgid "Admin"
+msgstr "Admin"
 
-msgid "প্রতিষ্ঠাতা"
-msgstr "প্রতিষ্ঠাতা"
+msgid "The Founder"
+msgstr "The Founder"
 
-msgid "ব্যবহারকারী"
-msgstr "ব্যবহারকারী"
+msgid "The User"
+msgstr "The User"
 
-msgid "ব্যবহারকারীগণ"
-msgstr "ব্যবহারকারীগণ"
+msgid "Users"
+msgstr "Users"
 
-msgid "সেশন"
-msgstr "সেশন"
+msgid "Session"
+msgstr "Session"
 
-msgid "সেশনসমূহ"
-msgstr "সেশনসমূহ"
+msgid "Sessions"
+msgstr "Sessions"
 
 #: apps/content/models.py
-msgid "তারিখ"
-msgstr "তারিখ"
+msgid "The Date"
+msgstr "The Date"
 
-msgid "টাইম"
-msgstr "টাইম"
+msgid "Time"
+msgstr "Time"
 
-msgid "কন্টেন্ট স্লাগ নেম"
-msgstr "কন্টেন্ট স্লাগ নেম"
+msgid "Content Slug Name"
+msgstr "Content Slug Name"
 
-msgid "হেডলাইন"
-msgstr "হেডলাইন"
+msgid "The Headline"
+msgstr "The Headline"
 
-msgid "আপলোডকারী"
-msgstr "আপলোডকারী"
+msgid "The Uploader"
+msgstr "The Uploader"
 
-msgid "লিংকসমূহ"
-msgstr "লিংকসমূহ"
+msgid "Links"
+msgstr "Links"
 
-msgid "স্পন্সর"
-msgstr "স্পন্সর"
+msgid "Sponsor"
+msgstr "Sponsor"
 
-msgid "মন্তব্য"
-msgstr "মন্তব্য"
+msgid "Comment"
+msgstr "Comment"
 
-msgid "কন্টেন্ট এন্ট্রি"
-msgstr "কন্টেন্ট এন্ট্রি"
+msgid "Content Entry"
+msgstr "Content Entry"
 
-msgid "কন্টেন্ট এন্ট্রিসমূহ"
-msgstr "কন্টেন্ট এন্ট্রিসমূহ"
+msgid "Content Entries"
+msgstr "Content Entries"
 
 #: apps/sponsors/models.py
-msgid "স্পন্সরের নাম"
-msgstr "স্পন্সরের নাম"
+msgid "Sponsor'S Name"
+msgstr "Sponsor'S Name"
 
-msgid "প্রতিদিন কয়টা"
-msgstr "প্রতিদিন কয়টা"
+msgid "how many per day"
+msgstr "how many per day"
 
-msgid "মোট কয়টা"
-msgstr "মোট কয়টা"
+msgid "how many in total"
+msgstr "how many in total"
 
-msgid "শুরুর তারিখ"
-msgstr "শুরুর তারিখ"
+msgid "Start Date"
+msgstr "Start Date"
 
-msgid "শেষ তারিখ"
-msgstr "শেষ তারিখ"
+msgid "Last Date"
+msgstr "Last Date"
 
-msgid "কন্টেন্ট টাইপ"
-msgstr "কন্টেন্ট টাইপ"
+msgid "Content Type"
+msgstr "Content Type"
 
-msgid "ডগি (FT)"
-msgstr "ডগি (FT)"
+msgid "Dougie (Ft)"
+msgstr "Dougie (Ft)"
 
-msgid "পপআপ x2"
-msgstr "পপআপ x2"
+msgid "Popup X2"
+msgstr "Popup X2"
 
-msgid "টিভিসি x1"
-msgstr "টিভিসি x1"
+msgid "Tvc X1"
+msgstr "Tvc X1"
 
-msgid "জিপিআই x1"
-msgstr "জিপিআই x1"
+msgid "Gpi X1"
+msgstr "Gpi X1"
 
-msgid "স্পন্সরগণ"
-msgstr "স্পন্সরগণ"
+msgid "Sponsors"
+msgstr "Sponsors"
 
 #: apps/contentlist/models.py
-msgid "জেলা"
-msgstr "জেলা"
+msgid "District"
+msgstr "District"
 
-msgid "রয়টার্স"
-msgstr "রয়টার্স"
+msgid "Reuters"
+msgstr "Reuters"
 
-msgid "সোশ্যাল মিডিয়া"
-msgstr "সোশ্যাল মিডিয়া"
+msgid "Social Media"
+msgstr "Social Media"
 
-msgid "স্টুডিও শুটিং"
-msgstr "স্টুডিও শুটিং"
+msgid "Studio Shooting"
+msgstr "Studio Shooting"
 
-msgid "সোর্স"
-msgstr "সোর্স"
+msgid "Source"
+msgstr "Source"
 
-msgid "ফুটেজ"
-msgstr "ফুটেজ"
+msgid "Footage"
+msgstr "Footage"
 
-msgid "যোগকারী"
-msgstr "যোগকারী"
+msgid "Adder"
+msgstr "Adder"
 
-msgid "কন্টেন্ট তালিকা"
-msgstr "কন্টেন্ট তালিকা"
+msgid "Table Of Contents"
+msgstr "Table Of Contents"
 
-msgid "কন্টেন্ট তালিকাসমূহ"
-msgstr "কন্টেন্ট তালিকাসমূহ"
+msgid "Content Lists"
+msgstr "Content Lists"
 
 #: apps/assignments/models.py
 msgid "Assigned"
@@ -168,171 +168,171 @@ msgstr "Done"
 msgid "Cancel"
 msgstr "Cancel"
 
-msgid "কন্টেন্ট ক্যাপশন"
-msgstr "কন্টেন্ট ক্যাপশন"
+msgid "Content Caption"
+msgstr "Content Caption"
 
-msgid "সোর্স লিংক"
-msgstr "সোর্স লিংক"
+msgid "Source Link"
+msgstr "Source Link"
 
-msgid "রিপোর্টারের নাম"
-msgstr "রিপোর্টারের নাম"
+msgid "Reporterের নাম"
+msgstr "Reporterের নাম"
 
-msgid "স্ট্যাটাস"
-msgstr "স্ট্যাটাস"
+msgid "Status"
+msgstr "Status"
 
-msgid "এসাইনকারী"
-msgstr "এসাইনকারী"
+msgid "Assignee"
+msgstr "Assignee"
 
-msgid "এসাইনমেন্ট"
-msgstr "এসাইনমেন্ট"
+msgid "Assignment"
+msgstr "Assignment"
 
-msgid "এসাইনমেন্টসমূহ"
-msgstr "এসাইনমেন্টসমূহ"
+msgid "Assignments"
+msgstr "Assignments"
 
 #: apps/scripts/models.py
-msgid "খসড়া"
-msgstr "খসড়া"
+msgid "The Draft"
+msgstr "The Draft"
 
-msgid "অনুমোদনের অপেক্ষায়"
-msgstr "অনুমোদনের অপেক্ষায়"
+msgid "Awaiting Approval"
+msgstr "Awaiting Approval"
 
-msgid "অনুমোদিত"
-msgstr "অনুমোদিত"
+msgid "Allowed"
+msgstr "Allowed"
 
-msgid "সম্ভাব্য হেডলাইন"
-msgstr "সম্ভাব্য হেডলাইন"
+msgid "Possible Headlines"
+msgstr "Possible Headlines"
 
-msgid "কন্টেন্ট সোর্স"
-msgstr "কন্টেন্ট সোর্স"
+msgid "Content Source"
+msgstr "Content Source"
 
-msgid "স্ক্রিপ্ট রাইটার"
-msgstr "স্ক্রিপ্ট রাইটার"
+msgid "Script Writer"
+msgstr "Script Writer"
 
-msgid "জেলার নাম"
-msgstr "জেলার নাম"
+msgid "District Name"
+msgstr "District Name"
 
-msgid "জেলার রিপোর্টার"
-msgstr "জেলার রিপোর্টার"
+msgid "District Reporter"
+msgstr "District Reporter"
 
-msgid "স্ক্রিপ্ট"
-msgstr "স্ক্রিপ্ট"
+msgid "Script"
+msgstr "Script"
 
-msgid "অনুমোদনকারী"
-msgstr "অনুমোদনকারী"
+msgid "Approver"
+msgstr "Approver"
 
-msgid "অনুমোদনের সময়"
-msgstr "অনুমোদনের সময়"
+msgid "Approval Time"
+msgstr "Approval Time"
 
-msgid "ডিজিটাল স্ক্রিপ্ট"
-msgstr "ডিজিটাল স্ক্রিপ্ট"
+msgid "Digital Script"
+msgstr "Digital Script"
 
-msgid "ডিজিটাল স্ক্রিপ্টসমূহ"
-msgstr "ডিজিটাল স্ক্রিপ্টসমূহ"
+msgid "Digital Scripts"
+msgstr "Digital Scripts"
 
 #: apps/accounts/serializers.py
-msgid "পাসওয়ার্ড দুটি মিলছে না"
-msgstr "পাসওয়ার্ড দুটি মিলছে না"
+msgid "The two passwords do not match"
+msgstr "The two passwords do not match"
 
-msgid "এই ডাকনাম/ইমেইল/অফিস আইডি দিয়ে আগেই রেজিস্ট্রেশন করা হয়েছে"
-msgstr "এই ডাকনাম/ইমেইল/অফিস আইডি দিয়ে আগেই রেজিস্ট্রেশন করা হয়েছে"
+msgid "Already registered with this nickname/email/office id"
+msgstr "Already registered with this nickname/email/office id"
 
 #: apps/accounts/views.py
-msgid "ভুল তথ্য দেওয়া হয়েছে"
-msgstr "ভুল তথ্য দেওয়া হয়েছে"
+msgid "Incorrect Information Provided"
+msgstr "Incorrect Information Provided"
 
-msgid "লগআউট হয়েছে"
-msgstr "লগআউট হয়েছে"
+msgid "Logged Out"
+msgstr "Logged Out"
 
-msgid "পাসওয়ার্ড রিসেট হয়েছে"
-msgstr "পাসওয়ার্ড রিসেট হয়েছে"
+msgid "Password Reset"
+msgstr "Password Reset"
 
-msgid "OTP পাঠানো হয়েছে"
-msgstr "OTP পাঠানো হয়েছে"
+msgid "OTP has been sent"
+msgstr "OTP has been sent"
 
-msgid "কোড মিলছে না"
-msgstr "কোড মিলছে না"
+msgid "Code does not match"
+msgstr "Code does not match"
 
-msgid "সেশন মেয়াদ উত্তীর্ণ হয়েছে"
-msgstr "সেশন মেয়াদ উত্তীর্ণ হয়েছে"
+msgid "The session has expired"
+msgstr "The session has expired"
 
-msgid "ব্যবহারকারী পাওয়া যায়নি"
-msgstr "ব্যবহারকারী পাওয়া যায়নি"
+msgid "User Not Found"
+msgstr "User Not Found"
 
-msgid "পাসওয়ার্ড অন্তত ৪ ক্যারেক্টার হতে হবে"
-msgstr "পাসওয়ার্ড অন্তত ৪ ক্যারেক্টার হতে হবে"
+msgid "Password must be at least 4 characters"
+msgstr "Password must be at least 4 characters"
 
-msgid "প্রতিষ্ঠাতাকে অন্য কেউ অ্যাডমিন থেকে সরাতে পারবে না"
-msgstr "প্রতিষ্ঠাতাকে অন্য কেউ অ্যাডমিন থেকে সরাতে পারবে না"
+msgid "No one else can remove the founder from admin"
+msgstr "No one else can remove the founder from admin"
 
-msgid "সর্বোচ্চ ৩ জন অ্যাডমিন রাখা যাবে"
-msgstr "সর্বোচ্চ ৩ জন অ্যাডমিন রাখা যাবে"
+msgid "Maximum 3 admins can be kept"
+msgstr "Maximum 3 admins can be kept"
 
 #: apps/core/permissions.py
-msgid "আপনার এই কর্ম সম্পাদনের অনুমতি নেই"
-msgstr "আপনার এই কর্ম সম্পাদনের অনুমতি নেই"
+msgid "You do not have permission to perform this action"
+msgstr "You do not have permission to perform this action"
 
 #: apps/content/serializers.py
-msgid "অন্তত ১টি লিংক আবশ্যক"
-msgstr "অন্তত ১টি লিংক আবশ্যক"
+msgid "At least 1 link is required"
+msgstr "At least 1 link is required"
 
-msgid "এই হেডলাইনটি আগেই তালিকায় আছে"
-msgstr "এই হেডলাইনটি আগেই তালিকায় আছে"
+msgid "This headline is already listed"
+msgstr "This headline is already listed"
 
 #: apps/scripts/views.py
-msgid "শুধু খসড়া স্ক্রিপ্ট জমা দেওয়া যাবে"
-msgstr "শুধু খসড়া স্ক্রিপ্ট জমা দেওয়া যাবে"
+msgid "Only draft scripts can be submitted"
+msgstr "Only draft scripts can be submitted"
 
-msgid "শুধু অ্যাডমিন অনুমোদন দিতে পারেন"
-msgstr "শুধু অ্যাডমিন অনুমোদন দিতে পারেন"
+msgid "Only admin can give approval"
+msgstr "Only admin can give approval"
 
-msgid "শুধু অপেক্ষমাণ স্ক্রিপ্ট অনুমোদন করা যাবে"
-msgstr "শুধু অপেক্ষমাণ স্ক্রিপ্ট অনুমোদন করা যাবে"
+msgid "Only pending scripts can be approved"
+msgstr "Only pending scripts can be approved"
 
 #: apps/assignments/views.py
 msgid "Invalid status"
-msgstr "ভুল স্ট্যাটাস"
+msgstr "Incorrect Status"
 
 #: apps/leaders/views.py
-msgid "ব্যবহারকারী পাওয়া যায়নি"
-msgstr "ব্যবহারকারী পাওয়া যায়নি"
+msgid "User Not Found"
+msgstr "User Not Found"
 
 #: apps/reports/pdf_utils.py
-msgid "কন্টেন্ট রিপোর্ট"
-msgstr "কন্টেন্ট রিপোর্ট"
+msgid "Content Report"
+msgstr "Content Report"
 
 #: templates
-msgid "চ্যানেল ওয়ান ডিজিটাল — কন্টেন্ট ম্যানেজমেন্ট সিস্টেম"
-msgstr "চ্যানেল ওয়ান ডিজিটাল — কন্টেন্ট ম্যানেজমেন্ট সিস্টেম"
+msgid "Channel One Digital — Content Management System"
+msgstr "Channel One Digital — Content Management System"
 
-msgid "লগইন করুন"
-msgstr "লগইন করুন"
+msgid "Login"
+msgstr "Login"
 
-msgid "রেজিস্ট্রেশন করুন"
-msgstr "রেজিস্ট্রেশন করুন"
+msgid "Register"
+msgstr "Register"
 
-msgid "সংরক্ষণ করুন"
-msgstr "সংরক্ষণ করুন"
+msgid "Save"
+msgstr "Save"
 
-msgid "বাতিল করুন"
-msgstr "বাতিল করুন"
+msgid "Cancel"
+msgstr "Cancel"
 
-msgid "মুছে ফেলুন"
-msgstr "মুছে ফেলুন"
+msgid "Delete"
+msgstr "Delete"
 
-msgid "পিডিএফ ডাউনলোড"
-msgstr "পিডিএফ ডাউনলোড"
+msgid "Pdf Download"
+msgstr "Pdf Download"
 
-msgid "কোনো এন্ট্রি পাওয়া যায়নি"
-msgstr "কোনো এন্ট্রি পাওয়া যায়নি"
+msgid "No Entries Found"
+msgstr "No Entries Found"
 
-msgid "কন্টেন্ট রিপোর্ট"
-msgstr "কন্টেন্ট রিপোর্ট"
+msgid "Content Report"
+msgstr "Content Report"
 
-msgid "চ্যানেল ওয়ান ডিজিটাল — কন্টেন্ট লগ"
-msgstr "চ্যানেল ওয়ান ডিজিটাল — কন্টেন্ট লগ"
+msgid "Channel One Digital — Content Log"
+msgstr "Channel One Digital — Content Log"
 
-msgid "চ্যানেল ওয়ান ডিজিটাল — ডিজিটাল স্ক্রিপ্ট"
-msgstr "চ্যানেল ওয়ান ডিজিটাল — ডিজিটাল স্ক্রিপ্ট"
+msgid "Channel One Digital — Digital Script"
+msgstr "Channel One Digital — Digital Script"
 '''
 
 

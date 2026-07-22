@@ -58,7 +58,7 @@ class SponsorModelTest(TestCase):
 
     def test_verbose_names(self):
         meta = Sponsor._meta
-        self.assertEqual(meta.verbose_name, 'স্পন্সর')
+        self.assertEqual(meta.verbose_name, 'Sponsor')
 
     def test_today_given(self):
         self.assertEqual(self.sponsor.today_given, 0)

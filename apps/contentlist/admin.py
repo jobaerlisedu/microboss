@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.utils.translation import gettext_lazy as _
 from .models import ContentListItem
 
 
@@ -12,4 +11,4 @@ class ContentListItemAdmin(admin.ModelAdmin):
 
     def content_short(self, obj):
         return obj.content[:60] if obj.content else ''
-    content_short.short_description = _('কন্টেন্ট')
+    content_short.short_description = 'Content'

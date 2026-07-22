@@ -1,0 +1,117 @@
+{% load static %}
+<div class="dash-page-header">
+  <div>
+    <h1 class="dash-title"><i class="bi bi-calendar2-week" style="color:#3b82f6;"></i> Duty Roster</h1>
+    <p class="dash-sub">Monthly & Weekly Shift Management & Staff Duty Schedules</p>
+  </div>
+  <div class="dash-header-actions">
+    <a class="btn btn-ghost btn-sm" hx-get="/cms/my-roster/" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="bi bi-person-bounding-box me-1"></i> My Roster
+    </a>
+    {% if user.is_admin %}
+      <button class="btn btn-primary btn-sm ms-2" onclick="document.getElementById('rosterFormOverlay').classList.remove('hidden')">
+        <i class="bi bi-plus-lg me-1"></i> Add Roster
+      </button>
+    {% endif %}
+  </div>
+</div>
+
+<div class="toolbar-grid mb-3">
+  <form hx-get="/cms/roster/" hx-target="#tab-content" hx-swap="innerHTML" class="dash-filter-form">
+    <div class="filter-group">
+      <label class="fw-bold me-2">Select Month</label>
+      <input type="month" name="month" value="{{ month_year }}" class="form-control form-control-sm d-inline-block style-input" style="width: auto;"
+             onchange="this.form.dispatchEvent(new Event('submit', {bubbles:true}))">
+    </div>
+  </form>
+</div>
+
+<div class="month-nav d-flex align-items-center justify-content-between mb-3 p-2 bg-light rounded border">
+  <a class="month-nav-btn btn btn-sm btn-outline-secondary" hx-get="/cms/roster/?year={{ prev_year }}&month={{ prev_month }}" hx-target="#tab-content" hx-swap="innerHTML">
+    <i class="bi bi-chevron-left me-1"></i> Previous Month
+  </a>
+  <span class="month-label fs-5 fw-bold text-dark">{{ month_label }}</span>
+  <a class="month-nav-btn btn btn-sm btn-outline-secondary" hx-get="/cms/roster/?year={{ next_year }}&month={{ next_month }}" hx-target="#tab-content" hx-swap="innerHTML">
+    Next Month <i class="bi bi-chevron-right ms-1"></i>
+  </a>
+</div>
+
+<div class="cal-grid">
+  <div class="cal-header">Mon</div>
+  <div class="cal-header">Tue</div>
+  <div class="cal-header">Wed</div>
+  <div class="cal-header">Thu</div>
+  <div class="cal-header">Fri</div>
+  <div class="cal-header">Sat</div>
+  <div class="cal-header">Sun</div>
+
+  {% for week in weeks %}
+    {% for day in week %}
+      {% if day %}
+        <div class="cal-day{% if day.date == today %} cal-today{% endif %}">
+          <div class="cal-day-header d-flex justify-content-between align-items-center mb-1">
+            <span class="cal-day-num fw-bold {% if day.date == today %}text-primary fs-6{% endif %}">{{ day.day }}</span>
+            {% if day.date == today %}
+              <span class="badge bg-primary" style="font-size:9px;">Today</span>
+            {% endif %}
+          </div>
+          <div class="cal-day-entries">
+            {% for r in day.rosters %}
+              <div class="entry-chip shadow-sm" style="background:#2563eb;color:#fff;font-size:11px;margin:2px 0;padding:2px 5px;border-radius:4px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ r.employee.full_name }} ({{ r.shift.name }})">
+                <i class="bi bi-person-fill me-1" style="font-size:9px;"></i>{{ r.employee.full_name }} – {{ r.shift.code }}
+              </div>
+            {% empty %}
+              <span style="color:var(--text-faint, #9ca3af);font-size:10px;">—</span>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <div class="cal-day cal-day-empty"></div>
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+</div>
+
+{% if user.is_admin %}
+<div class="modal-overlay hidden" id="rosterFormOverlay" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal-box" style="max-width:550px;">
+    <div class="modal-header">
+      <h3>Assign New Duty Roster</h3>
+      <button type="button" class="modal-close" onclick="document.getElementById('rosterFormOverlay').classList.add('hidden')">&times;</button>
+    </div>
+    <form hx-post="/cms/roster/save/" hx-target="#tab-content" hx-swap="innerHTML">
+      {% csrf_token %}
+      <div class="form-group mb-3">
+        <label class="fw-bold">Date</label>
+        <input type="date" name="date" class="form-control" required value="{{ month_year }}-01">
+      </div>
+      <div class="form-group mb-3">
+        <label class="fw-bold">Shift</label>
+        <select name="shift_id" class="form-select" required>
+          <option value="">— Select Shift —</option>
+          {% for s in shifts %}
+            <option value="{{ s.id }}">{{ s.name }} ({{ s.code }}: {{ s.start_time|time:'H:i' }}–{{ s.end_time|time:'H:i' }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group mb-3">
+        <label class="fw-bold">Employees (Multi-select)</label>
+        <select name="employee_ids" class="form-select" multiple required size="6">
+          {% for e in employees %}
+            <option value="{{ e.id }}">{{ e.full_name }} ({{ e.designation|default:e.username }})</option>
+          {% endfor %}
+        </select>
+        <small class="text-muted d-block mt-1">Hold Ctrl (or Cmd) to select multiple employees</small>
+      </div>
+      <div class="form-group mb-3">
+        <label class="fw-bold">Note (Optional)</label>
+        <input type="text" name="note" class="form-control" placeholder="Special instructions or notes">
+      </div>
+      <div class="form-actions d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('rosterFormOverlay').classList.add('hidden')">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i> Save Roster</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}

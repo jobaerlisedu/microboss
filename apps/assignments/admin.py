@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 from .models import Assignment
 
 
@@ -22,7 +21,7 @@ class AssignmentAdmin(admin.ModelAdmin):
 
     def caption_short(self, obj):
         return obj.caption[:60] if obj.caption else ''
-    caption_short.short_description = _('ক্যাপশন')
+    caption_short.short_description = 'Caption'
 
     def delete_queryset(self, request, queryset):
         for obj in queryset:
@@ -36,8 +35,8 @@ class AssignmentAdmin(admin.ModelAdmin):
             return HttpResponseRedirect('../')
         return super().delete_view(request, object_id, extra_context)
 
-    @admin.action(description=_('Soft delete selected assignments'))
+    @admin.action(description='Soft delete selected assignments')
     def soft_delete_selected(self, request, queryset):
         for obj in queryset:
             obj.soft_delete(user=request.user)
-        self.message_user(request, _('Selected assignments soft-deleted successfully.'))
+        self.message_user(request, 'Selected assignments soft-deleted successfully.')

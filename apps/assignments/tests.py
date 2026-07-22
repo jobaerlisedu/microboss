@@ -40,7 +40,7 @@ class AssignmentModelTest(TestCase):
 
     def test_verbose_names(self):
         meta = Assignment._meta
-        self.assertEqual(meta.verbose_name, 'এসাইনমেন্ট')
+        self.assertEqual(meta.verbose_name, 'Assignment')
 
     def test_str_method(self):
         a = Assignment.objects.create(

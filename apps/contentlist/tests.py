@@ -37,7 +37,7 @@ class ContentListItemModelTest(TestCase):
 
     def test_verbose_names(self):
         meta = ContentListItem._meta
-        self.assertEqual(meta.verbose_name, 'কন্টেন্ট তালিকা')
+        self.assertEqual(meta.verbose_name, 'Table Of Contents')
 
 
 class ContentListAPITest(APITestCase):

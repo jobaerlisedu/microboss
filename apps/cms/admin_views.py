@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.utils import timezone
 from django.db.models import Count
+from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 from apps.accounts.models import User, UserSession
 from apps.accounts.utils.config import get_config, set_config
 from apps.content.models import ContentEntry
@@ -201,7 +203,7 @@ def admin_csv_import(request):
                     created_by=request.user,
                 )
                 created += 1
-            except Exception as e:
+            except (IntegrityError, ValidationError, KeyError, ValueError) as e:
                 errors.append(f'Row {i}: {str(e)}')
         msg = f'{created} entries imported successfully'
         if errors:

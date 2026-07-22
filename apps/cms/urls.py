@@ -85,4 +85,19 @@ urlpatterns = [
     path('reports/<hexuuid:pk>/run/', views.report_run, name='cms-report-run'),
     path('reports/<hexuuid:pk>/csv/', views.report_export_csv, name='cms-report-csv'),
     path('reports/<hexuuid:pk>/pdf/', views.report_export_pdf, name='cms-report-pdf'),
+    path('calendar/', views.content_calendar_tab, name='cms-calendar'),
+    path('calendar/<int:year>/<int:month>/', views.content_calendar_tab, name='cms-calendar-month'),
+
+    # ─── Duty Roster ───
+    path('roster/', views.roster_tab, name='cms-roster'),
+    path('roster/save/', views.roster_save, name='cms-roster-save'),
+    path('my-roster/', views.my_roster_tab, name='cms-my-roster'),
+
+    # ─── Leave Management ───
+    path('leave/', views.leave_tab, name='cms-leave'),
+    path('leave/save/', views.leave_save, name='cms-leave-save'),
+    path('leave/admin/', views.leave_admin_tab, name='cms-leave-admin'),
+    path('leave-admin/', views.leave_admin_tab, name='cms-leave-admin-alias'),
+    path('leave/<hexuuid:pk>/approve/', views.leave_approve, name='cms-leave-approve'),
 ]
+

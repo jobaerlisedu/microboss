@@ -205,13 +205,12 @@ class AnalyticsService:
         }
 
     def platform_breakdown(self):
-        period_entries = list(self._entries)
         platform_counts = defaultdict(int)
         total_with_links = 0
-        for e in period_entries:
+        for entry_links in self._entries.values_list('links', flat=True).iterator():
             has_link = False
             for key in PLATFORM_KEYS:
-                if e.links and e.links.get(key):
+                if entry_links and entry_links.get(key):
                     platform_counts[key] += 1
                     has_link = True
             if has_link:
@@ -277,19 +276,23 @@ class AnalyticsService:
         member_ids = [t['member'] for t in top_ids if t['member']]
         if not member_ids:
             return []
+        users = {u.id: u for u in User.objects.filter(id__in=member_ids)}
+        entries = ContentEntry.objects.filter(
+            deleted_at__isnull=True, member_id__in=member_ids,
+            entry_date__gte=self.start_date, entry_date__lte=self.end_date,
+        ).annotate(
+            day=TruncDate('entry_date')
+        ).values('member_id', 'day').annotate(total=Count('id')).order_by('member_id', 'day')
+        by_member = defaultdict(lambda: defaultdict(int))
+        for r in entries:
+            if r['day']:
+                by_member[r['member_id']][str(r['day'])] = r['total']
         data = []
         for mid in member_ids:
-            try:
-                user = User.objects.get(id=mid)
-            except User.DoesNotExist:
+            user = users.get(mid)
+            if not user:
                 continue
-            entries = ContentEntry.objects.filter(
-                deleted_at__isnull=True, member=mid,
-                entry_date__gte=self.start_date, entry_date__lte=self.end_date,
-            ).annotate(
-                day=TruncDate('entry_date')
-            ).values('day').annotate(total=Count('id')).order_by('day')
-            trend_map = {str(e['day']): e['total'] for e in entries if e['day']}
+            trend_map = by_member[mid]
             values = []
             current = self.start_date
             while current <= self.end_date:
@@ -412,20 +415,25 @@ class AnalyticsService:
             start_date__lte=self.end_date,
             end_date__gte=self.start_date,
         )
-        result = []
-        for sp in active:
-            used = ContentEntry.objects.filter(
+        sponsor_ids = [sp.id for sp in active]
+        usage_map = defaultdict(int)
+        if sponsor_ids:
+            usage_qs = ContentEntry.objects.filter(
                 deleted_at__isnull=True,
-                sponsor=sp,
+                sponsor_id__in=sponsor_ids,
                 entry_date__gte=self.start_date,
                 entry_date__lte=self.end_date,
-            ).count()
+            ).values('sponsor_id').annotate(total=Count('id'))
+            for r in usage_qs:
+                usage_map[r['sponsor_id']] = r['total']
+        result = []
+        for sp in active:
             result.append({
                 'id': sp.id,
                 'name': sp.name,
                 'daily_quota': sp.daily_quota,
                 'total_quota': sp.total_quota,
-                'period_used': used,
+                'period_used': usage_map.get(sp.id, 0),
                 'is_active': sp.is_active,
                 'progress_pct': sp.progress_pct,
                 'today_remaining': sp.today_remaining,
@@ -563,17 +571,15 @@ class AnalyticsService:
 
     def hourly_analysis(self):
         """Extract hourly distribution from entry_time."""
-        entries = list(ContentEntry.objects.filter(
+        hourly = [0] * 24
+        for entry_time in ContentEntry.objects.filter(
             deleted_at__isnull=True,
             entry_date__gte=self.start_date,
             entry_date__lte=self.end_date,
-        ).values('entry_time'))
-        hourly = [0] * 24
-        for e in entries:
-            t = e['entry_time']
-            if t:
+        ).values_list('entry_time', flat=True).iterator():
+            if entry_time:
                 try:
-                    hour = t.hour if hasattr(t, 'hour') else int(str(t).split(':')[0])
+                    hour = entry_time.hour if hasattr(entry_time, 'hour') else int(str(entry_time).split(':')[0])
                     hourly[hour] += 1
                 except (ValueError, IndexError):
                     pass

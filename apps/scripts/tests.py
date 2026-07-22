@@ -54,7 +54,7 @@ class ScriptModelTest(TestCase):
 
     def test_verbose_names(self):
         meta = Script._meta
-        self.assertEqual(meta.verbose_name, 'ডিজিটাল স্ক্রিপ্ট')
+        self.assertEqual(meta.verbose_name, 'Digital Script')
 
 
 class ScriptAPITest(APITestCase):

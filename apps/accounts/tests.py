@@ -1,11 +1,28 @@
 from django.test import TestCase
+from django.test.utils import override_settings
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APITestCase, APIClient, APIRequestFactory
 from rest_framework import status
 from apps.accounts.models import UserSession
 
 User = get_user_model()
+
+# High throttle rates and DummyCache for test classes that call unauthenticated endpoints
+# to prevent throttle accumulation across tests in the same process
+_HIGH_RATES = {
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100000/hour',
+        'user': '100000/hour',
+    },
+}
+_CACHE_OVERRIDE = {
+    'CACHES': {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        }
+    }
+}
 
 
 class UserModelTest(TestCase):
@@ -46,8 +63,8 @@ class UserModelTest(TestCase):
 
     def test_user_verbose_names(self):
         meta = User._meta
-        self.assertEqual(meta.verbose_name, 'ব্যবহারকারী')
-        self.assertEqual(meta.verbose_name_plural, 'ব্যবহারকারীগণ')
+        self.assertEqual(meta.verbose_name, 'The User')
+        self.assertEqual(meta.verbose_name_plural, 'Users')
 
 
 class UserSessionModelTest(TestCase):
@@ -71,10 +88,11 @@ class UserSessionModelTest(TestCase):
 
     def test_session_verbose_names(self):
         meta = UserSession._meta
-        self.assertEqual(meta.verbose_name, 'সেশন')
-        self.assertEqual(meta.verbose_name_plural, 'সেশনসমূহ')
+        self.assertEqual(meta.verbose_name, 'Session')
+        self.assertEqual(meta.verbose_name_plural, 'Sessions')
 
 
+@override_settings(**_HIGH_RATES, **_CACHE_OVERRIDE)
 class RegisterAPITest(APITestCase):
     def setUp(self):
         self.url = '/api/v1/auth/register/'
@@ -120,6 +138,13 @@ class RegisterAPITest(APITestCase):
         self.assertTrue(user.is_admin)
         self.assertTrue(user.is_founder)
 
+    def test_select_for_update_no_race(self):
+        from django.db import transaction
+        with transaction.atomic():
+            User.objects.select_for_update().filter(is_founder=True).exists()
+            resp = self.client.post(self.url, self.valid_payload, format='json')
+            self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
 
 class LoginAPITest(APITestCase):
     def setUp(self):
@@ -164,6 +189,7 @@ class LoginAPITest(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+@override_settings(**_HIGH_RATES, **_CACHE_OVERRIDE)
 class PasswordResetAPITest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -183,26 +209,25 @@ class PasswordResetAPITest(APITestCase):
             'phone': '01788888888',
         }, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertIn('otp_display', resp.data)
+        self.assertIn('message', resp.data)
 
-    def test_password_reset_request_wrong_info(self):
+    def test_password_reset_request_wrong_info_returns_200(self):
         resp = self.client.post(self.request_url, {
             'identifier': 'resetuser',
             'email': 'wrong@example.com',
             'phone': '01788888888',
         }, format='json')
-        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     def test_password_reset_verify_otp(self):
-        self.client.post(self.request_url, {
-            'identifier': 'resetuser',
-            'email': 'reset@example.com',
-            'phone': '01788888888',
-        }, format='json')
-        session = self.client.session
-        otp = session.get('reset_otp')
-        self.assertIsNotNone(otp)
-        resp = self.client.post(self.verify_url, {'otp': otp}, format='json')
+        import unittest
+        with unittest.mock.patch('random.randint', return_value=123456):
+            self.client.post(self.request_url, {
+                'identifier': 'resetuser',
+                'email': 'reset@example.com',
+                'phone': '01788888888',
+            }, format='json')
+        resp = self.client.post(self.verify_url, {'otp': '123456'}, format='json')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertIn('token', resp.data)
 
@@ -216,14 +241,14 @@ class PasswordResetAPITest(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_password_reset_full_flow(self):
-        self.client.post(self.request_url, {
-            'identifier': 'resetuser',
-            'email': 'reset@example.com',
-            'phone': '01788888888',
-        }, format='json')
-        session = self.client.session
-        otp = session.get('reset_otp')
-        self.client.post(self.verify_url, {'otp': otp}, format='json')
+        import unittest
+        with unittest.mock.patch('random.randint', return_value=654321):
+            self.client.post(self.request_url, {
+                'identifier': 'resetuser',
+                'email': 'reset@example.com',
+                'phone': '01788888888',
+            }, format='json')
+        self.client.post(self.verify_url, {'otp': '654321'}, format='json')
         resp = self.client.post(self.confirm_url, {
             'token': 'verified',
             'password': 'newpass123',
@@ -368,3 +393,67 @@ class UserSessionsAPITest(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         results = resp.data.get('results', resp.data)
         self.assertEqual(len(results), 1)
+
+    def test_session_serializer_excludes_session_key(self):
+        UserSession.objects.create(
+            user=self.user, ip_address='10.0.0.1',
+            session_key='secret-ses-key',
+            device_info='Chrome',
+        )
+        resp = self.client.get('/api/v1/auth/sessions/')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        results = resp.data.get('results', resp.data)
+        self.assertNotIn('session_key', results[0])
+        self.assertIn('device_info', results[0])
+        self.assertIn('ip_address', results[0])
+
+
+@override_settings(**_HIGH_RATES, **_CACHE_OVERRIDE)
+class PasswordResetRateLimitTest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='ratelimit', password='test1234',
+            full_name='Rate Limit', office_id='RTL001',
+            designation='User', phone='01755555555',
+            blood_group='A+', email='ratelimit@example.com',
+        )
+        self.request_url = '/api/v1/auth/password-reset/request/'
+        self.verify_url = '/api/v1/auth/password-reset/verify/'
+
+    def test_otp_rate_limit_exhausted(self):
+        self.client.post(self.request_url, {
+            'identifier': 'ratelimit',
+            'email': 'ratelimit@example.com',
+            'phone': '01755555555',
+        }, format='json')
+        for _ in range(5):
+            resp = self.client.post(self.verify_url, {'otp': '000000'}, format='json')
+            self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        resp = self.client.post(self.verify_url, {'otp': '000000'}, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Start the reset again', resp.data.get('error', ''))
+
+    def test_otp_uses_pbkdf2_hash(self):
+        self.client.post(self.request_url, {
+            'identifier': 'ratelimit',
+            'email': 'ratelimit@example.com',
+            'phone': '01755555555',
+        }, format='json')
+        session = self.client.session
+        stored_hash = session.get('reset_otp_hash', '')
+        self.assertTrue(stored_hash.startswith('pbkdf2_'),
+                        f'Expected pbkdf2_ prefix, got: {stored_hash[:20]}')
+
+    def test_confirm_requires_verified_flag(self):
+        self.client.post(self.request_url, {
+            'identifier': 'ratelimit',
+            'email': 'ratelimit@example.com',
+            'phone': '01755555555',
+        }, format='json')
+        resp = self.client.post('/api/v1/auth/password-reset/confirm/', {
+            'token': 'verified',
+            'password': 'newpass123',
+            'password2': 'newpass123',
+        }, format='json')
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Session Has Expired', resp.data.get('error', ''))

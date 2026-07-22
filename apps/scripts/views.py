@@ -39,7 +39,7 @@ class ScriptSubmitView(generics.UpdateAPIView):
         instance = self.get_object()
         if instance.status != 'draft':
             return Response(
-                {'error': 'শুধু খসড়া স্ক্রিপ্ট জমা দেওয়া যাবে'},
+                {'error': 'Only draft scripts can be submitted'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         instance.status = 'pending'
@@ -55,13 +55,13 @@ class ScriptApproveView(generics.UpdateAPIView):
     def patch(self, request, *args, **kwargs):
         if not request.user.is_admin:
             return Response(
-                {'error': 'শুধু অ্যাডমিন অনুমোদন দিতে পারেন'},
+                {'error': 'Only admin can grant approval'},
                 status=status.HTTP_403_FORBIDDEN,
             )
         instance = self.get_object()
         if instance.status != 'pending':
             return Response(
-                {'error': 'শুধু অপেক্ষমাণ স্ক্রিপ্ট অনুমোদন করা যাবে'},
+                {'error': 'Only pending scripts can be approved'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         instance.status = 'approved'

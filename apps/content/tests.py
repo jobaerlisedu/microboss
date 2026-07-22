@@ -32,7 +32,7 @@ class ContentEntryModelTest(TestCase):
 
     def test_entry_verbose_names(self):
         meta = ContentEntry._meta
-        self.assertEqual(meta.verbose_name, 'কন্টেন্ট এন্ট্রি')
+        self.assertEqual(meta.verbose_name, 'Content Entry')
 
     def test_soft_delete(self):
         entry = ContentEntry.objects.create(

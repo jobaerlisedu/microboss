@@ -7,7 +7,11 @@ class ContentListItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContentListItem
-        fields = '__all__'
+        fields = (
+            'id', 'list_date', 'content', 'source', 'district',
+            'footage_source', 'member', 'member_name', 'assignment',
+            'created_at', 'updated_at', 'created_by', 'updated_by', 'deleted_at',
+        )
         read_only_fields = (
             'id', 'created_at', 'updated_at',
             'created_by', 'updated_by', 'deleted_at',
@@ -17,5 +21,5 @@ class ContentListItemSerializer(serializers.ModelSerializer):
         if value == 'district':
             district = self.initial_data.get('district', '')
             if not district:
-                raise serializers.ValidationError('জেলা উৎস নির্বাচন করলে জেলার নাম আবশ্যক')
+                raise serializers.ValidationError('District name is required if district source is selected')
         return value

@@ -1,5 +1,7 @@
 {% load static %}
-{% load bengali_filters %}
+{% load common_filters %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
 <div class="dash-page-header">
   <div>
     <h1 class="dash-title">Executive Dashboard</h1>
@@ -270,5 +272,5 @@
 
 <script>
 window.dashboardPeriod = '{{ request.GET.period|default:"month" }}';
-if (typeof Chart !== 'undefined') { setTimeout(window.refreshDashboardData, 100); }
+setTimeout(refreshDashboardData, 100);
 </script>

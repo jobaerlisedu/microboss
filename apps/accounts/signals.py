@@ -1,10 +1,10 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from .models import User
 from apps.notifications.models import Notification
 
 
-@receiver(post_save, sender=User)
+@receiver(pre_save, sender=User, dispatch_uid='notify_registration_approval')
 def notify_registration_approval(sender, instance, **kwargs):
     if not instance.pk:
         return
@@ -17,8 +17,8 @@ def notify_registration_approval(sender, instance, **kwargs):
             Notification.objects.create(
                 recipient=instance,
                 notification_type='registration',
-                title='আপনার রেজিস্ট্রেশন অনুমোদিত হয়েছে',
-                message=f'আপনার রেজিস্ট্রেশন অনুমোদিত হয়েছে। আপনি এখন লগইন করতে পারেন।',
+                title='Your registration has been approved',
+                message='Your registration has been approved. You can login now.',
                 link='/cms/',
                 created_by=approver,
             )

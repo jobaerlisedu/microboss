@@ -5,7 +5,7 @@ from apps.notifications.models import Notification
 from apps.accounts.models import User
 
 
-@receiver(post_save, sender=Notice)
+@receiver(post_save, sender=Notice, dispatch_uid='notify_new_notice')
 def notify_new_notice(sender, instance, created, **kwargs):
     if not created:
         return

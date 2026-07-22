@@ -18,7 +18,7 @@ class ContentReportView(APIView):
         if month:
             entries = entries.filter(entry_date__startswith=month)
 
-        title = 'কন্টেন্ট রিপোর্ট'
+        title = 'Content Report'
         if month:
             title += f' - {month}'
 

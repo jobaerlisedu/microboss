@@ -12,7 +12,14 @@ class SponsorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sponsor
-        fields = '__all__'
+        fields = (
+            'id', 'name', 'daily_quota', 'total_quota',
+            'start_date', 'end_date', 'content_type',
+            'has_doggy', 'has_popup', 'has_tvc', 'has_gpi',
+            'is_active', 'given_count', 'remaining_count',
+            'today_given', 'today_remaining', 'progress_pct',
+            'created_at', 'updated_at', 'created_by', 'updated_by', 'deleted_at',
+        )
         read_only_fields = (
             'id', 'created_at', 'updated_at',
             'created_by', 'updated_by', 'deleted_at',

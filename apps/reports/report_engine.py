@@ -97,13 +97,13 @@ DISTRICT_FIELD_MAP = {
 class ReportEngine:
     def __init__(self, config):
         self.config = config
-        self.module = config.module
+        self.module = config.module if config.module in MODEL_MAP else 'entries'
         self.aggregation = config.aggregation
         self.period = config.period
         self.date_from, self.date_to = _resolve_period(config.period, config.date_from, config.date_to)
         self.filters = config.filters or {}
-        self.model = MODEL_MAP[self.module]
-        self.date_field = DATE_FIELD_MAP[self.module]
+        self.model = MODEL_MAP.get(self.module, ContentEntry)
+        self.date_field = DATE_FIELD_MAP.get(self.module, 'entry_date')
         self.headers = []
         self.rows = []
         self.summary = {}
@@ -162,6 +162,17 @@ class ReportEngine:
 
     def _agg_list(self):
         qs = self._base_qs().order_by(f'-{self.date_field}')
+        select_fields = {
+            'entries': ('member', 'sponsor'),
+            'assignments': ('member', 'reporter_user'),
+            'scripts': ('writer',),
+            'audio': ('member',),
+            'contentlist': ('member',),
+            'finalpackage': ('member',),
+        }
+        s_fields = select_fields.get(self.module, ())
+        if s_fields:
+            qs = qs.select_related(*s_fields)
         self.rows = []
         for obj in qs[:500]:
             row = {}
@@ -202,7 +213,10 @@ class ReportEngine:
         return self
 
     def _agg_count(self):
-        return self._agg_list()
+        total = self._base_qs().count()
+        self.rows = [{'metric': 'Total', 'count': total}]
+        self.summary = {'total': total}
+        return self
 
     def _agg_status_breakdown(self):
         field = self._status_field()
@@ -221,13 +235,15 @@ class ReportEngine:
         if not field:
             return self._agg_list()
         qs = self._base_qs().values(field).annotate(count=Count('id')).order_by('-count')[:20]
+        uids = [item[field] for item in qs if item[field]]
+        name_map = {}
+        if uids:
+            for u in User.objects.filter(id__in=uids).only('id', 'username'):
+                name_map[u.id] = u.username
         self.rows = []
         for item in qs:
             uid = item[field]
-            try:
-                uname = User.objects.get(id=uid).username if uid else 'Unknown'
-            except User.DoesNotExist:
-                uname = 'Deleted'
+            uname = name_map.get(uid, 'Deleted') if uid else 'Unknown'
             self.rows.append({'member': uname, 'count': item['count']})
         self.summary = {'total': sum(r['count'] for r in self.rows)}
         if self.config.show_chart != 'none':
@@ -251,13 +267,15 @@ class ReportEngine:
         if self.module != 'entries':
             return self._agg_list()
         qs = self._base_qs().values('sponsor').annotate(count=Count('id')).order_by('-count')[:20]
+        sids = [item['sponsor'] for item in qs if item['sponsor']]
+        name_map = {}
+        if sids:
+            for s in Sponsor.objects.filter(id__in=sids).only('id', 'name'):
+                name_map[s.id] = s.name
         self.rows = []
         for item in qs:
             sid = item['sponsor']
-            try:
-                sname = Sponsor.objects.get(id=sid).name if sid else 'Organic (No Sponsor)'
-            except Sponsor.DoesNotExist:
-                sname = 'Organic (No Sponsor)'
+            sname = name_map.get(sid, 'Organic (No Sponsor)') if sid else 'Organic (No Sponsor)'
             self.rows.append({'sponsor': sname, 'count': item['count']})
         self.summary = {'total': sum(r['count'] for r in self.rows)}
         if self.config.show_chart != 'none':
@@ -334,14 +352,8 @@ class ReportEngine:
     def to_csv(self):
         output = io.StringIO()
         writer = csv.writer(output)
-        if self.aggregation == 'list' or self.aggregation == 'count':
-            if self.rows:
-                writer.writerow(self.rows[0].keys())
-                for row in self.rows:
-                    writer.writerow(row.values())
-        else:
-            if self.rows:
-                writer.writerow(self.rows[0].keys())
-                for row in self.rows:
-                    writer.writerow(row.values())
+        if self.rows:
+            writer.writerow(self.rows[0].keys())
+            for row in self.rows:
+                writer.writerow(row.values())
         return output.getvalue()

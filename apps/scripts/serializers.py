@@ -11,7 +11,13 @@ class ScriptSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Script
-        fields = '__all__'
+        fields = (
+            'id', 'script_date', 'headline', 'source', 'writer',
+            'writer_name', 'district', 'district_reporter', 'body',
+            'assignment', 'status', 'approved_by', 'approved_by_name',
+            'approved_at', 'filename', 'created_at', 'updated_at',
+            'created_by', 'updated_by', 'deleted_at',
+        )
         read_only_fields = (
             'id', 'created_at', 'updated_at', 'created_by', 'updated_by',
             'deleted_at', 'approved_by', 'approved_at', 'filename',

@@ -64,6 +64,21 @@
       <span class="badge-new" style="background:var(--accent);font-size:9px;">TODAY</span>
     </a>
 
+    <a class="nav-item tab-btn" data-tab="calendar" hx-get="/cms/calendar/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+      <span class="nav-icon"><i class="bi bi-calendar-date-fill"></i></span>
+      <span class="nav-text">Calendar</span>
+    </a>
+
+    <a class="nav-item tab-btn" data-tab="duty-roster" hx-get="/cms/roster/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+      <span class="nav-icon"><i class="bi bi-calendar-week-fill"></i></span>
+      <span class="nav-text">Duty Roster</span>
+    </a>
+
+    <a class="nav-item tab-btn" data-tab="leave" hx-get="/cms/leave/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+      <span class="nav-icon"><i class="bi bi-umbrella-fill"></i></span>
+      <span class="nav-text">Leave Management</span>
+    </a>
+
     <a class="nav-item tab-btn" data-tab="archive" hx-get="/cms/archive/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-archive-fill"></i></span>
       <span class="nav-text">Archive</span>

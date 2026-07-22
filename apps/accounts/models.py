@@ -1,35 +1,32 @@
 import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils.translation import gettext_lazy as _
-
-
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(
-        _('ডাকনাম'), max_length=150, unique=True,
-        help_text=_('লগইনের জন্য ব্যবহার করা হবে'),
+        'Nickname', max_length=150, unique=True,
+        help_text='will be used for login',
     )
-    full_name = models.CharField(_('পূর্ণ নাম'), max_length=255)
-    office_id = models.CharField(_('অফিস আইডি'), max_length=100, unique=True)
-    designation = models.CharField(_('ডেজিগনেশন'), max_length=255)
-    phone = models.CharField(_('ফোন'), max_length=20, db_index=True)
+    full_name = models.CharField('Full Name', max_length=255)
+    office_id = models.CharField('Office Id', max_length=100, unique=True)
+    designation = models.CharField('Designation', max_length=255)
+    phone = models.CharField('The Phone', max_length=20, db_index=True)
     blood_group = models.CharField(
-        _('ব্লাড গ্রুপ'), max_length=5,
+        'Blood Group', max_length=5,
         choices=[
             ('A+', 'A+'), ('A-', 'A-'), ('B+', 'B+'), ('B-', 'B-'),
             ('AB+', 'AB+'), ('AB-', 'AB-'), ('O+', 'O+'), ('O-', 'O-'),
         ],
     )
-    date_of_birth = models.DateField(_('জন্ম তারিখ'), null=True, blank=True)
-    facebook_id = models.CharField(_('ফেসবুক আইডি'), max_length=500, blank=True, default='')
-    is_admin = models.BooleanField(_('অ্যাডমিন'), default=False, db_index=True)
-    is_founder = models.BooleanField(_('প্রতিষ্ঠাতা'), default=False)
-    pending_approval = models.BooleanField(_('অনুমোদন বিহীন'), default=False, db_index=True)
+    date_of_birth = models.DateField('Date Of Birth', null=True, blank=True)
+    facebook_id = models.CharField('Facebook Id', max_length=500, blank=True, default='')
+    is_admin = models.BooleanField('Admin', default=False, db_index=True)
+    is_founder = models.BooleanField('The Founder', default=False)
+    pending_approval = models.BooleanField('Unauthorized', default=False, db_index=True)
 
     class Meta:
-        verbose_name = _('ব্যবহারকারী')
-        verbose_name_plural = _('ব্যবহারকারীগণ')
+        verbose_name = 'The User'
+        verbose_name_plural = 'Users'
         indexes = [
             models.Index(fields=['office_id']),
             models.Index(fields=['phone']),
@@ -50,8 +47,8 @@ class UserSession(models.Model):
     session_key = models.CharField(max_length=40, unique=True)
 
     class Meta:
-        verbose_name = _('সেশন')
-        verbose_name_plural = _('সেশনসমূহ')
+        verbose_name = 'Session'
+        verbose_name_plural = 'Sessions'
         indexes = [
             models.Index(fields=['user', 'is_active']),
             models.Index(fields=['-login_at']),
@@ -69,8 +66,8 @@ class SiteConfig(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'সাইট কনফিগারেশন'
-        verbose_name_plural = 'সাইট কনফিগারেশন'
+        verbose_name = 'Site Configuration'
+        verbose_name_plural = 'Site Configuration'
 
     def __str__(self):
         return f'{self.key} = {self.value}'

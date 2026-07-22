@@ -5,7 +5,7 @@ from .models import Notification
 from .fcm import send_push
 
 
-@receiver(post_save, sender=Notification)
+@receiver(post_save, sender=Notification, dispatch_uid='push_on_notification')
 def push_on_notification(sender, instance, created, **kwargs):
     if not created:
         return

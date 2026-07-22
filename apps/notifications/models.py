@@ -14,8 +14,8 @@ class DeviceToken(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'ডিভাইস টোকেন'
-        verbose_name_plural = 'ডিভাইস টোকেন'
+        verbose_name = 'Device Token'
+        verbose_name_plural = 'Device Token'
         indexes = [
             models.Index(fields=['user', 'is_active']),
         ]
@@ -25,28 +25,28 @@ class DeviceToken(models.Model):
 
 
 NOTIFICATION_TYPES = [
-    ('assignment', 'এসাইনমেন্ট'),
-    ('script_submit', 'স্ক্রিপ্ট সাবমিট'),
-    ('script_approve', 'স্ক্রিপ্ট অনুমোদন'),
-    ('script_reject', 'স্ক্রিপ্ট বাতিল'),
-    ('notice', 'নোটিশ'),
-    ('registration', 'রেজিস্ট্রেশন'),
-    ('welcome', 'স্বাগতম'),
+    ('Assignment', 'Assignment'),
+    ('Script_Submit', 'Script Submit'),
+    ('Script_Approve', 'Script Approval'),
+    ('Script_Reject', 'Script Rejected'),
+    ('Notice', 'Notice'),
+    ('Registration', 'Registration'),
+    ('Welcome', 'Swagtam'),
 ]
 
 
 class Notification(BaseModel):
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications', db_index=True)
-    notification_type = models.CharField('ধরণ', max_length=30, choices=NOTIFICATION_TYPES, db_index=True)
-    title = models.CharField('শিরোনাম', max_length=255)
-    message = models.TextField('বার্তা', blank=True)
-    link = models.CharField('লিঙ্ক', max_length=500, blank=True)
-    is_read = models.BooleanField('পড়া হয়েছে', default=False, db_index=True)
-    read_at = models.DateTimeField('পড়ার সময়', null=True, blank=True)
+    notification_type = models.CharField('Type', max_length=30, choices=NOTIFICATION_TYPES, db_index=True)
+    title = models.CharField('Title', max_length=255)
+    message = models.TextField('The Message', blank=True)
+    link = models.CharField('Link', max_length=500, blank=True)
+    is_read = models.BooleanField('Has Been Read', default=False, db_index=True)
+    read_at = models.DateTimeField('Reading Time', null=True, blank=True)
 
     class Meta:
-        verbose_name = 'নোটিফিকেশন'
-        verbose_name_plural = 'নোটিফিকেশন'
+        verbose_name = 'Notification'
+        verbose_name_plural = 'Notification'
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['recipient', 'is_read']),

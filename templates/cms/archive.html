@@ -163,7 +163,7 @@
         {% for s in items %}
         <tr>
           <td>{{ s.script_date|date:"Y-m-d" }}</td>
-          <td><strong style="color:var(--text);font-size:12.5px;">{{ s.headline|truncatechars:60 }}</strong></td>
+          <td><a href="#" hx-get="/cms/scripts/{{ s.id }}/" hx-target="#tab-content" style="color:var(--accent);text-decoration:none;font-weight:600;font-size:12.5px;">{{ s.headline|truncatechars:60 }}</a></td>
           <td>{{ s.writer.username }}</td>
           <td><span class="status-pill status-pending" style="font-size:10px;">{{ s.get_source_display }}</span></td>
           <td><span class="status-pill status-{{ s.status }}">{{ s.get_status_display }}</span></td>

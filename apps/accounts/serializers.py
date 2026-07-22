@@ -16,23 +16,25 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate_password(self, value):
         if len(value) < 8:
-            raise serializers.ValidationError('পাসওয়ার্ড অন্তত ৮ ক্যারেক্টার হতে হবে')
+            raise serializers.ValidationError('Password must be at least 8 characters')
         return value
 
     def validate(self, attrs):
         if attrs['password'] != attrs.pop('password2'):
-            raise serializers.ValidationError({'password2': 'পাসওয়ার্ড দুটি মিলছে না'})
+            raise serializers.ValidationError({'password2': 'The two passwords do not match'})
         return attrs
 
     def create(self, validated_data):
         password = validated_data.pop('password')
-        is_first = User.objects.count() == 0
-        user = User.objects.create_user(
-            **validated_data,
-            password=password,
-            is_admin=is_first,
-            is_founder=is_first,
-        )
+        from django.db import transaction
+        with transaction.atomic():
+            is_first = User.objects.select_for_update().filter(is_founder=True).count() == 0
+            user = User.objects.create_user(
+                **validated_data,
+                password=password,
+                is_admin=is_first,
+                is_founder=is_first,
+            )
         return user
 
 
@@ -50,7 +52,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UserSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserSession
-        fields = '__all__'
+        fields = ('id', 'user', 'ip_address', 'device_info', 'login_at', 'is_active')
         read_only_fields = ('id', 'login_at')
 
 
@@ -76,5 +78,5 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if attrs['password'] != attrs.pop('password2'):
-            raise serializers.ValidationError({'password2': 'পাসওয়ার্ড দুটি মিলছে না'})
+            raise serializers.ValidationError({'password2': 'The two passwords do not match'})
         return attrs

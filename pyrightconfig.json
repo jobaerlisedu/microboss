@@ -1,0 +1,10 @@
+{
+  "venvPath": "d:/Websites/content-tracker",
+  "venv": "venv",
+  "extraPaths": [
+    ".",
+    "apps"
+  ],
+  "reportIncompatibleVariableOverride": "none",
+  "reportMissingImports": "none"
+}

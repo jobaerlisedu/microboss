@@ -1,25 +1,24 @@
 from datetime import date
 from django.db import models
 from django.utils.functional import cached_property
-from django.utils.translation import gettext_lazy as _
 from apps.common.models import BaseModel
 
 
 class Sponsor(BaseModel):
-    name = models.CharField(_('স্পন্সরের নাম'), max_length=255, unique=True)
-    daily_quota = models.IntegerField(_('প্রতিদিন কয়টা'))
-    total_quota = models.IntegerField(_('মোট কয়টা'))
-    start_date = models.DateField(_('শুরুর তারিখ'), db_index=True)
-    end_date = models.DateField(_('শেষ তারিখ'), db_index=True)
-    content_type = models.CharField(_('কন্টেন্ট টাইপ'), max_length=255, blank=True, default='')
-    has_doggy = models.BooleanField(_('ডগি (FT)'), default=False)
-    has_popup = models.BooleanField(_('পপআপ x2'), default=False)
-    has_tvc = models.BooleanField(_('টিভিসি x1'), default=False)
-    has_gpi = models.BooleanField(_('জিপিআই x1'), default=False)
+    name = models.CharField("Sponsor's Name", max_length=255, unique=True)
+    daily_quota = models.IntegerField('how many per day')
+    total_quota = models.IntegerField('how many in total')
+    start_date = models.DateField('Start Date', db_index=True)
+    end_date = models.DateField('Last Date', db_index=True)
+    content_type = models.CharField('Content Type', max_length=255, blank=True, default='')
+    has_doggy = models.BooleanField('Dougie (Ft)', default=False, db_index=True)
+    has_popup = models.BooleanField('Popup X2', default=False, db_index=True)
+    has_tvc = models.BooleanField('Tvc X1', default=False, db_index=True)
+    has_gpi = models.BooleanField('Gpi X1', default=False, db_index=True)
 
     class Meta:
-        verbose_name = _('স্পন্সর')
-        verbose_name_plural = _('স্পন্সরগণ')
+        verbose_name = 'Sponsor'
+        verbose_name_plural = 'Sponsors'
         indexes = [
             models.Index(fields=['start_date', 'end_date']),
         ]

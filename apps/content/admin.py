@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.utils.translation import gettext_lazy as _
 from .models import ContentEntry
 
 
@@ -13,4 +12,4 @@ class ContentEntryAdmin(admin.ModelAdmin):
 
     def headline_short(self, obj):
         return obj.headline[:60] if obj.headline else ''
-    headline_short.short_description = _('হেডলাইন')
+    headline_short.short_description = 'The Headline'

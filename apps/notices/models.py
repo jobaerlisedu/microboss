@@ -3,13 +3,13 @@ from apps.common.models import BaseModel
 
 
 class Notice(BaseModel):
-    title = models.CharField('শিরোনাম', max_length=255, db_index=True)
-    content = models.TextField('বিবরণ')
-    is_active = models.BooleanField('সক্রিয়', default=True, db_index=True)
+    title = models.CharField('Title', max_length=255, db_index=True)
+    content = models.TextField('Details')
+    is_active = models.BooleanField('Active', default=True, db_index=True)
 
     class Meta:
-        verbose_name = 'নোটিশ'
-        verbose_name_plural = 'নোটিশ'
+        verbose_name = 'Notice'
+        verbose_name_plural = 'Notice'
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['is_active', '-created_at']),

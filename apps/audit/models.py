@@ -18,8 +18,8 @@ class AuditLog(models.Model):
     created_at = models.DateTimeField(default=timezone.now, db_index=True)
 
     class Meta:
-        verbose_name = 'অডিট লগ'
-        verbose_name_plural = 'অডিট লগ'
+        verbose_name = 'Audit Log'
+        verbose_name_plural = 'Audit Log'
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['content_type', 'object_id']),

@@ -128,7 +128,7 @@ class NotificationMarkAllReadAPIView(generics.GenericAPIView):
         Notification.objects.filter(recipient=request.user, is_read=False).update(
             is_read=True, read_at=timezone.now()
         )
-        return Response({'detail': 'সব নোটিফিকেশন পড়া হয়েছে'})
+        return Response({'detail': 'All notifications have been read'})
 
 
 class DeviceTokenRegisterAPIView(generics.GenericAPIView):
@@ -144,7 +144,7 @@ class DeviceTokenRegisterAPIView(generics.GenericAPIView):
             token=token,
             defaults={'user': request.user, 'platform': platform, 'is_active': True},
         )
-        return Response({'detail': 'টোকেন নিবন্ধিত হয়েছে'}, status=status.HTTP_201_CREATED)
+        return Response({'detail': 'Token has been registered'}, status=status.HTTP_201_CREATED)
 
 
 class DeviceTokenUnregisterAPIView(generics.GenericAPIView):
@@ -154,4 +154,4 @@ class DeviceTokenUnregisterAPIView(generics.GenericAPIView):
         token = request.data.get('token', '')
         if token:
             DeviceToken.objects.filter(user=request.user, token=token).update(is_active=False)
-        return Response({'detail': 'টোকেন নিষ্ক্রিয় করা হয়েছে'})
+        return Response({'Detail': 'Token Disabled'})
