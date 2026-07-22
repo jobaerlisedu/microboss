@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<style>
+  @page { margin: 20mm 15mm; }
+  body { font-family: 'Hind Siliguri', 'Segoe UI', sans-serif; font-size: 11pt; }
+  .header { border-bottom: 3px solid #0A1A33; padding-bottom: 10px; margin-bottom: 15px; }
+  .header h1 { margin: 0; font-size: 18pt; color: #0A1A33; }
+  .header .meta { font-size: 9pt; color: #666; margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  th { background: #0A1A33; color: #fff; padding: 6px 8px; text-align: right; }
+  td { padding: 5px 8px; border-bottom: 1px solid #ddd; text-align: right; }
+  tr:nth-child(even) { background: #f5f7fb; }
+  .footer { margin-top: 15px; font-size: 8pt; color: #888; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>{{ title }}</h1>
+  <div class="meta">তৈরির তারিখ: {{ generated_at|date:"d/m/Y h:i A" }} • মোট {{ total }}টি এন্ট্রি</div>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th>ক্রম</th><th>তারিখ</th><th>আপলোডকারী</th>
+      <th>হেডলাইন</th><th>স্পন্সর</th><th>লিংক</th><th>মন্তব্য</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for entry in entries %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>{{ entry.entry_date|date:"d/m/Y" }}</td>
+      <td>{{ entry.member.username }}</td>
+      <td>{{ entry.headline }}</td>
+      <td>{{ entry.sponsor.name|default:"—" }}</td>
+      <td>
+        {% for k, v in entry.links.items %}
+          {% if v %}{{ k }}{% if not forloop.last %}, {% endif %}{% endif %}
+        {% endfor %}
+      </td>
+      <td>{{ entry.comment|default:"—" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<div class="footer">চ্যানেল ওয়ান ডিজিটাল — কন্টেন্ট লগ</div>
+</body>
+</html>

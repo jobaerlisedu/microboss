@@ -1,0 +1,82 @@
+<div style="padding:0 0 4px 0;">
+<form method="post" action="{% url 'cms:cms-user-edit' target_user.id %}" hx-post="{% url 'cms:cms-user-edit' target_user.id %}" hx-target="#tab-content" hx-swap="innerHTML">
+  {% csrf_token %}
+  <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;margin-bottom:16px;">
+    <h4 style="margin:0 0 14px;font-size:14px;color:var(--text);display:flex;align-items:center;gap:6px;">
+      <i class="bi bi-pencil-square"></i> Edit User: <strong>{{ target_user.username }}</strong>
+    </h4>
+    <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="field"><label>Full Name</label><input type="text" name="full_name" value="{{ target_user.full_name }}" required></div>
+      <div class="field"><label>Designation</label><input type="text" name="designation" value="{{ target_user.designation }}" required></div>
+      <div class="field"><label>Office ID</label><input type="text" name="office_id" value="{{ target_user.office_id }}" required></div>
+      <div class="field"><label>Email</label><input type="email" name="email" value="{{ target_user.email }}"></div>
+      <div class="field"><label>Phone</label><input type="text" name="phone" value="{{ target_user.phone }}" required></div>
+      <div class="field"><label>Blood Group</label>
+        <select name="blood_group">
+          <option value="A+"{% if target_user.blood_group == 'A+' %} selected{% endif %}>A+</option>
+          <option value="A-"{% if target_user.blood_group == 'A-' %} selected{% endif %}>A-</option>
+          <option value="B+"{% if target_user.blood_group == 'B+' %} selected{% endif %}>B+</option>
+          <option value="B-"{% if target_user.blood_group == 'B-' %} selected{% endif %}>B-</option>
+          <option value="AB+"{% if target_user.blood_group == 'AB+' %} selected{% endif %}>AB+</option>
+          <option value="AB-"{% if target_user.blood_group == 'AB-' %} selected{% endif %}>AB-</option>
+          <option value="O+"{% if target_user.blood_group == 'O+' %} selected{% endif %}>O+</option>
+          <option value="O-"{% if target_user.blood_group == 'O-' %} selected{% endif %}>O-</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" style="margin-top:12px;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" name="is_active" value="1"{% if target_user.is_active %} checked{% endif %}> Account Active
+      </label>
+    </div>
+  </div>
+
+  <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;margin-bottom:16px;">
+    <h4 style="margin:0 0 12px;font-size:14px;color:var(--text);display:flex;align-items:center;gap:6px;">
+      <i class="bi bi-shield-fill-check"></i> Assign Roles
+    </h4>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      {% for g in groups %}
+      <label style="display:inline-flex;align-items:center;gap:4px;font-size:13px;padding:6px 12px;border-radius:6px;background:var(--surface);border:1px solid var(--border);cursor:pointer;{% if g.id in user_group_ids %}border-color:#3b82f6;background:rgba(59,130,246,0.08);{% endif %}">
+        <input type="checkbox" name="groups" value="{{ g.id }}"{% if g.id in user_group_ids %} checked{% endif %} style="accent-color:#3b82f6;">
+        {{ g.name }}
+      </label>
+      {% empty %}
+      <span style="color:var(--text-faint);font-size:12px;">No roles defined. Create roles first.</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;margin-bottom:16px;">
+    <h4 style="margin:0 0 12px;font-size:14px;color:var(--text);display:flex;align-items:center;gap:6px;">
+      <i class="bi bi-person-lock"></i> Extra Direct Permissions
+      <span style="font-weight:400;font-size:11px;color:var(--text-faint);">(in addition to role permissions)</span>
+    </h4>
+    <div style="max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;">
+      {% for app_label, app_data in permission_tree.items %}
+      <details style="margin-bottom:6px;"{% if forloop.first %} open{% endif %}>
+        <summary style="cursor:pointer;font-weight:700;font-size:12px;color:var(--text);padding:4px 0;letter-spacing:0.3px;">{{ app_data.verbose_name }}</summary>
+        {% for model_name, model_data in app_data.models.items %}
+        <div style="padding:4px 0 4px 12px;margin:2px 0;">
+          <div style="font-weight:600;font-size:12px;color:var(--text-soft);margin-bottom:3px;">{{ model_data.verbose_name }}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+            {% for p in model_data.perms %}
+            <label style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;padding:3px 8px;border-radius:4px;background:var(--surface);border:1px solid var(--border);cursor:pointer;{% if p.id in selected %}border-color:#3b82f6;background:rgba(59,130,246,0.08);{% endif %}">
+              <input type="checkbox" name="user_permissions" value="{{ p.id }}"{% if p.id in selected %} checked{% endif %} style="accent-color:#3b82f6;">
+              {{ p.name }}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="form-actions" style="display:flex;gap:8px;">
+    <button type="button" class="btn btn-ghost btn-sm" onclick="htmx.ajax('GET','/cms/admin-panel/',{target:'#tab-content',swap:'innerHTML'})">Cancel</button>
+    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Save User</button>
+  </div>
+</form>
+</div>

@@ -1,0 +1,106 @@
+{% load bengali_filters %}
+<div class="card phoenix-card">
+  <div class="card-header-flex" style="margin-bottom: 22px;">
+    <div>
+      <h3 class="phoenix-card-title" id="formTitle">
+        <i class="bi bi-plus-circle-fill" style="color:#3b82f6;margin-right:8px;"></i>
+        {% if duplicating %}Duplicate Content Entry{% elif editing %}Edit Content Entry{% else %}Create New Content Entry{% endif %}
+      </h3>
+      <p class="phoenix-card-sub">Please fill in entry metadata and provide at least 1 social platform URL.</p>
+    </div>
+  </div>
+
+  <form id="entryForm" hx-post="/cms/entries/save/">
+    {% csrf_token %}
+    {% if entry and not duplicating %}<input type="hidden" name="entry_id" value="{{ entry.id }}">{% endif %}
+
+    <!-- META FIELDS ROW (4-COL GRID) -->
+    <div class="form-grid grid-4">
+      <div class="field">
+        <label><i class="bi bi-calendar3"></i> Entry Date *</label>
+        <input type="date" name="entry_date" value="{% if entry %}{{ entry.entry_date|date:'Y-m-d' }}{% else %}{{ initial.date|default:'' }}{% endif %}" required>
+      </div>
+      <div class="field">
+        <label><i class="bi bi-clock"></i> Entry Time *</label>
+        <input type="time" name="entry_time" value="{% if entry %}{{ entry.entry_time|time:'H:i' }}{% else %}{{ initial.time|default:'' }}{% endif %}" required>
+      </div>
+      <div class="field">
+        <label><i class="bi bi-tag-fill"></i> Content Slug *</label>
+        <input type="text" name="slug" value="{{ entry.slug|default:'' }}" required placeholder="e.g. eid-vlog-01">
+      </div>
+      <div class="field">
+        <label><i class="bi bi-person-circle"></i> Uploader</label>
+        <input type="text" value="{{ user.username }}" disabled style="opacity:0.75;background:var(--surface);">
+      </div>
+      <div class="field full" style="margin-top: 4px;">
+        <label><i class="bi bi-type-h1"></i> Headline *</label>
+        <textarea name="headline" required placeholder="Enter content headline..." rows="2" style="resize:vertical;">{{ entry.headline|default:'' }}</textarea>
+      </div>
+    </div>
+
+    <!-- PLATFORM LINKS SUB-CARD -->
+    <div class="link-card-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <label style="font-size: 13.5px; font-weight: 700; color: var(--text); display:flex; align-items:center; gap:8px;">
+          <i class="bi bi-link-45deg" style="color:#3b82f6;font-size:16px;"></i> Social Platform URLs <span style="font-size:11.5px;font-weight:600;color:var(--text-soft);">(At least 1 required)</span>
+        </label>
+      </div>
+
+      <div class="link-grid">
+        {% for p in platforms %}
+        <div class="field link-field">
+          <label><span class="dot" style="background:{{ p.color }}"></span> {{ p.label }}</label>
+          <input type="url" class="linkInput" name="links_{{ p.key }}" placeholder="https://..." value="{% if entry %}{{ links|get_item:p.key }}{% endif %}" />
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ASSIGNMENT & SPONSOR & COMMENTS ROW -->
+    <div class="form-grid">
+      <div class="field">
+        <label><i class="bi bi-pin-angle-fill" style="color:#f59e0b;"></i> Linked Assignment <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
+        <select name="assignment_id">
+          <option value="">— No Assignment —</option>
+          {% for a in today_assignments %}
+          <option value="{{ a.id }}" {% if entry and entry.assignment_id|stringformat:'s' == a.id|stringformat:'s' %}selected{% endif %}>{{ a.caption|truncatechars:40 }} — {{ a.reporter }}</option>
+          {% endfor %}
+        </select>
+        <div id="assignmentCloseNote" style="font-size:10.5px;color:var(--text-faint);margin-top:3px;display:none;">Saving this entry will close the assignment as published.</div>
+        <script>document.querySelector('[name="assignment_id"]')?.addEventListener('change',function(){var n=document.getElementById('assignmentCloseNote');if(n)n.style.display=this.value?'block':'none'});(function(){var s=document.querySelector('[name="assignment_id"]');var n=document.getElementById('assignmentCloseNote');if(s&&n)n.style.display=s.value?'block':'none'})();</script>
+      </div>
+      <div class="field">
+        <label><i class="bi bi-star-fill" style="color:#f59e0b;"></i> Sponsor <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
+        <select name="sponsor_id">
+          <option value="">— No Sponsor —</option>
+          {% for s in sponsors %}
+          <option value="{{ s.id }}" {% if entry and entry.sponsor_id|stringformat:'s' == s.id|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field full">
+        <label><i class="bi bi-chat-text-fill"></i> Comments / Notes <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
+        <textarea name="comment" placeholder="Additional notes or remarks..." rows="2" style="resize:vertical;">{{ entry.comment|default:'' }}</textarea>
+      </div>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="form-actions" style="margin-top: 24px; display:flex; gap:12px; align-items:center;">
+      <button type="submit" class="btn btn-primary" id="submitBtn" style="padding: 11px 28px;">
+        <i class="bi bi-check-lg" style="font-size:16px;"></i> Save Content Entry
+      </button>
+      <button type="button" class="btn btn-ghost" hx-get="/cms/entries/" hx-target="#tab-content" hx-swap="innerHTML">
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+document.getElementById('entryForm')?.addEventListener('submit', function(e) {
+  const links = this.querySelectorAll('.linkInput');
+  let hasLink = false;
+  links.forEach(l => { if (l.value.trim()) hasLink = true; });
+  if (!hasLink) { e.preventDefault(); alert('Please provide at least 1 social platform URL'); return; }
+});
+</script>

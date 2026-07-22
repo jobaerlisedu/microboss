@@ -1,0 +1,574 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load bengali_filters %}
+{% block tab_content %}
+{% if tab_content_rendered %}
+{{ tab_content_rendered|safe }}
+{% else %}
+<!-- Dashboard Page Header -->
+<div class="dash-page-header">
+  <div>
+    <h1 class="dash-title">Content Dashboard</h1>
+    <p class="dash-sub">Comprehensive overview of your digital content pipeline and active campaigns</p>
+  </div>
+</div>
+
+<!-- Period Filter Bar -->
+<div class="toolbar-grid">
+  <form hx-get="/cms/dashboard/" hx-target="#tab-content" hx-swap="innerHTML" class="dash-filter-form">
+    <div class="filter-group">
+      <label>Period</label>
+      <select name="period" onchange="this.form.dispatchEvent(new Event('submit', {bubbles:true}))">
+        <option value="week" {% if request.GET.period == 'week' %}selected{% endif %}>Last 7 Days</option>
+        <option value="month" {% if not request.GET.period or request.GET.period == 'month' %}selected{% endif %}>Last 30 Days</option>
+        <option value="quarter" {% if request.GET.period == 'quarter' %}selected{% endif %}>Last Quarter</option>
+        <option value="year" {% if request.GET.period == 'year' %}selected{% endif %}>This Year</option>
+      </select>
+    </div>
+  </form>
+  <div class="filter-actions">
+    <button class="btn btn-ghost btn-sm" onclick="window.refreshDashboardData()" title="Refresh Data">
+      <i class="bi bi-arrow-clockwise"></i> Refresh
+    </button>
+    <a class="btn btn-ghost btn-sm" href="/api/v1/analytics/export/csv/?period={{ request.GET.period|default:'month' }}" target="_blank">
+      <i class="bi bi-download"></i> CSV
+    </a>
+  </div>
+</div>
+
+<!-- Quick KPI Status Pills -->
+<div class="kpi-pills-row" id="kpiPills">
+  <div class="kpi-pill kpi-success">
+    <div class="kpi-icon" style="background:rgba(59, 130, 246, 0.15);color:#3b82f6;"><i class="bi bi-file-earmark-text-fill"></i></div>
+    <div class="kpi-text">
+      <strong id="kpiTotalEntries">{{ stats.total_entries }}</strong>
+      <span><span id="kpiTodayEntries">{{ stats.today_entries }}</span> published today</span>
+    </div>
+  </div>
+  <div class="kpi-pill kpi-warning">
+    <div class="kpi-icon" style="background:rgba(245, 158, 11, 0.15);color:#f59e0b;"><i class="bi bi-star-fill"></i></div>
+    <div class="kpi-text">
+      <strong><span id="kpiActiveSponsors">{{ stats.active_sponsors }}</span> Active Sponsors</strong>
+      <span>Out of <span id="kpiTotalSponsors">{{ stats.total_sponsors }}</span> total</span>
+    </div>
+  </div>
+  <div class="kpi-pill" style="border-left:3px solid #6366f1;">
+    <div class="kpi-icon" style="background:rgba(99, 102, 241, 0.15);color:#6366f1;"><i class="bi bi-journal-text"></i></div>
+    <div class="kpi-text">
+      <strong><span id="kpiMonthEntries">{{ stats.month_entries }}</span> This Month</strong>
+      <span>Growth: <span id="kpiGrowth" class="{% if stats.growth_pct >= 0 %}badge-pos{% else %}badge-neg{% endif %}">{% if stats.growth_pct >= 0 %}+{% endif %}{{ stats.growth_pct }}%</span></span>
+    </div>
+  </div>
+  <div class="kpi-pill kpi-danger">
+    <div class="kpi-icon" style="background:rgba(239, 68, 68, 0.15);color:#ef4444;"><i class="bi bi-clock-history"></i></div>
+    <div class="kpi-text">
+      <strong><span id="kpiPendingTasks">{{ stats.pending_scripts|add:stats.active_assignments }}</span> Pending Tasks</strong>
+      <span><span id="kpiPendingScripts">{{ stats.pending_scripts }}</span> scripts · <span id="kpiActiveAssignments">{{ stats.active_assignments }}</span> assignments</span>
+    </div>
+  </div>
+</div>
+
+<!-- Main Cards Grid -->
+<div class="phoenix-dash-grid">
+  <!-- Left Side: Content Publishing Trend Wide Chart -->
+  <div class="card phoenix-card grid-total-sells">
+    <div class="card-header-flex">
+      <div>
+        <h3 class="phoenix-card-title"><i class="bi bi-graph-up-arrow" style="color:#3b82f6;margin-right:4px;"></i> Content Publishing Trend</h3>
+        <p class="phoenix-card-sub">Publishing velocity and volume across all channels</p>
+      </div>
+      <div class="date-select-pill">
+        <span id="trendPeriodLabel">{{ request.GET.period|default:'Month' }}</span>
+      </div>
+    </div>
+    <div class="chart-container" style="height: 200px; position: relative; margin-top: 10px;">
+      <canvas id="chartContentTrend"></canvas>
+    </div>
+  </div>
+
+  <!-- Right Top Card 1: Daily Uploads Mini Chart -->
+  <div class="card phoenix-card grid-total-orders">
+    <div class="card-header-flex align-top">
+      <div>
+        <div class="stat-meta-row">
+          <span class="stat-title">7-Day Trend</span>
+          <span class="badge-pill" id="dailyTrendBadge">Last 7 days</span>
+        </div>
+        <div class="stat-big-num" id="dailyTrendTotal">{{ stats.today_entries }}</div>
+        <div class="phoenix-card-sub">Today's entries</div>
+      </div>
+    </div>
+    <div class="chart-container" style="height: 60px; margin-top: 6px;">
+      <canvas id="chartDailyTrend"></canvas>
+    </div>
+    <div class="chart-legend-flex" style="margin-top:8px;">
+      <div class="legend-item"><span class="dot blue"></span> Daily Avg <strong id="dailyAvg">0</strong></div>
+      <div class="legend-item"><span class="dot light-blue"></span> Peak <strong id="dailyPeak">0</strong></div>
+    </div>
+  </div>
+
+  <!-- Right Top Card 2: Top Contributors -->
+  <div class="card phoenix-card grid-new-customers">
+    <div class="card-header-flex align-top">
+      <div>
+        <div class="stat-meta-row">
+          <span class="stat-title">Top Contributors</span>
+          <span class="badge-pill badge-pos" id="memberCount">Active</span>
+        </div>
+        <div class="stat-big-num" id="topMemberCount">-</div>
+        <div class="phoenix-card-sub">Leading contributor this period</div>
+      </div>
+    </div>
+    <div class="member-list-mini" id="memberMiniList" style="margin-top:4px;">
+      <div style="color:var(--text-faint);font-size:11px;">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Right Mid Card 1: Platform Breakdown -->
+  <div class="card phoenix-card grid-top-coupons">
+    <h3 class="phoenix-card-title"><i class="bi bi-pie-chart-fill" style="color:#3b82f6;margin-right:4px;"></i> Platform Breakdown</h3>
+    <p class="phoenix-card-sub">Share of published channels</p>
+    <div class="donut-chart-box" style="height: 110px; position: relative; margin-top: 6px; display: flex; justify-content: center; align-items: center;">
+      <canvas id="chartPlatformBreakdown" width="100" height="100"></canvas>
+      <div class="donut-center-text" id="donutCenterPct">-</div>
+    </div>
+    <div class="chart-legend-list" style="margin-top: 6px;" id="platformLegendList">
+      <div style="color:var(--text-faint);font-size:11px;">Loading platform data...</div>
+    </div>
+  </div>
+
+  <!-- Right Mid Card 2: Sponsored vs Organic -->
+  <div class="card phoenix-card grid-paying-vs">
+    <h3 class="phoenix-card-title"><i class="bi bi-shield-check" style="color:#3b82f6;margin-right:4px;"></i> Content Ratio</h3>
+    <p class="phoenix-card-sub">Sponsored vs Organic</p>
+    <div class="arc-chart-box" style="height: 100px; position: relative; margin-top: 6px; display: flex; justify-content: center; align-items: center;">
+      <canvas id="chartContentRatio" width="120" height="80"></canvas>
+    </div>
+    <div class="chart-legend-list" style="margin-top: 6px;">
+      <div class="legend-item-row">
+        <span><span class="dot blue"></span> Sponsored</span>
+        <strong><span id="ratioSponsored">-</span> (<span id="ratioSponsoredPct">-</span>%)</strong>
+      </div>
+      <div class="legend-item-row">
+        <span><span class="dot soft-blue"></span> Organic</span>
+        <strong><span id="ratioOrganic">-</span> (<span id="ratioOrganicPct">-</span>%)</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Assignment & Script Metrics -->
+  <div class="card phoenix-card" style="grid-column: 1;">
+    <h3 class="phoenix-card-title"><i class="bi bi-pin-angle-fill" style="color:#f59e0b;margin-right:4px;"></i> Assignment Status</h3>
+    <p class="phoenix-card-sub">Period breakdown</p>
+    <div style="margin-top:8px;" id="assignmentMetrics">
+      <div style="color:var(--text-faint);font-size:11px;">Loading...</div>
+    </div>
+  </div>
+
+  <div class="card phoenix-card" style="grid-column: 2;">
+    <h3 class="phoenix-card-title"><i class="bi bi-file-earmark-code-fill" style="color:#6366f1;margin-right:4px;"></i> Script Pipeline</h3>
+    <p class="phoenix-card-sub">Status breakdown</p>
+    <div style="margin-top:8px;" id="scriptMetrics">
+      <div style="color:var(--text-faint);font-size:11px;">Loading...</div>
+    </div>
+  </div>
+
+  <div class="card phoenix-card" style="grid-column: 3;">
+    <h3 class="phoenix-card-title"><i class="bi bi-card-checklist" style="color:#22c55e;margin-right:4px;"></i> Content List Sources</h3>
+    <p class="phoenix-card-sub">By source type</p>
+    <div style="margin-top:8px;" id="sourceMetrics">
+      <div style="color:var(--text-faint);font-size:11px;">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Notice Widget Card -->
+  <div class="card phoenix-card grid-notice-widget">
+    <div class="card-header-flex" style="margin-bottom: 8px;">
+      <div>
+        <h3 class="phoenix-card-title"><i class="bi bi-megaphone-fill" style="color:#f59e0b;margin-right:4px;"></i> Latest Notices</h3>
+        <p class="phoenix-card-sub">Recent announcements and updates</p>
+      </div>
+      <div class="table-toolbar-actions">
+        <a class="btn btn-ghost btn-sm" href="#" hx-get="/cms/notices/" hx-target="#tab-content" hx-swap="innerHTML">
+          View All <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+    <div class="notice-widget-list">
+      {% for n in notices %}
+      <div class="notice-widget-item">
+        <div class="notice-widget-icon"><i class="bi bi-megaphone"></i></div>
+        <div class="notice-widget-body">
+          <div class="notice-widget-title">{{ n.title }}</div>
+          <div class="notice-widget-meta">
+            {% if n.created_by %}<span><i class="bi bi-person"></i> {{ n.created_by.get_full_name|default:n.created_by.username }}</span>{% endif %}
+            <span><i class="bi bi-clock"></i> {{ n.created_at|date:"M d, Y" }}</span>
+          </div>
+        </div>
+        <a class="notice-widget-link" href="#" onclick="openNoticeModal('{{ n.id }}');return false;">
+          <i class="bi bi-box-arrow-up-right"></i>
+        </a>
+      </div>
+      {% empty %}
+      <div style="color:var(--text-faint);font-size:13px;padding:16px 0;text-align:center;">No notices available</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Bottom Wide Table Card: Recent Content Entries -->
+  <div class="card phoenix-card grid-latest-reviews">
+    <div class="card-header-flex" style="margin-bottom: 10px;">
+      <div>
+        <h3 class="phoenix-card-title"><i class="bi bi-clock-history" style="color:#3b82f6;margin-right:4px;"></i> Recent Content Entries</h3>
+        <p class="phoenix-card-sub">Latest content published across social channels</p>
+      </div>
+      <div class="table-toolbar-actions">
+        <button class="btn btn-ghost btn-sm" hx-get="/cms/entries/" hx-target="#tab-content" hx-swap="innerHTML">
+          View All Entries <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="phoenix-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>HEADLINE & SLUG</th>
+            <th>CREATOR</th>
+            <th>SPONSOR</th>
+            <th>PLATFORMS</th>
+            <th>DATE</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in recent_entries %}
+          <tr>
+            <td style="font-weight:600;color:var(--text-soft);">{{ forloop.counter }}</td>
+            <td>
+              <div style="font-weight:700;color:var(--text);line-height:1.35;margin-bottom:2px;">{{ e.headline|truncatechars:45 }}</div>
+              <div style="font-size:11.5px;color:#3b82f6;font-family:monospace;">{{ e.slug }}</div>
+            </td>
+            <td><strong>{{ e.member.full_name|default:e.member.username }}</strong></td>
+            <td>
+              {% if e.sponsor %}
+              <span class="status-pill status-success"><i class="bi bi-star-fill" style="font-size:10px;margin-right:3px;"></i> {{ e.sponsor.name }}</span>
+              {% else %}
+              <span style="color:var(--text-faint);font-size:12px;">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="link-row">
+                {% for p in platforms %}
+                  {% with url=e.links|get_item:p.key %}
+                    {% if url %}
+                    <a class="link-pill" style="background:{{ p.color }}" href="{{ url }}" target="_blank" rel="noopener" title="{{ p.label }}">{{ p.label|first }}</a>
+                    {% else %}
+                    <span class="link-pill dim" style="background:{{ p.color }}">{{ p.label|first }}</span>
+                    {% endif %}
+                  {% endwith %}
+                {% endfor %}
+              </div>
+            </td>
+            <td>{{ e.entry_date|date:"M d" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" style="text-align:center;padding:14px;color:var(--text-faint);">No content entries recorded yet</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.dashboardPeriod = '{{ request.GET.period|default:"month" }}';
+
+  window.refreshDashboardData = function() {
+    var period = window.dashboardPeriod || 'month';
+    var apiUrl = '/api/v1/analytics/dashboard/?period=' + period;
+
+    fetch(apiUrl)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.kpi) updateKPIs(data.kpi);
+        if (data.content_trend) renderContentTrend(data.content_trend);
+        if (data.daily_trend) renderDailyTrend(data.daily_trend);
+        if (data.platform_breakdown) renderPlatformBreakdown(data.platform_breakdown);
+        if (data.sponsored_vs_organic) renderContentRatio(data.sponsored_vs_organic);
+        if (data.member_performance) renderMemberMiniList(data.member_performance);
+        if (data.assignment_metrics) renderAssignmentMetrics(data.assignment_metrics);
+        if (data.script_metrics) renderScriptMetrics(data.script_metrics);
+        if (data.content_list_sources) renderSourceMetrics(data.content_list_sources);
+      })
+      .catch(function(err) {
+        console.warn('Dashboard analytics fetch failed (data may be empty):', err);
+      });
+  };
+
+  function updateKPIs(kpi) {
+    setText('kpiTotalEntries', kpi.total_entries);
+    setText('kpiTodayEntries', kpi.today_entries);
+    setText('kpiMonthEntries', kpi.month_entries);
+    setText('kpiActiveSponsors', kpi.active_sponsors);
+    setText('kpiTotalSponsors', kpi.total_sponsors);
+    setText('kpiPendingScripts', kpi.pending_scripts);
+    setText('kpiActiveAssignments', kpi.active_assignments);
+    var pending = (kpi.pending_scripts || 0) + (kpi.active_assignments || 0);
+    setText('kpiPendingTasks', pending);
+    var el = document.getElementById('kpiGrowth');
+    if (el) {
+      el.textContent = (kpi.growth_pct >= 0 ? '+' : '') + kpi.growth_pct + '%';
+      el.className = kpi.growth_pct >= 0 ? 'badge-pill badge-pos' : 'badge-pill badge-neg';
+    }
+  }
+
+  function renderContentTrend(trend) {
+    var canvas = document.getElementById('chartContentTrend');
+    if (!canvas || !trend.labels || !trend.values) return;
+    var parent = canvas.parentElement;
+    canvas.width = parent.clientWidth || 600;
+    canvas.height = 240;
+    var ctx = canvas.getContext('2d');
+    var w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    var maxVal = Math.max.apply(null, trend.values) || 1;
+    var padding = { top: 20, right: 20, bottom: 30, left: 40 };
+    var chartW = w - padding.left - padding.right;
+    var chartH = h - padding.top - padding.bottom;
+
+    // Grid lines
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#e2e8f0';
+    ctx.lineWidth = 1;
+    for (var y = 0; y <= 4; y++) {
+      var yPos = padding.top + (chartH / 4) * y;
+      ctx.beginPath();
+      ctx.setLineDash([4, 4]);
+      ctx.moveTo(padding.left, yPos);
+      ctx.lineTo(w - padding.right, yPos);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '10px sans-serif';
+      ctx.fillText(Math.round(maxVal - (maxVal / 4) * y), 5, yPos + 3);
+    }
+
+    // Build area fill
+    var barW = chartW / Math.max(trend.values.length, 1);
+    var gradient = ctx.createLinearGradient(0, padding.top, 0, h - padding.bottom);
+    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.25)');
+    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+    ctx.beginPath();
+    var pts = [];
+    trend.values.forEach(function(val, i) {
+      var x = padding.left + i * barW + barW / 2;
+      var y = padding.top + chartH - (val / maxVal) * chartH;
+      pts.push({x: x, y: y});
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+
+    ctx.lineTo(pts[pts.length-1].x, padding.top + chartH);
+    ctx.lineTo(pts[0].x, padding.top + chartH);
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    pts.forEach(function(pt, i) {
+      if (i === 0) ctx.moveTo(pt.x, pt.y);
+      else ctx.lineTo(pt.x, pt.y);
+    });
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Dots on data points
+    pts.forEach(function(pt) {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#3b82f6';
+      ctx.fill();
+    });
+
+    // X labels (show every Nth label to avoid crowding)
+    var step = Math.max(1, Math.floor(trend.labels.length / 10));
+    trend.labels.forEach(function(label, i) {
+      if (i % step === 0 || i === trend.labels.length - 1) {
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '9px sans-serif';
+        var x = padding.left + i * barW + barW / 2;
+        ctx.textAlign = 'center';
+        ctx.fillText(label, x, h - 8);
+      }
+    });
+  }
+
+  function renderDailyTrend(trend) {
+    var canvas = document.getElementById('chartDailyTrend');
+    if (!canvas || !trend.values) return;
+    var parent = canvas.parentElement;
+    canvas.width = parent.clientWidth || 200;
+    canvas.height = 80;
+    var ctx = canvas.getContext('2d');
+    var w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    var maxVal = Math.max.apply(null, trend.values) || 1;
+    var barW = (w - 10) / Math.max(trend.values.length, 1) - 3;
+    var peak = 0;
+
+    trend.values.forEach(function(val, i) {
+      if (val > peak) peak = val;
+      var barH = (val / maxVal) * (h - 10);
+      var x = 5 + i * (barW + 3);
+      var y = h - barH - 5;
+      ctx.fillStyle = i >= trend.values.length - 1 ? '#3b82f6' : 'rgba(59,130,246,0.3)';
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(x, y, barW, barH, [3, 3, 0, 0]);
+      } else {
+        ctx.rect(x, y, barW, barH);
+      }
+      ctx.fill();
+    });
+
+    var total = trend.values.reduce(function(a, b) { return a + b; }, 0);
+    var avg = Math.round(total / Math.max(trend.values.length, 1));
+    setText('dailyAvg', avg);
+    setText('dailyPeak', peak);
+    setText('dailyTrendTotal', trend.values[trend.values.length - 1] || 0);
+    setText('dailyTrendTotal', trend.values[trend.values.length - 1] || 0);
+  }
+
+  function renderPlatformBreakdown(data) {
+    if (!data.breakdown) return;
+    var canvas = document.getElementById('chartPlatformBreakdown');
+    if (canvas) {
+      var ctx = canvas.getContext('2d');
+      var w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      var cx = w / 2, cy = h / 2;
+      var radius = Math.min(w, h) / 2 - 8;
+      var innerR = radius - 16;
+      var startAngle = -Math.PI / 2;
+      data.breakdown.forEach(function(seg) {
+        var sliceAngle = (seg.pct / 100) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
+        ctx.arc(cx, cy, innerR, startAngle + sliceAngle, startAngle, true);
+        ctx.closePath();
+        ctx.fillStyle = seg.color;
+        ctx.fill();
+        startAngle += sliceAngle;
+      });
+      setText('donutCenterPct', data.breakdown.length > 0 ? data.breakdown[0].pct + '%' : '-');
+    }
+    var list = document.getElementById('platformLegendList');
+    if (list) {
+      list.innerHTML = data.breakdown.map(function(s) {
+        return '<div class="legend-item-row"><span><span class="dot" style="background:' + s.color + '"></span> ' + s.label + '</span><strong>' + s.count + ' (' + s.pct + '%)</strong></div>';
+      }).join('');
+    }
+  }
+
+  function renderContentRatio(data) {
+    var canvas = document.getElementById('chartContentRatio');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    var cx = w / 2, cy = h - 10;
+    var radius = 55, innerR = 40;
+
+    var sponsoredPct = data.sponsored_pct / 100 || 0;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, Math.PI, Math.PI + Math.PI * sponsoredPct);
+    ctx.arc(cx, cy, innerR, Math.PI + Math.PI * sponsoredPct, Math.PI, true);
+    ctx.fillStyle = '#3b82f6';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, Math.PI + Math.PI * sponsoredPct, Math.PI * 2);
+    ctx.arc(cx, cy, innerR, Math.PI * 2, Math.PI + Math.PI * sponsoredPct, true);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fill();
+
+    setText('ratioSponsored', data.sponsored);
+    setText('ratioSponsoredPct', data.sponsored_pct);
+    setText('ratioOrganic', data.organic);
+    setText('ratioOrganicPct', data.organic_pct);
+  }
+
+  function renderMemberMiniList(members) {
+    var el = document.getElementById('memberMiniList');
+    if (!el) return;
+    if (!members || members.length === 0) {
+      el.innerHTML = '<div style="color:var(--text-faint);font-size:11px;">No data</div>';
+      return;
+    }
+    setText('topMemberCount', members[0].total);
+    setText('memberCount', members.length + ' active');
+    el.innerHTML = members.map(function(m, i) {
+      var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1;
+      return '<div style="display:flex;justify-content:space-between;padding:2px 0;font-size:11px;border-bottom:1px solid var(--border);"><span>' + medal + ' ' + m.name + '</span><strong>' + m.total + '</strong></div>';
+    }).join('');
+  }
+
+  function renderAssignmentMetrics(data) {
+    var el = document.getElementById('assignmentMetrics');
+    if (!el || !data) return;
+    el.innerHTML =
+      '<div style="margin-bottom:5px;"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:2px;"><span>Done</span><strong>' + data.done + '</strong></div>' +
+      '<div style="height:5px;background:var(--surface-2);border-radius:3px;"><div style="height:100%;width:' + data.done_pct + '%;background:#22c55e;border-radius:3px;"></div></div></div>' +
+      '<div style="margin-bottom:5px;"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:2px;"><span>Processing</span><strong>' + data.processing + '</strong></div>' +
+      '<div style="height:5px;background:var(--surface-2);border-radius:3px;"><div style="height:100%;width:' + data.processing_pct + '%;background:#f59e0b;border-radius:3px;"></div></div></div>' +
+      '<div style="margin-bottom:5px;"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:2px;"><span>Assigned</span><strong>' + data.assigned + '</strong></div>' +
+      '<div style="height:5px;background:var(--surface-2);border-radius:3px;"><div style="height:100%;width:' + data.assigned_pct + '%;background:#3b82f6;border-radius:3px;"></div></div></div>' +
+      '<div style="color:var(--text-soft);font-size:10.5px;margin-top:5px;">Total: ' + data.total + ' assignments</div>';
+  }
+
+  function renderScriptMetrics(data) {
+    var el = document.getElementById('scriptMetrics');
+    if (!el || !data) return;
+    el.innerHTML =
+      '<div style="margin-bottom:5px;"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:2px;"><span>Approved</span><strong>' + data.approved + '</strong></div>' +
+      '<div style="height:5px;background:var(--surface-2);border-radius:3px;"><div style="height:100%;width:' + data.approved_pct + '%;background:#22c55e;border-radius:3px;"></div></div></div>' +
+      '<div style="margin-bottom:5px;"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:2px;"><span>Pending Review</span><strong>' + data.pending + '</strong></div>' +
+      '<div style="height:5px;background:var(--surface-2);border-radius:3px;"><div style="height:100%;width:' + (data.total > 0 ? Math.round(data.pending / data.total * 100) : 0) + '%;background:#f59e0b;border-radius:3px;"></div></div></div>' +
+      '<div style="margin-bottom:5px;"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:2px;"><span>Draft</span><strong>' + data.draft + '</strong></div>' +
+      '<div style="height:5px;background:var(--surface-2);border-radius:3px;"><div style="height:100%;width:' + (data.total > 0 ? Math.round(data.draft / data.total * 100) : 0) + '%;background:#94a3b8;border-radius:3px;"></div></div></div>' +
+      '<div style="color:var(--text-soft);font-size:10.5px;margin-top:5px;">Total: ' + data.total + ' scripts</div>';
+  }
+
+  function renderSourceMetrics(data) {
+    var el = document.getElementById('sourceMetrics');
+    if (!el || !data || !data.sources) return;
+    if (data.sources.length === 0) {
+      el.innerHTML = '<div style="color:var(--text-faint);font-size:11px;">No data</div>';
+      return;
+    }
+    var colors = {district:'#3b82f6', reuters:'#ef4444', social:'#22c55e', studio:'#f59e0b'};
+    el.innerHTML = data.sources.map(function(s) {
+      var c = colors[s.source] || '#94a3b8';
+      return '<div style="margin-bottom:4px;"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:2px;"><span><span class="dot" style="background:' + c + ';width:6px;height:6px;"></span> ' + s.source + '</span><strong>' + s.total + '</strong></div>' +
+        '<div style="height:4px;background:var(--surface-2);border-radius:3px;"><div style="height:100%;width:' + s.pct + '%;background:' + c + ';border-radius:3px;"></div></div></div>';
+    }).join('') +
+    '<div style="color:var(--text-soft);font-size:10.5px;margin-top:4px;">Total: ' + data.total + ' items</div>';
+  }
+
+  function setText(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = val != null ? val : '-';
+  }
+
+  // Load data on first render
+  setTimeout(window.refreshDashboardData, 100);
+</script>
+{% endif %}
+{% endblock %}

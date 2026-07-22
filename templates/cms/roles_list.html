@@ -1,0 +1,99 @@
+<div class="admin-subnav" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-people-fill"></i> Users</button>
+  <button class="btn btn-primary btn-sm active"><i class="bi bi-shield-lock-fill"></i> Roles &amp; Permissions</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/audit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-journal-check"></i> Audit Log</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/health/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-activity"></i> System Health</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/settings/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-sliders"></i> Settings</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/activity/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-clock-history"></i> Activity</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/csv-import/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-file-earmark-spreadsheet-fill"></i> CSV Import</button>
+</div>
+
+<div class="card phoenix-card" style="margin-bottom:20px;">
+  <div class="card-header-flex" style="margin-bottom:16px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-shield-lock-fill" style="color:#3b82f6;margin-right:6px;"></i> Roles &amp; Permissions</h3>
+      <p class="phoenix-card-sub">Manage user roles and assign granular permissions</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="document.getElementById('addRoleForm').classList.toggle('hidden')"><i class="bi bi-plus-circle-fill"></i> Add Role</button>
+  </div>
+
+  <div id="addRoleForm" class="hidden" style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;margin-bottom:16px;">
+    <h4 style="margin:0 0 12px;font-size:14px;color:var(--text);">Create New Role</h4>
+    <form method="post" action="{% url 'cms:cms-save-role' %}" hx-post="{% url 'cms:cms-save-role' %}" hx-target="#tab-content" hx-swap="innerHTML">
+      {% csrf_token %}
+      <div class="field"><label>Role Name *</label><input type="text" name="name" required placeholder="e.g. Editor, Reviewer, Producer"></div>
+      <div class="form-actions" style="margin-top:14px;">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('addRoleForm').classList.add('hidden')">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm">Create Role</button>
+      </div>
+    </form>
+  </div>
+
+  {% for group in groups %}
+  <div class="role-card" style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);">
+    <div>
+      <strong style="color:var(--text);font-size:14px;">{{ group.name }}</strong>
+      <span class="status-pill status-pending" style="margin-left:8px;font-size:11px;">{{ group.user_count }} user{{ group.user_count|pluralize }}</span>
+    </div>
+    <div class="row-actions" style="gap:8px;">
+      <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-edit-role' group.id %}" hx-target="#rolePerm{{ group.id }}" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i> Edit Permissions</button>
+      <button class="btn btn-danger btn-sm" hx-post="{% url 'cms:cms-delete-role' group.id %}" hx-target="#tab-content" hx-swap="innerHTML" hx-confirm="Delete role '{{ group.name }}'? This does not affect existing users."><i class="bi bi-trash-fill"></i></button>
+    </div>
+  </div>
+  <div id="rolePerm{{ group.id }}" style="padding:0 0 4px 0;"></div>
+  {% empty %}
+  <p style="color:var(--text-faint);font-size:13px;text-align:center;padding:20px 0;">No roles created yet. Click "Add Role" to get started.</p>
+  {% endfor %}
+</div>
+
+<div class="card phoenix-card" id="permBrowser">
+  <div class="card-header-flex" style="margin-bottom:16px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-diagram-3-fill" style="color:#3b82f6;margin-right:6px;"></i> All System Permissions</h3>
+      <p class="phoenix-card-sub">Browse all permissions — click a permission to see its action type</p>
+    </div>
+    <input type="text" id="permSearch" placeholder="Search permissions..." oninput="filterPerms(this.value)" style="max-width:260px;padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:var(--surface-2);color:var(--text);font-size:12.5px;outline:none;">
+  </div>
+  {% for app_label, app_data in permission_tree.items %}
+  <details class="perm-group" style="margin-bottom:6px;"{% if forloop.first %} open{% endif %}>
+    <summary style="cursor:pointer;font-weight:700;font-size:13px;color:var(--text);padding:6px 0;letter-spacing:0.3px;display:flex;align-items:center;gap:6px;">
+      <span>{{ app_data.verbose_name }}</span>
+      <span class="status-pill status-pending" style="font-size:10px;font-weight:400;">{{ app_data.models|length }}</span>
+    </summary>
+    {% for model_name, model_data in app_data.models.items %}
+    <div class="perm-model" style="padding:5px 0 5px 16px;border-left:2px solid var(--border);margin:3px 0 3px 8px;">
+      <div style="font-weight:600;font-size:12px;color:var(--text-soft);margin-bottom:4px;">{{ model_data.verbose_name }}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        {% for p in model_data.perms %}
+        {% if 'add_' in p.codename %}
+        <span class="chip" style="font-size:11px;border-color:#16a34a;color:#16a34a;"><i class="bi bi-plus-circle" style="font-size:9px;"></i> {{ p.name }}</span>
+        {% elif 'change_' in p.codename %}
+        <span class="chip" style="font-size:11px;border-color:#2563eb;color:#2563eb;"><i class="bi bi-pencil-square" style="font-size:9px;"></i> {{ p.name }}</span>
+        {% elif 'delete_' in p.codename %}
+        <span class="chip" style="font-size:11px;border-color:#dc2626;color:#dc2626;"><i class="bi bi-trash" style="font-size:9px;"></i> {{ p.name }}</span>
+        {% elif 'view_' in p.codename %}
+        <span class="chip" style="font-size:11px;border-color:#64748b;color:#64748b;"><i class="bi bi-eye" style="font-size:9px;"></i> {{ p.name }}</span>
+        {% else %}
+        <span class="chip" style="font-size:11px;"><i class="bi bi-shield" style="font-size:9px;"></i> {{ p.name }}</span>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </details>
+  {% endfor %}
+</div>
+<script>
+function filterPerms(q) {
+  q = q.toLowerCase().trim();
+  document.querySelectorAll('#permBrowser .perm-group').forEach(g => {
+    let showGroup = !q;
+    g.querySelectorAll('.perm-model').forEach(m => {
+      const match = !q || m.textContent.toLowerCase().includes(q);
+      m.style.display = match ? '' : 'none';
+      if (match) showGroup = true;
+    });
+    g.style.display = showGroup ? '' : 'none';
+  });
+}
+</script>

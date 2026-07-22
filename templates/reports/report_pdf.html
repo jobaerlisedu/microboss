@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ config.name }}</title>
+  <style>
+    @page { size: A4 landscape; margin: 15mm; }
+    body { font-family: 'Hind Siliguri', Arial, sans-serif; font-size: 11pt; color: #1e293b; line-height: 1.5; }
+    h1 { font-size: 18pt; margin-bottom: 2px; color: #111827; }
+    .subtitle { font-size: 10pt; color: #6b7280; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+    th { background: #1e293b; color: #fff; padding: 6px 8px; text-align: left; font-weight: 600; }
+    td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; }
+    tr:nth-child(even) td { background: #f9fafb; }
+    .footer { position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 8pt; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 4px; }
+    .summary { margin-bottom: 12px; }
+    .summary span { background: #f3f4f6; padding: 2px 8px; border-radius: 4px; margin-right: 6px; font-size: 9pt; }
+  </style>
+</head>
+<body>
+  <h1>{{ config.name }}</h1>
+  <div class="subtitle">
+    {{ config.get_module_display }} &middot; {{ config.get_aggregation_display }} &middot; {{ config.get_period_display }}
+    {% if engine.date_from and engine.date_to %} &middot; {{ engine.date_from|date:"d M Y" }} &ndash; {{ engine.date_to|date:"d M Y" }}{% endif %}
+  </div>
+  <div class="summary">
+    <span>Total: {{ engine.summary.total }}</span>
+    {% if engine.summary.days %}<span>Days: {{ engine.summary.days }}</span>{% endif %}
+    {% if engine.summary.months %}<span>Months: {{ engine.summary.months }}</span>{% endif %}
+  </div>
+  <table>
+    <thead>
+      <tr>
+        {% if engine.rows %}{% for key in engine.rows.0.keys %}<th>{{ key|title }}</th>{% endfor %}{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in engine.rows %}
+      <tr>
+        {% for val in row.values %}
+        <td>{% if val is None %}—{% else %}{{ val }}{% endif %}</td>
+        {% endfor %}
+      </tr>
+      {% empty %}
+      <tr><td colspan="10" style="text-align:center;padding:20px;">No data found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="footer">Generated on {% now "d M Y H:i" %} &middot; Content Tracker &middot; Channel One</div>
+</body>
+</html>

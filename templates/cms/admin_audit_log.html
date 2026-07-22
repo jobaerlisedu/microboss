@@ -1,0 +1,76 @@
+<div class="admin-subnav" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-people-fill"></i> Users</button>
+  <button class="btn btn-primary btn-sm active" hx-get="/cms/admin-panel/audit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-journal-check"></i> Audit Log</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/health/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-activity"></i> System Health</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/settings/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-sliders"></i> Settings</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/activity/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-clock-history"></i> Activity</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/csv-import/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-file-earmark-spreadsheet-fill"></i> CSV Import</button>
+</div>
+
+<div class="card phoenix-card">
+  <div class="card-header-flex" style="margin-bottom: 16px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-journal-check" style="color:#3b82f6;margin-right:6px;"></i> Audit Logs</h3>
+      <p class="phoenix-card-sub">Creation, update, and deletion history across models</p>
+    </div>
+  </div>
+
+  <div class="toolbar" style="margin-bottom:16px;">
+    <select hx-get="/cms/admin-panel/audit/" hx-target="#tab-content" hx-swap="innerHTML" name="action" style="max-width:200px;">
+      <option value="">All Actions</option>
+      <option value="created" {% if selected_action == 'created' %}selected{% endif %}>Created</option>
+      <option value="updated" {% if selected_action == 'updated' %}selected{% endif %}>Updated</option>
+      <option value="deleted" {% if selected_action == 'deleted' %}selected{% endif %}>Deleted</option>
+    </select>
+    <select hx-get="/cms/admin-panel/audit/" hx-target="#tab-content" hx-swap="innerHTML" name="type" style="max-width:200px;">
+      <option value="">All Models</option>
+      {% for ct in content_types %}
+      <option value="{{ ct }}" {% if selected_type == ct %}selected{% endif %}>{{ ct }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th>TIME</th>
+          <th>USER</th>
+          <th>ACTION</th>
+          <th>MODEL</th>
+          <th>OBJECT</th>
+          <th>CHANGES</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td style="white-space:nowrap;font-size:12px;">{{ log.created_at|date:"Y-m-d H:i" }}</td>
+          <td><strong>{{ log.username }}</strong></td>
+          <td>
+            <span class="status-pill {% if log.action == 'deleted' %}status-pending{% elif log.action == 'created' %}status-success{% else %}status-pending{% endif %}">
+              {{ log.action|capfirst }}
+            </span>
+          </td>
+          <td style="font-size:12px;">{{ log.content_type }}</td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ log.object_repr }}">{{ log.object_repr }}</td>
+          <td style="font-size:11.5px;max-width:300px;">
+            {% if log.is_created %}
+              <span style="color:#22c55e;">Newly Created</span>
+            {% elif log.is_deleted %}
+              <span style="color:#ef4444;">Deleted</span>
+            {% elif log.change_fields %}
+              {% for field, change in log.change_fields.items %}
+                <span title="{{ field }}: {{ change.old }} → {{ change.new }}">{{ field }}</span>{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-faint);">No audit logs found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--text-faint);margin-top:12px;text-align:right;">Showing last 200 log entries</p>
+</div>

@@ -1,0 +1,63 @@
+<div class="card phoenix-card">
+  <div class="card-header-flex">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-bar-chart-fill" style="color:#8b5cf6;"></i> Reports</h3>
+      <p class="phoenix-card-sub">Build, save and export custom reports</p>
+    </div>
+    <button class="btn btn-primary btn-sm" hx-get="/cms/reports/builder/" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="bi bi-plus-lg"></i> New Report
+    </button>
+  </div>
+
+  {% if configs %}
+  <div class="table-responsive" style="margin-top:6px;">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th>Report Name</th>
+          <th style="width:110px;">Module</th>
+          <th style="width:100px;">Aggregation</th>
+          <th style="width:100px;">Period</th>
+          <th style="width:80px;">Chart</th>
+          <th style="width:80px;">Updated</th>
+          <th style="width:180px;" class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in configs %}
+        <tr>
+          <td>
+            <strong style="color:var(--text);font-size:12.5px;">{{ c.name }}</strong>
+            {% if c.description %}
+            <div style="font-size:11px;color:var(--text-faint);">{{ c.description|truncatechars:60 }}</div>
+            {% endif %}
+          </td>
+          <td><span class="status-pill status-pending" style="font-size:10px;">{{ c.get_module_display }}</span></td>
+          <td><span style="font-size:11px;color:var(--text-faint);">{{ c.get_aggregation_display }}</span></td>
+          <td><span style="font-size:11px;color:var(--text-faint);">{{ c.get_period_display }}</span></td>
+          <td>{% if c.show_chart != 'none' %}<span class="status-pill status-success" style="font-size:10px;"><i class="bi bi-graph-up"></i> {{ c.get_show_chart_display }}</span>{% else %}<span style="color:var(--text-faint);font-size:11px;">—</span>{% endif %}</td>
+          <td style="font-size:11px;color:var(--text-faint);">{{ c.updated_at|date:"d M" }}</td>
+          <td>
+            <div class="row-actions">
+              <button class="icon-mini" title="Run" hx-get="/cms/reports/{{ c.id }}/run/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-play-fill" style="color:#22c55e;"></i></button>
+              <button class="icon-mini" title="Edit" hx-get="/cms/reports/builder/{{ c.id }}/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
+              <button class="icon-mini" title="CSV" hx-get="/cms/reports/{{ c.id }}/csv/" hx-target="body" hx-swap="none"><i class="bi bi-filetype-csv" style="color:#3b82f6;"></i></button>
+              <button class="icon-mini" title="PDF" hx-get="/cms/reports/{{ c.id }}/pdf/" hx-target="body" hx-swap="none"><i class="bi bi-filetype-pdf" style="color:#ef4444;"></i></button>
+              <button class="icon-mini" title="Delete" hx-post="/cms/reports/{{ c.id }}/delete/" hx-target="#tab-content" hx-swap="innerHTML" hx-confirm="Delete this report?"><i class="bi bi-trash3-fill" style="color:#ef4444;"></i></button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:40px 20px;color:var(--text-faint);">
+    <i class="bi bi-bar-chart-steps" style="font-size:48px;display:block;margin-bottom:12px;opacity:0.4;"></i>
+    <p style="font-size:14px;">No saved reports yet.</p>
+    <button class="btn btn-primary btn-sm" style="margin-top:8px;" hx-get="/cms/reports/builder/" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="bi bi-plus-lg"></i> Create Your First Report
+    </button>
+  </div>
+  {% endif %}
+</div>

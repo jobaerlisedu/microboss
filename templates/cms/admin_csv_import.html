@@ -1,0 +1,55 @@
+<div class="admin-subnav" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-people-fill"></i> Users</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/audit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-journal-check"></i> Audit Log</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/health/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-activity"></i> System Health</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/settings/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-sliders"></i> Settings</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/activity/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-clock-history"></i> Activity</button>
+  <button class="btn btn-primary btn-sm active" hx-get="/cms/admin-panel/csv-import/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-file-earmark-spreadsheet-fill"></i> CSV Import</button>
+</div>
+
+<div class="card phoenix-card">
+  <div class="card-header-flex" style="margin-bottom: 16px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-file-earmark-spreadsheet-fill" style="color:#3b82f6;margin-right:6px;"></i> Batch CSV Import</h3>
+      <p class="phoenix-card-sub">Upload a CSV file to import multiple content entries at once</p>
+    </div>
+  </div>
+
+  <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;margin-bottom:20px;">
+    <h4 style="margin:0 0 8px;font-size:14px;color:var(--text);">CSV Format Guide</h4>
+    <p style="font-size:12px;color:var(--text-soft);margin:0 0 10px;">The first row of your CSV file must contain column headers. Use the following columns:</p>
+    
+    <div class="table-responsive">
+      <table class="phoenix-table">
+        <thead>
+          <tr>
+            <th>COLUMN</th>
+            <th>TYPE</th>
+            <th>DESCRIPTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>headline</strong></td><td>Required</td><td>Content headline text</td></tr>
+          <tr><td><strong>slug</strong></td><td>Required</td><td>Content slug identifier</td></tr>
+          <tr><td><strong>entry_date</strong></td><td>Optional</td><td>Date (YYYY-MM-DD), defaults to today</td></tr>
+          <tr><td><strong>entry_time</strong></td><td>Optional</td><td>Time (HH:MM), defaults to current time</td></tr>
+          <tr><td><strong>fb, yt, ig, threads, tt, linkedin, bsky, dm, reddit</strong></td><td>At least 1</td><td>Platform URL link</td></tr>
+          <tr><td><strong>sponsor</strong></td><td>Optional</td><td>Existing sponsor name</td></tr>
+          <tr><td><strong>member</strong></td><td>Optional</td><td>Username of member (defaults to uploader)</td></tr>
+          <tr><td><strong>comment</strong></td><td>Optional</td><td>Notes or comments</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <form hx-post="/cms/admin-panel/csv-import/" hx-target="#tab-content" hx-swap="innerHTML" hx-encoding="multipart/form-data">
+    {% csrf_token %}
+    <div class="field" style="margin-bottom:18px;">
+      <label>Select CSV File *</label>
+      <input type="file" name="csv_file" accept=".csv" required style="padding:8px;">
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-upload-fill"></i> Upload & Import CSV</button>
+    </div>
+  </form>
+</div>

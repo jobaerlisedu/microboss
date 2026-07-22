@@ -1,0 +1,332 @@
+# Bengali translations for CMS project.
+# Copyright (C) 2026 Channel One Digital
+# This file is distributed under the same license as the Django CMS project.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: CMS 1.0\n"
+"Report-Msgid-Bugs-To: admin@channelone.com\n"
+"POT-Creation-Date: 2026-07-18 12:00+0600\n"
+"PO-Revision-Date: 2026-07-18 12:00+0600\n"
+"Last-Translator: CMS Team\n"
+"Language-Team: Bengali\n"
+"Language: bn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apps/accounts/models.py
+msgid "ডাকনাম"
+msgstr "ডাকনাম"
+
+msgid "পূর্ণ নাম"
+msgstr "পূর্ণ নাম"
+
+msgid "অফিস আইডি"
+msgstr "অফিস আইডি"
+
+msgid "ডেজিগনেশন"
+msgstr "ডেজিগনেশন"
+
+msgid "ফোন"
+msgstr "ফোন"
+
+msgid "ব্লাড গ্রুপ"
+msgstr "ব্লাড গ্রুপ"
+
+msgid "জন্ম তারিখ"
+msgstr "জন্ম তারিখ"
+
+msgid "ফেসবুক আইডি"
+msgstr "ফেসবুক আইডি"
+
+msgid "অ্যাডমিন"
+msgstr "অ্যাডমিন"
+
+msgid "প্রতিষ্ঠাতা"
+msgstr "প্রতিষ্ঠাতা"
+
+msgid "ব্যবহারকারী"
+msgstr "ব্যবহারকারী"
+
+msgid "ব্যবহারকারীগণ"
+msgstr "ব্যবহারকারীগণ"
+
+msgid "সেশন"
+msgstr "সেশন"
+
+msgid "সেশনসমূহ"
+msgstr "সেশনসমূহ"
+
+#: apps/content/models.py
+msgid "তারিখ"
+msgstr "তারিখ"
+
+msgid "টাইম"
+msgstr "টাইম"
+
+msgid "কন্টেন্ট স্লাগ নেম"
+msgstr "কন্টেন্ট স্লাগ নেম"
+
+msgid "হেডলাইন"
+msgstr "হেডলাইন"
+
+msgid "আপলোডকারী"
+msgstr "আপলোডকারী"
+
+msgid "লিংকসমূহ"
+msgstr "লিংকসমূহ"
+
+msgid "স্পন্সর"
+msgstr "স্পন্সর"
+
+msgid "মন্তব্য"
+msgstr "মন্তব্য"
+
+msgid "কন্টেন্ট এন্ট্রি"
+msgstr "কন্টেন্ট এন্ট্রি"
+
+msgid "কন্টেন্ট এন্ট্রিসমূহ"
+msgstr "কন্টেন্ট এন্ট্রিসমূহ"
+
+#: apps/sponsors/models.py
+msgid "স্পন্সরের নাম"
+msgstr "স্পন্সরের নাম"
+
+msgid "প্রতিদিন কয়টা"
+msgstr "প্রতিদিন কয়টা"
+
+msgid "মোট কয়টা"
+msgstr "মোট কয়টা"
+
+msgid "শুরুর তারিখ"
+msgstr "শুরুর তারিখ"
+
+msgid "শেষ তারিখ"
+msgstr "শেষ তারিখ"
+
+msgid "কন্টেন্ট টাইপ"
+msgstr "কন্টেন্ট টাইপ"
+
+msgid "ডগি (FT)"
+msgstr "ডগি (FT)"
+
+msgid "পপআপ x2"
+msgstr "পপআপ x2"
+
+msgid "টিভিসি x1"
+msgstr "টিভিসি x1"
+
+msgid "জিপিআই x1"
+msgstr "জিপিআই x1"
+
+msgid "স্পন্সরগণ"
+msgstr "স্পন্সরগণ"
+
+#: apps/contentlist/models.py
+msgid "জেলা"
+msgstr "জেলা"
+
+msgid "রয়টার্স"
+msgstr "রয়টার্স"
+
+msgid "সোশ্যাল মিডিয়া"
+msgstr "সোশ্যাল মিডিয়া"
+
+msgid "স্টুডিও শুটিং"
+msgstr "স্টুডিও শুটিং"
+
+msgid "সোর্স"
+msgstr "সোর্স"
+
+msgid "ফুটেজ"
+msgstr "ফুটেজ"
+
+msgid "যোগকারী"
+msgstr "যোগকারী"
+
+msgid "কন্টেন্ট তালিকা"
+msgstr "কন্টেন্ট তালিকা"
+
+msgid "কন্টেন্ট তালিকাসমূহ"
+msgstr "কন্টেন্ট তালিকাসমূহ"
+
+#: apps/assignments/models.py
+msgid "Assigned"
+msgstr "Assigned"
+
+msgid "Processing"
+msgstr "Processing"
+
+msgid "Done"
+msgstr "Done"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "কন্টেন্ট ক্যাপশন"
+msgstr "কন্টেন্ট ক্যাপশন"
+
+msgid "সোর্স লিংক"
+msgstr "সোর্স লিংক"
+
+msgid "রিপোর্টারের নাম"
+msgstr "রিপোর্টারের নাম"
+
+msgid "স্ট্যাটাস"
+msgstr "স্ট্যাটাস"
+
+msgid "এসাইনকারী"
+msgstr "এসাইনকারী"
+
+msgid "এসাইনমেন্ট"
+msgstr "এসাইনমেন্ট"
+
+msgid "এসাইনমেন্টসমূহ"
+msgstr "এসাইনমেন্টসমূহ"
+
+#: apps/scripts/models.py
+msgid "খসড়া"
+msgstr "খসড়া"
+
+msgid "অনুমোদনের অপেক্ষায়"
+msgstr "অনুমোদনের অপেক্ষায়"
+
+msgid "অনুমোদিত"
+msgstr "অনুমোদিত"
+
+msgid "সম্ভাব্য হেডলাইন"
+msgstr "সম্ভাব্য হেডলাইন"
+
+msgid "কন্টেন্ট সোর্স"
+msgstr "কন্টেন্ট সোর্স"
+
+msgid "স্ক্রিপ্ট রাইটার"
+msgstr "স্ক্রিপ্ট রাইটার"
+
+msgid "জেলার নাম"
+msgstr "জেলার নাম"
+
+msgid "জেলার রিপোর্টার"
+msgstr "জেলার রিপোর্টার"
+
+msgid "স্ক্রিপ্ট"
+msgstr "স্ক্রিপ্ট"
+
+msgid "অনুমোদনকারী"
+msgstr "অনুমোদনকারী"
+
+msgid "অনুমোদনের সময়"
+msgstr "অনুমোদনের সময়"
+
+msgid "ডিজিটাল স্ক্রিপ্ট"
+msgstr "ডিজিটাল স্ক্রিপ্ট"
+
+msgid "ডিজিটাল স্ক্রিপ্টসমূহ"
+msgstr "ডিজিটাল স্ক্রিপ্টসমূহ"
+
+#: apps/accounts/serializers.py
+msgid "পাসওয়ার্ড দুটি মিলছে না"
+msgstr "পাসওয়ার্ড দুটি মিলছে না"
+
+msgid "এই ডাকনাম/ইমেইল/অফিস আইডি দিয়ে আগেই রেজিস্ট্রেশন করা হয়েছে"
+msgstr "এই ডাকনাম/ইমেইল/অফিস আইডি দিয়ে আগেই রেজিস্ট্রেশন করা হয়েছে"
+
+#: apps/accounts/views.py
+msgid "ভুল তথ্য দেওয়া হয়েছে"
+msgstr "ভুল তথ্য দেওয়া হয়েছে"
+
+msgid "লগআউট হয়েছে"
+msgstr "লগআউট হয়েছে"
+
+msgid "পাসওয়ার্ড রিসেট হয়েছে"
+msgstr "পাসওয়ার্ড রিসেট হয়েছে"
+
+msgid "OTP পাঠানো হয়েছে"
+msgstr "OTP পাঠানো হয়েছে"
+
+msgid "কোড মিলছে না"
+msgstr "কোড মিলছে না"
+
+msgid "সেশন মেয়াদ উত্তীর্ণ হয়েছে"
+msgstr "সেশন মেয়াদ উত্তীর্ণ হয়েছে"
+
+msgid "ব্যবহারকারী পাওয়া যায়নি"
+msgstr "ব্যবহারকারী পাওয়া যায়নি"
+
+msgid "পাসওয়ার্ড অন্তত ৪ ক্যারেক্টার হতে হবে"
+msgstr "পাসওয়ার্ড অন্তত ৪ ক্যারেক্টার হতে হবে"
+
+msgid "প্রতিষ্ঠাতাকে অন্য কেউ অ্যাডমিন থেকে সরাতে পারবে না"
+msgstr "প্রতিষ্ঠাতাকে অন্য কেউ অ্যাডমিন থেকে সরাতে পারবে না"
+
+msgid "সর্বোচ্চ ৩ জন অ্যাডমিন রাখা যাবে"
+msgstr "সর্বোচ্চ ৩ জন অ্যাডমিন রাখা যাবে"
+
+#: apps/core/permissions.py
+msgid "আপনার এই কর্ম সম্পাদনের অনুমতি নেই"
+msgstr "আপনার এই কর্ম সম্পাদনের অনুমতি নেই"
+
+#: apps/content/serializers.py
+msgid "অন্তত ১টি লিংক আবশ্যক"
+msgstr "অন্তত ১টি লিংক আবশ্যক"
+
+msgid "এই হেডলাইনটি আগেই তালিকায় আছে"
+msgstr "এই হেডলাইনটি আগেই তালিকায় আছে"
+
+#: apps/scripts/views.py
+msgid "শুধু খসড়া স্ক্রিপ্ট জমা দেওয়া যাবে"
+msgstr "শুধু খসড়া স্ক্রিপ্ট জমা দেওয়া যাবে"
+
+msgid "শুধু অ্যাডমিন অনুমোদন দিতে পারেন"
+msgstr "শুধু অ্যাডমিন অনুমোদন দিতে পারেন"
+
+msgid "শুধু অপেক্ষমাণ স্ক্রিপ্ট অনুমোদন করা যাবে"
+msgstr "শুধু অপেক্ষমাণ স্ক্রিপ্ট অনুমোদন করা যাবে"
+
+#: apps/assignments/views.py
+msgid "Invalid status"
+msgstr "ভুল স্ট্যাটাস"
+
+#: apps/leaders/views.py
+msgid "ব্যবহারকারী পাওয়া যায়নি"
+msgstr "ব্যবহারকারী পাওয়া যায়নি"
+
+#: apps/reports/pdf_utils.py
+msgid "কন্টেন্ট রিপোর্ট"
+msgstr "কন্টেন্ট রিপোর্ট"
+
+#: templates
+msgid "চ্যানেল ওয়ান ডিজিটাল — কন্টেন্ট ম্যানেজমেন্ট সিস্টেম"
+msgstr "চ্যানেল ওয়ান ডিজিটাল — কন্টেন্ট ম্যানেজমেন্ট সিস্টেম"
+
+msgid "লগইন করুন"
+msgstr "লগইন করুন"
+
+msgid "রেজিস্ট্রেশন করুন"
+msgstr "রেজিস্ট্রেশন করুন"
+
+msgid "সংরক্ষণ করুন"
+msgstr "সংরক্ষণ করুন"
+
+msgid "বাতিল করুন"
+msgstr "বাতিল করুন"
+
+msgid "মুছে ফেলুন"
+msgstr "মুছে ফেলুন"
+
+msgid "পিডিএফ ডাউনলোড"
+msgstr "পিডিএফ ডাউনলোড"
+
+msgid "কোনো এন্ট্রি পাওয়া যায়নি"
+msgstr "কোনো এন্ট্রি পাওয়া যায়নি"
+
+msgid "কন্টেন্ট রিপোর্ট"
+msgstr "কন্টেন্ট রিপোর্ট"
+
+msgid "চ্যানেল ওয়ান ডিজিটাল — কন্টেন্ট লগ"
+msgstr "চ্যানেল ওয়ান ডিজিটাল — কন্টেন্ট লগ"
+
+msgid "চ্যানেল ওয়ান ডিজিটাল — ডিজিটাল স্ক্রিপ্ট"
+msgstr "চ্যানেল ওয়ান ডিজিটাল — ডিজিটাল স্ক্রিপ্ট"

@@ -1,0 +1,59 @@
+<div class="card phoenix-card">
+  <div class="card-header-flex" style="margin-bottom: 18px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-megaphone-fill" style="color:#3b82f6;margin-right:6px;"></i> Notices</h3>
+      <p class="phoenix-card-sub">Announcements and broadcast updates</p>
+    </div>
+    {% if user.is_admin %}
+    <button class="btn btn-primary btn-sm" onclick="document.getElementById('noticeForm').classList.toggle('hidden')">
+      <i class="bi bi-plus-lg"></i> Post Notice
+    </button>
+    {% endif %}
+  </div>
+
+  {% if user.is_admin %}
+  <div id="noticeForm" class="hidden" style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;margin-bottom:16px;">
+    <h4 style="margin:0 0 12px;font-size:14px;color:var(--text);">Create New Notice</h4>
+    <form method="post" hx-post="{% url 'cms:cms-create-notice' %}" hx-target="#tab-content" hx-swap="innerHTML">
+      {% csrf_token %}
+      <div class="field" style="margin-bottom:10px;">
+        <label>Title *</label>
+        <input type="text" name="title" required maxlength="255" placeholder="Notice title">
+      </div>
+      <div class="field" style="margin-bottom:10px;">
+        <label>Content *</label>
+        <textarea name="content" required rows="3" placeholder="Notice details..." style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);resize:vertical;"></textarea>
+      </div>
+      <div class="form-actions" style="margin-top:12px;">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('noticeForm').classList.add('hidden')">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm">Post Notice</button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if notices %}
+    {% for n in notices %}
+    <div class="notice-item">
+      <div class="notice-row">
+        <div class="notice-body" onclick="openNoticeModal('{{ n.id }}')">
+          <h4 class="notice-title">{{ n.title }}</h4>
+          <div class="notice-meta">
+            <span><i class="bi bi-clock"></i> {{ n.created_at|date:"M d, Y H:i" }}</span>
+            <span><i class="bi bi-person"></i> {{ n.created_by.full_name|default:n.created_by.username }}</span>
+          </div>
+        </div>
+        {% if user.is_admin %}
+        <div class="notice-actions">
+          <button class="btn btn-sm btn-icon btn-danger-outline" hx-post="{% url 'cms:cms-delete-notice' n.id %}" hx-target="#tab-content" hx-swap="innerHTML" hx-confirm="Delete notice '{{ n.title }}'?" title="Delete notice">
+            <i class="bi bi-trash-fill"></i>
+          </button>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color:var(--text-soft);font-size:13px;text-align:center;padding:30px 0;">No notices available</p>
+  {% endif %}
+</div>

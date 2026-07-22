@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<style>
+  @page { margin: 25mm 20mm; }
+  body { font-family: 'Hind Siliguri', 'Segoe UI', serif; font-size: 12pt; line-height: 1.8; }
+  .header { border-bottom: 3px solid #0A1A33; padding-bottom: 12px; margin-bottom: 20px; }
+  .header h1 { margin: 0; font-size: 20pt; color: #0A1A33; }
+  .meta-grid { display: flex; gap: 20px; font-size: 10pt; color: #555; margin-top: 8px; }
+  .body-text { white-space: pre-wrap; text-align: justify; }
+  .footer { margin-top: 30px; font-size: 9pt; color: #888; text-align: center; border-top: 1px solid #ddd; padding-top: 10px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>{{ script.headline|default:"স্ক্রিপ্ট" }}</h1>
+  <div class="meta-grid">
+    <span>তারিখ: {{ script.script_date|date:"d/m/Y" }}</span>
+    <span>সোর্স: {{ script.get_source_display }}</span>
+    {% if script.district %}<span>জেলা: {{ script.district }}</span>{% endif %}
+    {% if script.district_reporter %}<span>রিপোর্টার: {{ script.district_reporter }}</span>{% endif %}
+    <span>লেখক: {{ script.writer.username }}</span>
+  </div>
+</div>
+<div class="body-text">{{ script.body|default:"কোনো স্ক্রিপ্ট বডি নেই" }}</div>
+<div class="footer">চ্যানেল ওয়ান ডিজিটাল — ডিজিটাল স্ক্রিপ্ট • ফাইল: {{ script.filename }}</div>
+</body>
+</html>

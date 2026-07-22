@@ -1,0 +1,104 @@
+<div class="admin-subnav" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-people-fill"></i> Users</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/audit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-journal-check"></i> Audit Log</button>
+  <button class="btn btn-primary btn-sm active" hx-get="/cms/admin-panel/health/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-activity"></i> System Health</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/settings/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-sliders"></i> Settings</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/activity/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-clock-history"></i> Activity</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/csv-import/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-file-earmark-spreadsheet-fill"></i> CSV Import</button>
+</div>
+
+<div class="kpi-pills-row">
+  <div class="kpi-pill kpi-{% if db_ok %}success{% else %}danger{% endif %}">
+    <div class="kpi-icon"><i class="bi bi-database-fill"></i></div>
+    <div class="kpi-text">
+      <strong>Database Health</strong>
+      <span>{% if db_ok %}Connected & Healthy{% else %}Connection Error{% endif %}</span>
+    </div>
+  </div>
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(59, 130, 246, 0.15);color:#3b82f6;"><i class="bi bi-people-fill"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.total_users }}</strong>
+      <span>Active Users</span>
+    </div>
+  </div>
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(245, 158, 11, 0.15);color:#f59e0b;"><i class="bi bi-hourglass-split"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.pending_users }}</strong>
+      <span>Pending Approvals</span>
+    </div>
+  </div>
+</div>
+
+<div class="kpi-pills-row">
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(59, 130, 246, 0.15);color:#3b82f6;"><i class="bi bi-file-earmark-text-fill"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.total_entries }}</strong>
+      <span>Total Content Entries</span>
+    </div>
+  </div>
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(34, 197, 94, 0.15);color:#22c55e;"><i class="bi bi-calendar-check-fill"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.today_entries }}</strong>
+      <span>Today's Entries</span>
+    </div>
+  </div>
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(99, 102, 241, 0.15);color:#6366f1;"><i class="bi bi-file-earmark-code-fill"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.total_scripts }}</strong>
+      <span>Total Scripts</span>
+    </div>
+  </div>
+</div>
+
+<div class="kpi-pills-row">
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(245, 158, 11, 0.15);color:#f59e0b;"><i class="bi bi-clock"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.pending_scripts }}</strong>
+      <span>Pending Scripts</span>
+    </div>
+  </div>
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(59, 130, 246, 0.15);color:#3b82f6;"><i class="bi bi-pin-angle-fill"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.total_assignments }}</strong>
+      <span>Total Assignments</span>
+    </div>
+  </div>
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(34, 197, 94, 0.15);color:#22c55e;"><i class="bi bi-arrow-repeat"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.pending_assignments }}</strong>
+      <span>Active Assignments</span>
+    </div>
+  </div>
+</div>
+
+<div class="kpi-pills-row">
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(99, 102, 241, 0.15);color:#6366f1;"><i class="bi bi-journal-text"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.audit_log_count }}</strong>
+      <span>Audit Log Records</span>
+    </div>
+  </div>
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(34, 197, 94, 0.15);color:#22c55e;"><i class="bi bi-speedometer2"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.recent_audit }}</strong>
+      <span>Audit Logs (Last 24h)</span>
+    </div>
+  </div>
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(59, 130, 246, 0.15);color:#3b82f6;"><i class="bi bi-lightning-charge-fill"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.today_entries|add:stats.pending_scripts|add:stats.pending_assignments }}</strong>
+      <span>Today's Total Activity</span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,173 @@
+<div class="kpi-pills-row">
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(59, 130, 246, 0.15);color:#3b82f6;"><i class="bi bi-card-checklist"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.total }}</strong>
+      <span>Total Items</span>
+    </div>
+  </div>
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(34, 197, 94, 0.15);color:#22c55e;"><i class="bi bi-calendar-day"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.today }}</strong>
+      <span>Today</span>
+    </div>
+  </div>
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(245, 158, 11, 0.15);color:#f59e0b;"><i class="bi bi-calendar-month"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.this_month }}</strong>
+      <span>This Month</span>
+    </div>
+  </div>
+  <div class="kpi-pill">
+    <div class="kpi-icon" style="background:rgba(99, 102, 241, 0.15);color:#6366f1;"><i class="bi bi-geo-alt-fill"></i></div>
+    <div class="kpi-text">
+      <strong>{{ stats.district }}</strong>
+      <span>District News</span>
+    </div>
+  </div>
+</div>
+
+<div class="card phoenix-card" style="margin-bottom: 20px;">
+  <div class="card-header-flex" style="margin-bottom: 18px;">
+    <div>
+      <h3 class="phoenix-card-title" id="clFormTitle">
+        <i class="bi bi-card-checklist" style="color:#3b82f6;margin-right:6px;"></i>
+        {% if edit_item %}Edit Listed Content{% else %}Add Content to List{% endif %}
+      </h3>
+      <p class="phoenix-card-sub">Record incoming footage and content source</p>
+    </div>
+  </div>
+
+  <form id="clForm" hx-post="/cms/content-lists/save/">
+    {% csrf_token %}
+    {% if edit_item %}<input type="hidden" name="item_id" value="{{ edit_item.id }}">{% endif %}
+    <div class="form-grid">
+      <div class="field">
+        <label>Date *</label>
+        <input type="date" name="list_date" value="{% if edit_item %}{{ edit_item.list_date|date:'Y-m-d' }}{% else %}{{ today }}{% endif %}" required>
+      </div>
+      <div class="field full">
+        <label>Content Details *</label>
+        <textarea name="content" required placeholder="Describe the content..." rows="2">{{ edit_item.content|default:'' }}</textarea>
+      </div>
+      <div class="field">
+        <label>Source *</label>
+        <select name="source" required onchange="document.getElementById('clDistrictWrap').style.display=this.value==='district'?'flex':'none'">
+          <option value="">Select Source</option>
+          <option value="district" {% if edit_item and edit_item.source == 'district' %}selected{% endif %}>District</option>
+          <option value="reuters" {% if edit_item and edit_item.source == 'reuters' %}selected{% endif %}>Reuters</option>
+          <option value="social" {% if edit_item and edit_item.source == 'social' %}selected{% endif %}>Social Media</option>
+          <option value="studio" {% if edit_item and edit_item.source == 'studio' %}selected{% endif %}>Studio Shoot</option>
+        </select>
+      </div>
+      <div class="field" id="clDistrictWrap" style="display:{% if edit_item and edit_item.source == 'district' %}flex{% else %}none{% endif %};">
+        <label>District Name</label>
+        <input type="text" name="district" placeholder="Enter district name" value="{{ edit_item.district|default:'' }}">
+      </div>
+      <div class="field">
+        <label>Footage Source *</label>
+        <select name="footage_source" required>
+          <option value="">Select Footage Delivery</option>
+          <option value="FTP" {% if edit_item and edit_item.footage_source == 'FTP' %}selected{% endif %}>FTP</option>
+          <option value="WhatsApp" {% if edit_item and edit_item.footage_source == 'WhatsApp' %}selected{% endif %}>WhatsApp</option>
+          <option value="Gmail" {% if edit_item and edit_item.footage_source == 'Gmail' %}selected{% endif %}>Gmail</option>
+          <option value="Google Drive" {% if edit_item and edit_item.footage_source == 'Google Drive' %}selected{% endif %}>Google Drive</option>
+          <option value="Ingest" {% if edit_item and edit_item.footage_source == 'Ingest' %}selected{% endif %}>Ingest</option>
+          <option value="Card" {% if edit_item and edit_item.footage_source == 'Card' %}selected{% endif %}>Card</option>
+          <option value="Studio shoot" {% if edit_item and edit_item.footage_source == 'Studio shoot' %}selected{% endif %}>Studio Shoot</option>
+        </select>
+      </div>
+      <div class="field full">
+        <div class="assignment-panel" style="border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;margin-top:4px;background:var(--surface);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <label style="font-size:12.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;">
+              <i class="bi bi-pin-angle-fill" style="color:#f59e0b;"></i> Link to Assignment <span style="font-size:10.5px;font-weight:500;color:var(--text-faint);">(Optional)</span>
+            </label>
+            <span style="font-size:10.5px;color:var(--text-soft);">{{ today_assignments|length }} today</span>
+          </div>
+          {% if today_assignments %}
+          <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;max-height:150px;overflow-y:auto;">
+            {% for a in today_assignments %}
+            <label data-value="{{ a.id }}" style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11.5px;transition:background 0.15s;{% if edit_item and edit_item.assignment_id|stringformat:'s' == a.id|stringformat:'s' %}background:rgba(245,158,11,0.12);{% endif %}"
+                   onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='{% if edit_item and edit_item.assignment_id|stringformat:'s' == a.id|stringformat:'s' %}rgba(245,158,11,0.12){% else %}transparent{% endif %}'"
+                   onclick="document.getElementById('clAsSelect').value='{{ a.id }}';this.parentElement.querySelectorAll('label[data-value]').forEach(function(el){el.style.background='transparent'});this.style.background='rgba(245,158,11,0.12)';">
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ a.caption|truncatechars:50 }}</div>
+                <div style="font-size:10px;color:var(--text-soft);">
+                  <span><i class="bi bi-person"></i> {{ a.reporter }}</span>
+                  {% if a.district %}<span style="margin-left:6px;"><i class="bi bi-geo-alt"></i> {{ a.district }}</span>{% endif %}
+                </div>
+              </div>
+              <span class="status-pill status-{{ a.status|lower }}" style="font-size:9px;padding:1px 7px;">{{ a.status }}</span>
+            </label>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div style="font-size:11px;color:var(--text-faint);padding:6px 0;margin-bottom:6px;"><i class="bi bi-info-circle"></i> No assignments today</div>
+          {% endif %}
+          <select id="clAsSelect" name="assignment_id" style="font-size:11.5px;">
+            <option value="">— No Assignment —</option>
+            {% for a in today_assignments %}
+            <option value="{{ a.id }}" {% if edit_item and edit_item.assignment_id|stringformat:'s' == a.id|stringformat:'s' %}selected{% endif %}>
+              {{ a.caption|truncatechars:45 }} — {{ a.reporter }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="form-actions" style="margin-top: 20px;">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Item</button>
+    </div>
+  </form>
+</div>
+
+<div class="card phoenix-card">
+  <div class="card-header-flex" style="margin-bottom: 18px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-list-stars" style="color:#3b82f6;margin-right:6px;"></i> Content List Entries</h3>
+      <p class="phoenix-card-sub">Overview of tracked content items</p>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+      <table class="phoenix-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>DATE</th>
+            <th>CONTENT</th>
+            <th>SOURCE</th>
+            <th>DISTRICT</th>
+            <th>FOOTAGE</th>
+            <th>ASSIGNMENT</th>
+            <th>ADDED BY</th>
+            <th class="actions-col">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.list_date|date:"Y-m-d" }}</td>
+            <td><strong>{{ item.content }}</strong></td>
+            <td><span class="status-pill status-pending">{{ item.get_source_display }}</span></td>
+            <td>{{ item.district|default:'—' }}</td>
+            <td>{{ item.footage_source }}</td>
+            <td>{% if item.assignment %}<span style="font-size:11px;color:var(--text-soft);"><i class="bi bi-pin-angle"></i> {{ item.assignment.caption|truncatechars:25 }}</span>{% else %}<span style="color:var(--text-faint);">—</span>{% endif %}</td>
+            <td>{{ item.member.username }}</td>
+            <td><div class="row-actions">
+              <button class="icon-mini" title="View" hx-get="/cms/content-lists/{{ item.id }}/view/" hx-target="#modalContainer" hx-swap="innerHTML"><i class="bi bi-eye-fill"></i></button>
+              <button class="icon-mini" title="Edit" hx-get="/cms/content-lists/{{ item.id }}/edit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
+              <button class="icon-mini" title="Delete" hx-post="/cms/content-lists/{{ item.id }}/delete/" hx-confirm="Delete item?" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-trash-fill"></i></button>
+            </div></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-faint);">No content items listed</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+  </div>
+</div>

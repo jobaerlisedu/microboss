@@ -1,0 +1,46 @@
+<div class="admin-subnav" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-people-fill"></i> Users</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/audit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-journal-check"></i> Audit Log</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/health/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-activity"></i> System Health</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/settings/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-sliders"></i> Settings</button>
+  <button class="btn btn-primary btn-sm active" hx-get="/cms/admin-panel/activity/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-clock-history"></i> Activity</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/csv-import/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-file-earmark-spreadsheet-fill"></i> CSV Import</button>
+</div>
+
+<div class="card phoenix-card">
+  <div class="card-header-flex" style="margin-bottom: 16px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-clock-history" style="color:#3b82f6;margin-right:6px;"></i> User Activity Log</h3>
+      <p class="phoenix-card-sub">View recent activity history by user</p>
+    </div>
+  </div>
+
+  <div class="toolbar" style="margin-bottom:16px;">
+    <form hx-get="/cms/admin-panel/activity/" hx-target="#tab-content" hx-swap="innerHTML">
+      <select name="user_id" onchange="this.form.requestSubmit()" style="max-width:300px;">
+        <option value="">— Select User —</option>
+        {% for u in users %}
+        <option value="{{ u.id }}" {% if selected_user_id == u.id|stringformat:"s" %}selected{% endif %}>{{ u.full_name|default:u.username }} ({{ u.username }})</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  {% if entries %}
+  <div style="display:flex;flex-direction:column;gap:4px;">
+    {% for e in entries %}
+    <div class="session-row" style="font-size:13px;display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <small style="color:var(--text-faint);margin-right:8px;">{{ e.time|date:"Y-m-d H:i" }}</small>
+        <span class="status-pill status-{% if e.type == 'entry' %}success{% elif e.type == 'script' %}pending{% else %}pending{% endif %}" style="text-transform:uppercase;font-size:10px;">{{ e.type }}</span>
+        <span style="margin-left:8px;color:var(--text);">{{ e.text }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% elif selected_user_id %}
+  <p style="color:var(--text-faint);font-size:13px;text-align:center;padding:24px 0;">No activity logs found for this user.</p>
+  {% else %}
+  <p style="color:var(--text-faint);font-size:13px;text-align:center;padding:24px 0;">Select a user above to view activity history.</p>
+  {% endif %}
+</div>

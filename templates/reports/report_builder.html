@@ -1,0 +1,95 @@
+<div class="card phoenix-card" style="max-width:720px;margin:0 auto;">
+  <div class="card-header-flex">
+    <div>
+      <h3 class="phoenix-card-title">
+        {% if config %}<i class="bi bi-pencil-square" style="color:#8b5cf6;"></i> Edit Report{% else %}<i class="bi bi-plus-circle-fill" style="color:#8b5cf6;"></i> New Report{% endif %}
+      </h3>
+      <p class="phoenix-card-sub">Configure your custom report and save it for later use</p>
+    </div>
+    <button class="btn btn-ghost btn-sm" hx-get="/cms/reports/" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="bi bi-arrow-left"></i> Back
+    </button>
+  </div>
+
+  <form method="post" hx-post="{% if config %}/cms/reports/builder/{{ config.id }}/{% else %}/cms/reports/builder/{% endif %}" hx-target="#tab-content" hx-swap="innerHTML" style="margin-top:4px;">
+    {% csrf_token %}
+
+    <div class="form-grid">
+      <div class="field full">
+        <label>Report Name <span style="color:#ef4444;">*</span></label>
+        <input type="text" name="name" required value="{{ config.name|default:'' }}" placeholder="e.g. Monthly Content Summary">
+      </div>
+
+      <div class="field full">
+        <label>Description</label>
+        <textarea name="description" rows="2" placeholder="Optional description">{{ config.description|default:'' }}</textarea>
+      </div>
+
+      <div class="field">
+        <label>Data Module</label>
+        <select name="module">
+          {% for key, label in modules %}
+          <option value="{{ key }}" {% if config and config.module == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Aggregation</label>
+        <select name="aggregation">
+          {% for key, label in aggregations %}
+          <option value="{{ key }}" {% if config and config.aggregation == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Date Period</label>
+        <select name="period" id="periodSelect" onchange="toggleCustomDates()">
+          {% for key, label in periods %}
+          <option value="{{ key }}" {% if config and config.period == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Chart</label>
+        <select name="show_chart">
+          {% for key, label in charts %}
+          <option value="{{ key }}" {% if config and config.show_chart == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div id="customDateRow" class="form-grid" style="display:{% if config and config.period == 'custom' %}grid{% else %}none{% endif %};margin-top:16px;">
+      <div class="field">
+        <label>From Date</label>
+        <input type="date" name="date_from" value="{{ config.date_from|date:'Y-m-d'|default:'' }}">
+      </div>
+      <div class="field">
+        <label>To Date</label>
+        <input type="date" name="date_to" value="{{ config.date_to|date:'Y-m-d'|default:'' }}">
+      </div>
+    </div>
+
+    <div style="margin-top:12px;display:flex;gap:10px;">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-floppy-fill"></i> {% if config %}Update Report{% else %}Save Report{% endif %}
+      </button>
+      {% if config %}
+      <button type="button" class="btn btn-success" hx-get="/cms/reports/{{ config.id }}/run/" hx-target="#tab-content" hx-swap="innerHTML" style="margin-left:4px;">
+        <i class="bi bi-play-fill"></i> Run Now
+      </button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<script>
+function toggleCustomDates() {
+  var sel = document.getElementById('periodSelect');
+  var row = document.getElementById('customDateRow');
+  row.style.display = sel.value === 'custom' ? 'grid' : 'none';
+}
+</script>

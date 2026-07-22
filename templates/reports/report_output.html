@@ -1,0 +1,116 @@
+<div class="card phoenix-card">
+  <div class="card-header-flex">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-file-earmark-bar-graph-fill" style="color:#8b5cf6;"></i> {{ config.name }}</h3>
+      <p class="phoenix-card-sub">
+        {{ config.get_module_display }} &middot; {{ config.get_aggregation_display }} &middot;
+        {{ config.get_period_display }}
+        {% if engine.date_from and engine.date_to %}
+        &middot; {{ engine.date_from|date:"d M Y" }} &ndash; {{ engine.date_to|date:"d M Y" }}
+        {% endif %}
+        &middot; <strong>{{ engine.summary.total }} records</strong>
+      </p>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-ghost btn-sm" hx-get="/cms/reports/builder/{{ config.id }}/" hx-target="#tab-content" hx-swap="innerHTML">
+        <i class="bi bi-pencil-fill"></i> Edit
+      </button>
+      <button class="btn btn-ghost btn-sm" hx-get="/cms/reports/{{ config.id }}/csv/" hx-target="body" hx-swap="none">
+        <i class="bi bi-filetype-csv" style="color:#3b82f6;"></i> CSV
+      </button>
+      <button class="btn btn-ghost btn-sm" hx-get="/cms/reports/{{ config.id }}/pdf/" hx-target="body" hx-swap="none">
+        <i class="bi bi-filetype-pdf" style="color:#ef4444;"></i> PDF
+      </button>
+      <button class="btn btn-ghost btn-sm" hx-get="/cms/reports/" hx-target="#tab-content" hx-swap="innerHTML">
+        <i class="bi bi-arrow-left"></i> Back
+      </button>
+    </div>
+  </div>
+
+  {% if engine.chart_data.segments and config.show_chart != 'none' %}
+  <div style="background:var(--surface-2);border-radius:10px;padding:20px;margin-bottom:16px;overflow-x:auto;">
+    {% if config.show_chart == 'bar' %}
+    <div style="display:flex;align-items:end;gap:6px;height:200px;padding:0 10px;">
+      {% for seg in engine.chart_data.segments %}
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:end;">
+        <div style="width:100%;background:linear-gradient(180deg,{{ seg.color }},{{ seg.color }}dd);border-radius:4px 4px 0 0;height:{{ seg.bar_height }}px;transition:height 0.3s;min-height:4px;" title="{{ seg.label }}: {{ seg.value }}"></div>
+        <span style="font-size:10px;color:var(--text-faint);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;">{{ seg.label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% elif config.show_chart == 'pie' %}
+    <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;">
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        {% for seg in engine.chart_data.segments %}
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text);">
+          <span style="width:14px;height:14px;border-radius:3px;background:{{ seg.color }};display:inline-block;"></span>
+          {{ seg.label }} &mdash; <strong>{{ seg.value }}</strong> <span style="color:var(--text-faint);">({{ seg.pct }}%)</span>
+        </div>
+        {% endfor %}
+        <div style="margin-top:4px;font-size:11px;color:var(--text-faint);border-top:1px solid var(--border);padding-top:4px;">Total: <strong>{{ engine.chart_data.total }}</strong></div>
+      </div>
+      <div style="display:flex;gap:2px;height:180px;align-items:end;">
+        {% for seg in engine.chart_data.segments %}
+        <div style="width:28px;background:{{ seg.color }};border-radius:4px 4px 0 0;height:{{ seg.pct }}%;min-height:4px;position:relative;" title="{{ seg.label }}: {{ seg.value }} ({{ seg.pct }}%)">
+          <span style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--text-faint);white-space:nowrap;">{{ seg.pct }}%</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% elif config.show_chart == 'line' %}
+    <div style="position:relative;height:200px;padding:10px 0;">
+      <svg width="100%" height="180" viewBox="0 0 {% widthratio engine.chart_data.segments|length 1 100 %} 180" preserveAspectRatio="none">
+        <polyline fill="none" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="{{ engine.chart_data.line_points }}" />
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-faint);padding:0 4px;">
+        {% for seg in engine.chart_data.segments %}
+        <span style="text-align:center;flex:1;">{{ seg.label }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          {% if engine.rows %}
+          {% for key in engine.rows.0.keys %}
+          <th>{{ key|title }}</th>
+          {% endfor %}
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in engine.rows %}
+        <tr>
+          {% for val in row.values %}
+          <td style="font-size:12.5px;">
+            {% if val is None %}<span style="color:var(--text-faint);">—</span>
+            {% else %}{{ val }}{% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="10" style="text-align:center;padding:24px;color:var(--text-faint);">
+            <i class="bi bi-inbox" style="font-size:24px;display:block;margin-bottom:8px;"></i>
+            No data found for the selected period.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if engine.summary.days or engine.summary.months %}
+  <div style="margin-top:12px;font-size:12px;color:var(--text-faint);text-align:right;">
+    {% if engine.summary.days %}Coverage: {{ engine.summary.days }} day{{ engine.summary.days|pluralize }}{% endif %}
+    {% if engine.summary.months %}Coverage: {{ engine.summary.months }} month{{ engine.summary.months|pluralize }}{% endif %}
+  </div>
+  {% endif %}
+</div>

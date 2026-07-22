@@ -1,0 +1,206 @@
+<div class="card phoenix-card" style="margin-bottom:20px;">
+  <div class="card-header-flex" style="margin-bottom:16px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-archive-fill" style="color:#3b82f6;margin-right:6px;"></i> Archive Browser</h3>
+      <p class="phoenix-card-sub">Browse historical data by month &mdash; {{ count }} record{{ count|pluralize }} found</p>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button class="btn btn-ghost btn-sm" hx-get="/cms/archive/?year={{ prev_year }}&amp;month={{ prev_month }}&amp;module={{ module }}&amp;search={{ search|urlencode }}" hx-target="#tab-content" hx-swap="innerHTML">
+        <i class="bi bi-chevron-left"></i> {{ prev_month }}
+      </button>
+      <strong style="font-size:15px;color:var(--text);min-width:140px;text-align:center;">{{ month_name }} {{ year }}</strong>
+      <button class="btn btn-ghost btn-sm" hx-get="/cms/archive/?year={{ next_year }}&amp;month={{ next_month }}&amp;module={{ module }}&amp;search={{ search|urlencode }}" hx-target="#tab-content" hx-swap="innerHTML">
+        {{ next_month }} <i class="bi bi-chevron-right"></i>
+      </button>
+      <button class="btn btn-ghost btn-sm" hx-get="/cms/archive/?year={{ today.year }}&amp;month={{ today.month }}&amp;module={{ module }}" hx-target="#tab-content" hx-swap="innerHTML" style="margin-left:4px;">
+        <i class="bi bi-dot"></i> Today
+      </button>
+    </div>
+    <input type="text" id="archiveSearch" placeholder="Search records..." value="{{ search }}" onchange="var v=encodeURIComponent(this.value); htmx.ajax('GET','/cms/archive/?year={{ year }}&amp;month={{ month }}&amp;module={{ module }}&amp;search='+v,{target:'#tab-content',swap:'innerHTML'})" style="max-width:220px;padding:6px 12px;border:1px solid var(--border);border-radius:20px;background:var(--surface-2);color:var(--text);font-size:12.5px;outline:none;">
+  </div>
+
+  <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:10px;">
+    {% for key, label, icon in module_map %}
+    <button class="btn btn-sm {% if module == key %}btn-primary{% else %}btn-ghost{% endif %}" hx-get="/cms/archive/?year={{ year }}&amp;month={{ month }}&amp;module={{ key }}&amp;search={{ search|urlencode }}" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="{{ icon }}"></i> {{ label }}
+    </button>
+    {% endfor %}
+  </div>
+
+  {% if module == 'entries' %}
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">DATE</th>
+          <th>HEADLINE</th>
+          <th style="width:120px;">MEMBER</th>
+          <th style="width:100px;">SPONSOR</th>
+          <th style="width:40px;" class="actions-col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in items %}
+        <tr>
+          <td>{{ e.entry_date|date:"Y-m-d" }} <span style="color:var(--text-faint);font-size:11px;">{{ e.entry_time|time:"H:i" }}</span></td>
+          <td>
+            <strong style="color:var(--text);font-size:12.5px;">{{ e.headline|truncatechars:60 }}</strong>
+            <div style="font-size:11px;color:#3b82f6;font-family:monospace;">{{ e.slug }}</div>
+          </td>
+          <td>{{ e.member.username }}</td>
+          <td>{% if e.sponsor %}<span class="status-pill status-success" style="font-size:10px;">{{ e.sponsor.name }}</span>{% else %}<span style="color:var(--text-faint);">—</span>{% endif %}</td>
+          <td>
+            <button class="icon-mini" title="Edit" hx-get="/cms/entries/{{ e.id }}/edit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No entries found for {{ month_name }} {{ year }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif module == 'assignments' %}
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">DATE</th>
+          <th>CAPTION</th>
+          <th style="width:100px;">DISTRICT</th>
+          <th style="width:120px;">REPORTER</th>
+          <th style="width:80px;">STATUS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in items %}
+        <tr>
+          <td>{{ a.assign_date|date:"Y-m-d" }}</td>
+          <td><strong style="color:var(--text);font-size:12.5px;">{{ a.caption|truncatechars:60 }}</strong></td>
+          <td>{{ a.district|default:'—' }}</td>
+          <td>{{ a.reporter }}</td>
+          <td><span class="status-pill status-{{ a.status|lower }}">{{ a.get_status_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No assignments found for {{ month_name }} {{ year }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif module == 'contentlist' %}
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">DATE</th>
+          <th>CONTENT</th>
+          <th style="width:80px;">SOURCE</th>
+          <th style="width:100px;">DISTRICT</th>
+          <th style="width:80px;">FOOTAGE</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cl in items %}
+        <tr>
+          <td>{{ cl.list_date|date:"Y-m-d" }}</td>
+          <td><strong style="color:var(--text);font-size:12.5px;">{{ cl.content|truncatechars:60 }}</strong></td>
+          <td><span class="status-pill status-pending" style="font-size:10px;">{{ cl.get_source_display }}</span></td>
+          <td>{{ cl.district|default:'—' }}</td>
+          <td>{{ cl.footage_source|default:'—' }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No content list items found for {{ month_name }} {{ year }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif module == 'audio' %}
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">DATE</th>
+          <th>TITLE</th>
+          <th style="width:80px;">SOURCE</th>
+          <th style="width:100px;">DISTRICT</th>
+          <th style="width:60px;">DURATION</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in items %}
+        <tr>
+          <td>{{ a.audio_date|date:"Y-m-d" }}</td>
+          <td><strong style="color:var(--text);font-size:12.5px;">{{ a.title|truncatechars:60 }}</strong></td>
+          <td><span class="status-pill status-pending" style="font-size:10px;">{{ a.get_source_display }}</span></td>
+          <td>{{ a.district|default:'—' }}</td>
+          <td>{{ a.duration|default:'—' }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No audio items found for {{ month_name }} {{ year }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif module == 'scripts' %}
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">DATE</th>
+          <th>HEADLINE</th>
+          <th style="width:100px;">WRITER</th>
+          <th style="width:80px;">SOURCE</th>
+          <th style="width:70px;">STATUS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in items %}
+        <tr>
+          <td>{{ s.script_date|date:"Y-m-d" }}</td>
+          <td><strong style="color:var(--text);font-size:12.5px;">{{ s.headline|truncatechars:60 }}</strong></td>
+          <td>{{ s.writer.username }}</td>
+          <td><span class="status-pill status-pending" style="font-size:10px;">{{ s.get_source_display }}</span></td>
+          <td><span class="status-pill status-{{ s.status }}">{{ s.get_status_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No scripts found for {{ month_name }} {{ year }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif module == 'finalpackage' %}
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">DATE</th>
+          <th>TITLE</th>
+          <th style="width:100px;">PRODUCER</th>
+          <th style="width:60px;">RUNTIME</th>
+          <th style="width:70px;">STATUS</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in items %}
+        <tr>
+          <td>{{ p.package_date|date:"Y-m-d" }}</td>
+          <td><strong style="color:var(--text);font-size:12.5px;">{{ p.title|truncatechars:60 }}</strong></td>
+          <td>{{ p.producer|default:'—' }}</td>
+          <td>{{ p.runtime|default:'—' }}</td>
+          <td><span class="status-pill status-{{ p.status }}">{{ p.get_status_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No final packages found for {{ month_name }} {{ year }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>

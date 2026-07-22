@@ -1,0 +1,24 @@
+{% load bengali_filters %}
+<h3 style="margin:0 0 12px;font-size:16px;color:var(--text);">{{ target_user.full_name|default:target_user.username }} — Total {{ entries|length }} Content Entries</h3>
+{% if entries %}
+<div class="table-responsive">
+  <table class="phoenix-table">
+    <thead><tr><th>DATE</th><th>HEADLINE</th><th>PLATFORMS</th><th>SPONSOR</th></tr></thead>
+    <tbody>
+    {% for e in entries %}
+      <tr>
+        <td>{{ e.entry_date|date:"Y-m-d" }}</td>
+        <td><strong>{{ e.headline|truncatechars:45 }}</strong></td>
+        <td>{% for p in platforms %}{% if e.links|get_item:p.key %}<span class="link-pill" style="background:{{ p.color }};font-size:10px;padding:2px 6px;">{{ p.label|first }}</span> {% endif %}{% endfor %}</td>
+        <td>{% if e.sponsor %}<span class="status-pill status-success">{{ e.sponsor.name }}</span>{% else %}—{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p style="color:var(--text-soft);font-size:13px;">No entries found.</p>
+{% endif %}
+<div class="form-actions" style="margin-top:16px;">
+  <button class="btn btn-ghost btn-sm" onclick="document.getElementById('lbDetailModal').classList.add('hidden')">Close</button>
+</div>

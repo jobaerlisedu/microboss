@@ -1,0 +1,36 @@
+<button class="float-btn" id="btnContributors" title="Top Contributors" style="bottom:80px;"><i class="bi bi-people-fill"></i></button>
+<div class="float-panel hidden" id="panelContributors" style="bottom:80px;" role="region" aria-label="Top Contributors">
+  <h4><i class="bi bi-people-fill" style="color:#22c55e;"></i> Top Contributors</h4>
+  <div id="contribMini" class="float-panel-content" hx-get="/cms/widgets/contributors/" hx-trigger="every 30s" hx-swap="innerHTML"></div>
+</div>
+
+<button class="float-btn" id="btnLeaderboard" title="Top 5" style="bottom:138px;"><i class="bi bi-trophy-fill"></i></button>
+<div class="float-panel hidden" id="panelLeaderboard" style="bottom:138px;" role="region" aria-label="Top 5 Leaderboard">
+  <h4><i class="bi bi-trophy-fill"></i> Top 5 (Live)</h4>
+  <div id="lbMini" class="float-panel-content" hx-get="/cms/widgets/leaderboard/" hx-trigger="every 15s" hx-swap="innerHTML"></div>
+</div>
+
+<button class="float-btn" id="btnSponsorTrack" title="Sponsor Track" style="bottom:196px;"><i class="bi bi-bar-chart-fill"></i></button>
+<div class="float-panel hidden" id="panelSponsorTrack" style="bottom:196px;" role="region" aria-label="Live Sponsor Track">
+  <h4><i class="bi bi-bar-chart-fill"></i> Live Sponsor Track</h4>
+  <div id="spMini" class="float-panel-content" hx-get="/cms/widgets/sponsor-track/" hx-trigger="every 15s" hx-swap="innerHTML"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  function togglePanel(btnId, panelId) {
+    var btn = document.getElementById(btnId);
+    var panel = document.getElementById(panelId);
+    if (btn && panel) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var hidden = panel.classList.toggle('hidden');
+        btn.setAttribute('aria-expanded', !hidden);
+      });
+    }
+  }
+  togglePanel('btnContributors', 'panelContributors');
+  togglePanel('btnLeaderboard', 'panelLeaderboard');
+  togglePanel('btnSponsorTrack', 'panelSponsorTrack');
+});
+</script>

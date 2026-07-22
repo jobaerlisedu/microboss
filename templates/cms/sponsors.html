@@ -1,0 +1,108 @@
+<div class="card phoenix-card" style="margin-bottom: 20px;">
+  <div class="card-header-flex" style="margin-bottom: 18px;">
+    <div>
+      <h3 class="phoenix-card-title" id="sponsorFormTitle">
+        <i class="bi bi-people-fill" style="color:#3b82f6;margin-right:6px;"></i>
+        {% if edit_sponsor %}Edit Sponsor{% else %}Add New Sponsor{% endif %}
+      </h3>
+      <p class="phoenix-card-sub">Doggy is Full Time, Popup x2, TVC x1, GPI x1 — fixed creative parameters.</p>
+    </div>
+  </div>
+
+  <form id="sponsorForm" hx-post="/cms/sponsors/save/">
+    {% csrf_token %}
+    {% if edit_sponsor %}<input type="hidden" name="sponsor_id" value="{{ edit_sponsor.id }}">{% endif %}
+    <div class="form-grid">
+      <div class="field">
+        <label>Sponsor Name *</label>
+        <input type="text" name="name" value="{{ edit_sponsor.name|default:'' }}" placeholder="Sponsor name" required>
+      </div>
+      <div class="field">
+        <label>Daily Quota *</label>
+        <input type="number" min="1" name="daily_quota" value="{{ edit_sponsor.daily_quota|default:'' }}" placeholder="Daily target" required>
+      </div>
+      <div class="field">
+        <label>Total Quota *</label>
+        <input type="number" min="1" name="total_quota" value="{{ edit_sponsor.total_quota|default:'' }}" placeholder="Total quota" required>
+      </div>
+      <div class="field">
+        <label>Start Date *</label>
+        <input type="date" name="start_date" value="{% if edit_sponsor %}{{ edit_sponsor.start_date|date:'Y-m-d' }}{% else %}{{ today }}{% endif %}" required>
+      </div>
+      <div class="field">
+        <label>End Date (Deadline) *</label>
+        <input type="date" name="end_date" value="{% if edit_sponsor %}{{ edit_sponsor.end_date|date:'Y-m-d' }}{% endif %}" required>
+      </div>
+      <div class="field">
+        <label>Target Content Type</label>
+        <input type="text" name="content_type" value="{{ edit_sponsor.content_type|default:'' }}" placeholder="e.g. Vlog, News, Reels">
+      </div>
+    </div>
+
+    <div class="field full" style="margin: 18px 0 10px;">
+      <label style="font-size: 13px; font-weight: 700; color: var(--text);">Creative Attachments</label>
+    </div>
+    <div class="form-grid">
+      <label class="field" style="flex-direction:row;align-items:center;gap:8px;">
+        <input type="checkbox" name="has_doggy" style="width:auto;" {% if edit_sponsor and edit_sponsor.has_doggy %}checked{% endif %}> Doggy (Full Time)
+      </label>
+      <label class="field" style="flex-direction:row;align-items:center;gap:8px;">
+        <input type="checkbox" name="has_popup" style="width:auto;" {% if edit_sponsor and edit_sponsor.has_popup %}checked{% endif %}> Popup (x2)
+      </label>
+      <label class="field" style="flex-direction:row;align-items:center;gap:8px;">
+        <input type="checkbox" name="has_tvc" style="width:auto;" {% if edit_sponsor and edit_sponsor.has_tvc %}checked{% endif %}> TVC (x1)
+      </label>
+      <label class="field" style="flex-direction:row;align-items:center;gap:8px;">
+        <input type="checkbox" name="has_gpi" style="width:auto;" {% if edit_sponsor and edit_sponsor.has_gpi %}checked{% endif %}> GPI (x1)
+      </label>
+    </div>
+
+    <div class="form-actions" style="margin-top: 20px;">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Sponsor</button>
+    </div>
+  </form>
+</div>
+
+<div class="card phoenix-card">
+  <div class="card-header-flex" style="margin-bottom: 18px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-bar-chart-line-fill" style="color:#3b82f6;margin-right:6px;"></i> Sponsor List & Progress</h3>
+      <p class="phoenix-card-sub">Active campaigns and quota fulfillment status</p>
+    </div>
+  </div>
+
+  <div id="sponsorList">
+    {% for s in sponsors %}
+    <div class="sponsor-card2" style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;margin-bottom:12px;">
+      <div class="top-row">
+        <div>
+          <div class="name" style="font-weight:700;font-size:15px;color:var(--text);">{{ s.name }}</div>
+          <div style="font-size:12px;color:var(--text-soft);margin-top:2px;">{{ s.content_type|default:'' }}</div>
+        </div>
+        <div class="row-actions">
+          <button class="icon-mini" title="Edit" hx-get="/cms/sponsors/{{ s.id }}/edit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
+          <button class="icon-mini" title="Delete" hx-post="/cms/sponsors/{{ s.id }}/delete/" hx-confirm="Delete sponsor '{{ s.name }}'?" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-trash-fill"></i></button>
+        </div>
+      </div>
+      <div class="meta" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--text-soft);">
+        <span><i class="bi bi-calendar-range"></i> {{ s.start_date|date:"Y-m-d" }} → {{ s.end_date|date:"Y-m-d" }}</span>
+        <span>Total Required: <strong>{{ s.total_quota }}</strong></span>
+        <span>Daily Target: <strong>{{ s.daily_quota }}</strong></span>
+        <span>Delivered: <strong>{{ s.given_count }}</strong></span>
+        <span>Remaining: <strong>{{ s.remaining_count }}</strong></span>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+        {% if s.has_doggy %}<span class="chip">Doggy (FT)</span>{% endif %}
+        {% if s.has_popup %}<span class="chip">Popup x2</span>{% endif %}
+        {% if s.has_tvc %}<span class="chip">TVC x1</span>{% endif %}
+        {% if s.has_gpi %}<span class="chip">GPI x1</span>{% endif %}
+      </div>
+      <div class="progress" style="margin-top:12px;height:8px;border-radius:4px;background:var(--border);overflow:hidden;">
+        <div style="width:{{ s.progress_pct }}%;height:100%;background:linear-gradient(90deg, #3b82f6, #6366f1);border-radius:4px;"></div>
+      </div>
+    </div>
+    {% empty %}
+    <p style="color:var(--text-faint);font-size:13px;text-align:center;padding:24px 0;">No sponsors added yet.</p>
+    {% endfor %}
+  </div>
+</div>

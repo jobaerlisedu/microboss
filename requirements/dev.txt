@@ -1,0 +1,9 @@
+-r base.txt
+
+# Development
+sslserver
+
+# Testing
+# pytest
+# pytest-django
+# factory-boy

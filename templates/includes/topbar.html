@@ -1,0 +1,49 @@
+{% load static %}
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-search">
+      <span class="search-icon"><i class="bi bi-search"></i></span>
+      <input type="text" placeholder="Search..." aria-label="Search">
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <div class="clockbox">
+      <div class="time" id="clockTime">--:--:--</div>
+      <div id="clockDate" class="date-str">Loading…</div>
+      <div class="wx" id="clockWx">Weather…</div>
+    </div>
+
+    <div class="notif-container" id="notif-container">
+      <button class="icon-btn notif-bell" id="notif-bell"
+        title="Notifications">
+        <span><i class="bi bi-bell-fill"></i></span>
+        <span class="notif-badge" id="notif-badge"
+          hx-get="/api/v1/notifications/count/"
+          hx-trigger="load, every 30s, notification-update from:body"
+          hx-target="this"
+          hx-swap="innerHTML"></span>
+        <span class="notif-badge notice-badge" id="notice-badge"
+          hx-get="/api/v1/notifications/notice-count/"
+          hx-trigger="load, every 30s, notification-update from:body"
+          hx-target="this"
+          hx-swap="innerHTML"
+          title="Unread notices"></span>
+      </button>
+      <div class="notif-dropdown" id="notif-dropdown"><div id="notif-dropdown-content"></div></div>
+    </div>
+
+    <button class="icon-btn" title="Apps grid">
+      <span><i class="bi bi-grid-3x3-gap-fill"></i></span>
+    </button>
+
+    <div class="profile-chip">
+      <span class="avatar">{{ user.username|first|upper }}</span>
+      <span class="username">{{ user.username }}</span>
+      <form method="post" action="/cms/logout/" style="display:inline;margin:0;">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn" title="Logout"><i class="bi bi-box-arrow-right"></i></button>
+      </form>
+    </div>
+  </div>
+</div>

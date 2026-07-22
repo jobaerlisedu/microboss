@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block auth_content %}
+<div class="auth-card">
+  <div class="auth-head">
+    <h2>চ্যানেল ওয়ান ডিজিটাল</h2>
+    <p>নতুন অ্যাকাউন্ট তৈরি করুন</p>
+  </div>
+  <p style="text-align:center;color:var(--text-soft);margin:20px 0;">রেজিস্ট্রেশন শুধুমাত্র অ্যাডমিন প্যানেল থেকে করা যায়।</p>
+  <div style="text-align:center;"><a href="/cms/login/" class="btn btn-primary">লগইনে ফিরে যান</a></div>
+</div>
+{% endblock %}

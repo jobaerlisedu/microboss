@@ -1,0 +1,14 @@
+<div class="tabs">
+  <button class="tab-btn active" data-tab="dashboard" hx-get="/cms/dashboard/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">ড্যাশবোর্ড</button>
+  <button class="tab-btn" data-tab="notices" hx-get="/cms/notices/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">📢 নোটিশ</button>
+  <button class="tab-btn" data-tab="new" hx-get="/cms/entries/new/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">+ নতুন এন্ট্রি</button>
+  <button class="tab-btn" data-tab="all" hx-get="/cms/entries/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">সব এন্ট্রি</button>
+  <button class="tab-btn" data-tab="sponsors" hx-get="/cms/sponsors/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">স্পন্সর</button>
+  <button class="tab-btn" data-tab="contentlist" hx-get="/cms/content-lists/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">কন্টেন্ট তালিকা</button>
+  <button class="tab-btn" data-tab="assignment" hx-get="/cms/assignments/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">এসাইনমেন্ট</button>
+  <button class="tab-btn" data-tab="scripts" hx-get="/cms/scripts/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">ডিজিটাল স্ক্রিপ্ট</button>
+  <button class="tab-btn" data-tab="leaderboard" hx-get="/cms/leaderboard/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">টপ ৫</button>
+  {% if user.is_admin %}
+  <button class="tab-btn" data-tab="admin" hx-get="/cms/admin-panel/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">অ্যাডমিন</button>
+  {% endif %}
+</div>

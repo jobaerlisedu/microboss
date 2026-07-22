@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Django
+*.log
+*.log.*
+staticfiles/
+media/uploads/
+
+# Database
+*.sqlite3
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# SSL
+certs/*.pem
+certs/*.key
+certs/*.crt
+
+# Project specific
+server_err.txt
+server_out.txt
+server_out2.txt
+server_err2.txt

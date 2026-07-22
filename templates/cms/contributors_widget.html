@@ -1,0 +1,10 @@
+{% for u in top %}
+<div class="lb-row">
+  <div class="lb-rank" style="background:{% if forloop.counter == 1 %}#f59e0b{% elif forloop.counter == 2 %}#94a3b8{% elif forloop.counter == 3 %}#cd7f32{% else %}var(--surface-2){% endif %};
+    {% if forloop.counter <= 3 %}color:#fff;{% endif %}">{{ forloop.counter }}</div>
+  <div class="lb-name">{{ u.username }}</div>
+  <div class="lb-count" style="color:#22c55e;">{{ u.total_count }}</div>
+</div>
+{% empty %}
+<p style="color:var(--text-faint);font-size:12px;">No contributor data</p>
+{% endfor %}

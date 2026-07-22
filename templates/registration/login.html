@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block auth_content %}
+<div class="auth-card">
+  <div class="auth-head">
+    <h2>চ্যানেল ওয়ান ডিজিটাল</h2>
+    <p>কন্টেন্ট ম্যানেজমেন্ট সিস্টেম</p>
+  </div>
+  <form method="post" action="/cms/login/">
+    {% csrf_token %}
+    <div class="field" style="margin-bottom:12px;">
+      <label>ডাকনাম / ইমেইল / অফিস আইডি *</label>
+      <input type="text" name="identifier" placeholder="আপনার পরিচয়" required>
+    </div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>পাসওয়ার্ড *</label>
+      <input type="password" name="password" placeholder="পাসওয়ার্ড" required>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">লগইন করুন</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,119 @@
+<div class="admin-subnav" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+  <button class="btn btn-primary btn-sm active" hx-get="/cms/admin-panel/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-people-fill"></i> Users</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/audit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-journal-check"></i> Audit Log</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/health/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-activity"></i> System Health</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/settings/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-sliders"></i> Settings</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/activity/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-clock-history"></i> Activity</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/roles/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-shield-lock-fill"></i> Roles &amp; Perms</button>
+  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/csv-import/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-file-earmark-spreadsheet-fill"></i> CSV Import</button>
+</div>
+
+{% if pending_users %}
+<div class="card phoenix-card" style="margin-bottom:20px;border-color:#f59e0b;">
+  <div class="card-header-flex" style="margin-bottom:14px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-hourglass-split" style="color:#f59e0b;margin-right:6px;"></i> Pending Registrations</h3>
+      <p class="phoenix-card-sub">Review and approve new user registrations</p>
+    </div>
+  </div>
+  {% for u in pending_users %}
+  <div class="session-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);">
+    <div>
+      <strong style="color:var(--text);">{{ u.full_name }}</strong> ({{ u.username }}) • {{ u.designation }} • {{ u.email }} • {{ u.phone }} • ID: {{ u.office_id }}
+      <span class="status-pill status-pending" style="margin-left:6px;">Pending Approval</span>
+      <small style="color:var(--text-faint);display:block;margin-top:2px;">Registered: {{ u.date_joined|date:"Y-m-d H:i" }}</small>
+    </div>
+    <div class="row-actions" style="display:flex;gap:6px;">
+      <button class="btn btn-primary btn-sm" hx-post="{% url 'cms:cms-approve-registration' u.id %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-check-lg"></i> Approve</button>
+      <button class="btn btn-danger btn-sm" hx-post="{% url 'cms:cms-reject-registration' u.id %}" hx-target="#tab-content" hx-swap="innerHTML" hx-confirm="Reject registration for {{ u.full_name }}?"><i class="bi bi-x-lg"></i> Reject</button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card phoenix-card" style="margin-bottom:20px;">
+  <div class="card-header-flex" style="margin-bottom:16px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-person-gear" style="color:#3b82f6;margin-right:6px;"></i> User Management</h3>
+      <p class="phoenix-card-sub">Active registered users: {{ users|length }}</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="document.getElementById('addUserForm').classList.toggle('hidden')"><i class="bi bi-person-plus-fill"></i> Add User</button>
+  </div>
+
+  <div id="addUserForm" class="hidden" style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;margin-bottom:16px;">
+    <h4 style="margin:0 0 12px;font-size:14px;color:var(--text);">Create New User</h4>
+    <form method="post" action="/cms/admin-panel/users/add/" hx-post="{% url 'cms:cms-admin-add-user' %}" hx-target="#tab-content" hx-swap="innerHTML">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="field"><label>Username *</label><input type="text" name="username" required placeholder="Username"></div>
+        <div class="field"><label>Password *</label><input type="password" name="password" required minlength="4" placeholder="Password"></div>
+        <div class="field"><label>Full Name *</label><input type="text" name="full_name" required placeholder="Full Name"></div>
+        <div class="field"><label>Office ID *</label><input type="text" name="office_id" required placeholder="Office ID"></div>
+        <div class="field"><label>Designation *</label><input type="text" name="designation" required placeholder="Designation"></div>
+        <div class="field"><label>Email *</label><input type="email" name="email" required placeholder="Email"></div>
+        <div class="field"><label>Phone *</label><input type="text" name="phone" required placeholder="Phone"></div>
+        <div class="field"><label>Blood Group</label>
+          <select name="blood_group">
+            <option value="A+">A+</option><option value="A-">A-</option>
+            <option value="B+" selected>B+</option><option value="B-">B-</option>
+            <option value="AB+">AB+</option><option value="AB-">AB-</option>
+            <option value="O+">O+</option><option value="O-">O-</option>
+          </select>
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin:14px 0;">
+        <input type="checkbox" name="is_admin"> Grant Administrator privileges
+      </label>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('addUserForm').classList.add('hidden')">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm">Create User</button>
+      </div>
+    </form>
+  </div>
+
+  {% for u in users %}
+  <div class="session-row" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);">
+    <div>
+      <strong style="color:var(--text);">{{ u.username }}</strong> ({{ u.full_name }}) • {{ u.designation }} • {{ u.email }} • {{ u.phone }}
+      {% if u.is_admin %}<span class="status-pill status-success">Admin</span>{% endif %}
+      {% if u.is_founder %}<span class="status-pill status-pending">Founder</span>{% endif %}
+      {% for g in u.groups.all %}<span class="chip" style="background:rgba(59,130,246,0.1);color:#3b82f6;border:1px solid rgba(59,130,246,0.2);padding:2px 8px;border-radius:4px;font-size:10px;display:inline-block;margin:1px;">{{ g.name }}</span>{% endfor %}
+    </div>
+    <div class="row-actions" style="display:flex;gap:6px;">
+      {% if user.is_admin %}
+      <button class="icon-mini" title="View Details" hx-get="{% url 'cms:cms-user-detail' u.id %}" hx-target="#modalContainer" hx-swap="innerHTML"><i class="bi bi-eye-fill"></i></button>
+      <button class="icon-mini" title="Edit User" hx-get="{% url 'cms:cms-user-edit' u.id %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
+      <button class="btn btn-ghost btn-sm" onclick="var pw=prompt('New password for {{ u.username }}:'); if(pw&&pw.length>=4){ htmx.ajax('POST','/cms/admin-panel/{{ u.id }}/reset-password/',{values:{password:pw},target:'#tab-content',swap:'innerHTML'}); } else if(pw){ alert('Password must be at least 4 characters'); }"><i class="bi bi-key-fill"></i></button>
+      <button class="btn btn-ghost btn-sm" hx-post="{% url 'cms:cms-admin-toggle-admin' u.id %}" hx-target="#tab-content" hx-swap="innerHTML" {% if u.is_founder %}disabled{% endif %}>
+        {% if u.is_admin %}<i class="bi bi-shield-minus"></i>{% else %}<i class="bi bi-shield-plus"></i>{% endif %}
+      </button>
+      <button class="btn btn-danger btn-sm" hx-post="{% url 'cms:cms-admin-delete-user' u.id %}" hx-target="#tab-content" hx-swap="innerHTML" hx-confirm="Delete user {{ u.username }}?" {% if u.is_founder or u == user %}disabled{% endif %}><i class="bi bi-trash-fill"></i></button>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card phoenix-card">
+  <div class="card-header-flex" style="margin-bottom:16px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-shield-lock-fill" style="color:#3b82f6;margin-right:6px;"></i> Active User Sessions</h3>
+      <p class="phoenix-card-sub">Active session monitoring</p>
+    </div>
+  </div>
+  {% for s in sessions %}
+  <div class="session-row {% if not s.is_active %}inactive{% endif %}" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:12.5px;">
+    <div>
+      {% for u in users %}{% if u.id == s.user_id %}<strong>{{ u.username }}</strong>{% endif %}{% endfor %} • IP: {{ s.ip_address }} • {{ s.login_at|date:"Y-m-d H:i" }}
+      {% if s.is_active %}<span class="status-pill status-success" style="margin-left:6px;">Active</span>{% else %}<span class="status-pill status-pending" style="margin-left:6px;">Inactive</span>{% endif %}
+    </div>
+    {% if s.is_active and user.is_admin %}
+    <button class="btn btn-danger btn-sm" hx-post="{% url 'cms:cms-admin-logout-session' s.id %}" hx-target="#tab-content" hx-swap="innerHTML">Force Logout</button>
+    {% endif %}
+  </div>
+  {% empty %}
+  <p style="color:var(--text-faint);font-size:13px;text-align:center;padding:20px 0;">No active sessions found</p>
+  {% endfor %}
+</div>
+<div id="modalContainer"></div>
