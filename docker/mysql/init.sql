@@ -1,0 +1,2 @@
+-- Database and user are created via MYSQL_* environment variables.
+-- No additional initialization needed.
