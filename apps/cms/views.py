@@ -110,6 +110,13 @@ def _htmx_response(request, template, ctx=None, msg=None, msg_type='success', re
     return resp
 
 
+def custom_404(request, exception):
+    return render(request, '404.html', {
+        'exception': exception,
+        'user': request.user,
+    }, status=404)
+
+
 def _bengali_month(m):
     months = ['January', 'February', 'March', 'April', 'May', 'June',
               'July', 'August', 'September', 'October', 'November', 'December']
@@ -369,7 +376,7 @@ def sponsors_tab(request):
 @login_required
 def content_list_tab(request):
     today = _today_str()
-    qs = ContentListItem.objects.filter(deleted_at__isnull=True, list_date=today).select_related('member', 'assignment')
+    qs = ContentListItem.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment')
     now = timezone.now()
     today_assignments = Assignment.objects.filter(
         assign_date=timezone.now().date(),
@@ -380,7 +387,7 @@ def content_list_tab(request):
         'total': qs.count(),
         'today': qs.filter(list_date=today).count(),
         'this_month': qs.filter(list_date__year=now.year, list_date__month=now.month).count(),
-        'district': qs.filter(source='district').count(),
+        'district': qs.filter(source__iexact='district').count(),
     }
 
     return _tab_response(request, 'cms/content_list.html', {
@@ -395,7 +402,7 @@ def content_list_tab(request):
 @login_required
 def assignments_tab(request):
     today = _today_str()
-    qs = Assignment.objects.filter(deleted_at__isnull=True, assign_date=today).select_related('member', 'reporter_user')
+    qs = Assignment.objects.filter(deleted_at__isnull=True).select_related('member', 'reporter_user')
     stats_qs = Assignment.objects.filter(deleted_at__isnull=True)
     now = timezone.now()
     active_users = User.objects.filter(is_active=True).order_by('full_name')
@@ -454,7 +461,7 @@ def assignments_tab(request):
 @login_required
 def scripts_tab(request):
     now = timezone.now()
-    qs = Script.objects.filter(deleted_at__isnull=True, script_date=now.date()).select_related('writer', 'approved_by', 'assignment')
+    qs = Script.objects.filter(deleted_at__isnull=True).select_related('writer', 'approved_by', 'assignment')
     my_qs = qs.filter(writer=request.user)
     today_assignments = Assignment.objects.filter(
         assign_date=timezone.now().date(),
@@ -784,11 +791,15 @@ def save_content_list(request):
         assignment_id = request.POST.get('assignment_id', '')
         if assignment_id and not Assignment.objects.filter(id=assignment_id, deleted_at__isnull=True).exists():
             assignment_id = None
+        source = request.POST.get('source', '')
+        district = request.POST.get('district', '').strip()
+        if source and source.lower() == 'district' and not district:
+            return _toast_response('District name is required when source is District.', '', 'error')
         data = {
             'list_date': request.POST.get('list_date'),
             'content': request.POST.get('content'),
-            'source': request.POST.get('source'),
-            'district': request.POST.get('district', ''),
+            'source': source,
+            'district': district,
             'footage_source': request.POST.get('footage_source'),
             'assignment_id': assignment_id or None,
             'member': request.user,
@@ -820,7 +831,7 @@ def edit_content_list(request, pk):
         'total': qs.count(),
         'today': qs.filter(list_date=today).count(),
         'this_month': qs.filter(list_date__year=now.year, list_date__month=now.month).count(),
-        'district': qs.filter(source='district').count(),
+        'district': qs.filter(source__iexact='district').count(),
     }
     return render(request, 'cms/content_list.html', {
         'items': qs.order_by('-list_date', '-created_at'),
@@ -935,22 +946,26 @@ def delete_audio(request, pk):
 @login_required
 def final_package_tab(request):
     today = _today_str()
-    qs = FinalPackage.objects.filter(deleted_at__isnull=True, package_date=today).select_related('member', 'assignment')
+    today_date = timezone.now().date()
+    qs = FinalPackage.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment', 'editor_user')
     now = timezone.now()
     today_assignments = Assignment.objects.filter(
-        assign_date=timezone.now().date(),
+        assign_date=today_date,
         deleted_at__isnull=True,
     ).select_related('reporter_user', 'member').order_by('created_at')
+    active_users = User.objects.filter(is_active=True).order_by('full_name')
     stats = {
         'total': qs.count(),
         'today': qs.filter(package_date=today).count(),
         'this_month': qs.filter(package_date__year=now.year, package_date__month=now.month).count(),
         'draft': qs.filter(status='draft').count(),
+        'complete': qs.filter(status='complete').count(),
         'approved': qs.filter(status='approved').count(),
     }
     return _tab_response(request, 'cms/final_package_list.html', {
         'items': qs.order_by('-package_date', '-created_at'),
         'today_assignments': today_assignments,
+        'active_users': active_users,
         'stats': stats,
         'today': today,
         'user': request.user,
@@ -964,27 +979,53 @@ def save_final_package(request):
         assignment_id = request.POST.get('assignment_id', '')
         if assignment_id and not Assignment.objects.filter(id=assignment_id, deleted_at__isnull=True).exists():
             assignment_id = None
-        data = {
-            'package_date': request.POST.get('package_date'),
-            'title': request.POST.get('title', ''),
-            'producer': request.POST.get('producer', ''),
-            'editor': request.POST.get('editor', ''),
-            'runtime': request.POST.get('runtime', ''),
-            'file_link': request.POST.get('file_link', ''),
-            'notes': request.POST.get('notes', ''),
-            'status': request.POST.get('status', 'draft'),
-            'assignment_id': assignment_id or None,
-            'member': request.user,
-        }
+        editor_user_id = request.POST.get('editor_user', '')
+        editor_user = None
+        if editor_user_id:
+            try:
+                editor_user = User.objects.get(id=editor_user_id, is_active=True)
+            except User.DoesNotExist:
+                pass
+        package_date = request.POST.get('package_date')
+        try:
+            parsed_date = datetime.strptime(package_date, '%Y-%m-%d').date() if package_date else None
+        except (ValueError, TypeError):
+            return _toast_response('Invalid date format.', '', 'error')
+        if not parsed_date:
+            return _toast_response('Date is required.', '', 'error')
+        title = request.POST.get('title', '').strip()
+        if not title:
+            return _toast_response('Title is required.', '', 'error')
         if item_id:
-            item = get_object_or_404(FinalPackage, id=item_id, deleted_at__isnull=True)
-            for k, v in data.items():
-                setattr(item, k, v)
+            item = FinalPackage.objects.filter(id=item_id, deleted_at__isnull=True).first()
+            if not item:
+                return _toast_response('Package not found.', '', 'error')
+            if not _is_owner_or_admin(request.user, item):
+                return _toast_response('Permission denied.', '', 'error')
+            item.package_date = parsed_date
+            item.title = title
+            item.producer = request.POST.get('producer', '')
+            item.editor_user = editor_user
+            item.runtime = request.POST.get('runtime', '')
+            item.notes = request.POST.get('notes', '')
+            item.status = request.POST.get('status', 'draft')
+            item.assignment_id = assignment_id or None
             item.updated_by = request.user
             item.save()
             return _toast_response('Final package updated.', '/cms/final-packages/')
-        data['created_by'] = request.user
-        FinalPackage.objects.create(**data)
+        FinalPackage.objects.create(
+            package_date=parsed_date,
+            title=title,
+            producer=request.POST.get('producer', ''),
+            editor=request.POST.get('editor', ''),
+            editor_user=editor_user,
+            runtime=request.POST.get('runtime', ''),
+            notes=request.POST.get('notes', ''),
+            status=request.POST.get('status', 'draft'),
+            assignment_id=assignment_id or None,
+            member=request.user,
+            created_by=request.user,
+        )
         return _toast_response('Final package saved.', '/cms/final-packages/')
     return redirect('cms:cms-final-packages')
 
@@ -992,16 +1033,34 @@ def save_final_package(request):
 @login_required
 def edit_final_package(request, pk):
     item = get_object_or_404(FinalPackage, id=pk, deleted_at__isnull=True)
+    if not _is_owner_or_admin(request.user, item):
+        return _toast_response('You do not have permission to edit this package.', '', 'error')
     today = _today_str()
-    qs = FinalPackage.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment')
-    today_assignments = Assignment.objects.filter(
+    now = timezone.now()
+    qs = FinalPackage.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment', 'editor_user')
+    stats = {
+        'total': qs.count(),
+        'today': qs.filter(package_date=today).count(),
+        'this_month': qs.filter(package_date__year=now.year, package_date__month=now.month).count(),
+        'draft': qs.filter(status='draft').count(),
+        'complete': qs.filter(status='complete').count(),
+        'approved': qs.filter(status='approved').count(),
+    }
+    today_assignments = list(Assignment.objects.filter(
         assign_date=timezone.now().date(),
         deleted_at__isnull=True,
-    ).select_related('reporter_user', 'member').order_by('created_at')
-    return render(request, 'cms/final_package_list.html', {
+    ).select_related('reporter_user', 'member').order_by('created_at'))
+    if item.assignment_id and not any(a.id == item.assignment_id for a in today_assignments):
+        linked = Assignment.objects.filter(id=item.assignment_id, deleted_at__isnull=True).first()
+        if linked:
+            today_assignments.append(linked)
+    active_users = User.objects.filter(is_active=True).order_by('full_name')
+    return _tab_response(request, 'cms/final_package_list.html', {
         'items': qs.order_by('-package_date', '-created_at'),
         'today_assignments': today_assignments,
+        'active_users': active_users,
         'edit_item': item,
+        'stats': stats,
         'today': today,
         'user': request.user,
     })
@@ -1011,10 +1070,37 @@ def edit_final_package(request, pk):
 @require_POST
 def delete_final_package(request, pk):
     item = get_object_or_404(FinalPackage, id=pk, deleted_at__isnull=True)
+    if not _is_owner_or_admin(request.user, item):
+        return _toast_response('You do not have permission to delete this package.', '', 'error')
     item.deleted_at = timezone.now()
     item.updated_by = request.user
     item.save()
     return _toast_response('Final package deleted.', '/cms/final-packages/')
+
+
+@login_required
+def final_package_detail(request, pk):
+    item = get_object_or_404(
+        FinalPackage.objects.select_related('member', 'assignment', 'editor_user'),
+        id=pk, deleted_at__isnull=True,
+    )
+    video_entries = []
+    audio_entries = []
+    if item.assignment:
+        for audio_item in item.assignment.audio_items.filter(deleted_at__isnull=True):
+            for entry in (audio_item.media_entries or []):
+                m_type = str(entry.get('type', '')).lower()
+                if m_type == 'video':
+                    video_entries.append(entry)
+                elif m_type == 'audio':
+                    audio_entries.append(entry)
+
+    return render(request, 'cms/final_package_detail.html', {
+        'item': item,
+        'video_entries': video_entries,
+        'audio_entries': audio_entries,
+        'user': request.user,
+    })
 
 
 def _set_assignment_reporter(assignment, reporter_user_id, reporter_name):
@@ -1022,7 +1108,7 @@ def _set_assignment_reporter(assignment, reporter_user_id, reporter_name):
         try:
             ru = User.objects.get(id=reporter_user_id, is_active=True)
             assignment.reporter_user = ru
-            assignment.reporter = reporter_name or ru.full_name or ru.username
+            assignment.reporter = reporter_name or ''
             return
         except User.DoesNotExist:
             pass
@@ -1053,7 +1139,7 @@ def save_assignment(request):
             assignment = get_object_or_404(Assignment, id=assignment_id, deleted_at__isnull=True)
             if not _is_owner_or_admin(request.user, assignment):
                 return _toast_response('You do not have permission to edit this assignment.', '', 'error')
-            assignment.assign_date = assign_date
+            assignment.assign_date = parsed_date
             assignment.caption = caption
             assignment.source_link = source_link
             assignment.district = district
@@ -1062,7 +1148,7 @@ def save_assignment(request):
             assignment.save()
             return _toast_response('Assignment updated successfully.', reverse('cms:cms-assignments'))
         data = {
-            'assign_date': assign_date,
+            'assign_date': parsed_date,
             'caption': caption,
             'source_link': source_link,
             'district': district,
@@ -1073,7 +1159,7 @@ def save_assignment(request):
             try:
                 ru = User.objects.get(id=reporter_user_id, is_active=True)
                 data['reporter_user'] = ru
-                data['reporter'] = reporter_name or ru.full_name or ru.username
+                data['reporter'] = reporter_name or ''
             except User.DoesNotExist:
                 data['reporter'] = reporter_name or ''
         else:
@@ -1093,7 +1179,7 @@ def edit_assignment(request, pk):
         return _toast_response('You do not have permission to edit this assignment.', '', 'error')
     today = _today_str()
     now = timezone.now()
-    qs = Assignment.objects.filter(deleted_at__isnull=True, assign_date=today).select_related('member', 'reporter_user')
+    qs = Assignment.objects.filter(deleted_at__isnull=True).select_related('member', 'reporter_user')
     active_users = User.objects.filter(is_active=True).order_by('full_name')
     stats_qs = Assignment.objects.filter(deleted_at__isnull=True)
     stats = {
@@ -1256,15 +1342,31 @@ def save_script(request):
         assignment_id = request.POST.get('assignment_id', '')
         if assignment_id and not Assignment.objects.filter(id=assignment_id, deleted_at__isnull=True).exists():
             assignment_id = None
+        script_date = request.POST.get('script_date')
+        try:
+            parsed_date = datetime.strptime(script_date, '%Y-%m-%d').date() if script_date else None
+            if parsed_date and parsed_date > timezone.now().date():
+                return _toast_response('Script date cannot be in the future.', '', 'error')
+        except (ValueError, TypeError):
+            return _toast_response('Invalid date format.', '', 'error')
         script_id = request.POST.get('script_id', '')
         if script_id:
             script = get_object_or_404(Script, id=script_id, deleted_at__isnull=True)
+            if not _is_owner_or_admin(request.user, script):
+                return _toast_response('You do not have permission to edit this script.', '', 'error')
             old_headline = script.headline
             old_body = script.body
-            for field in ('script_date', 'headline', 'source', 'district', 'district_reporter', 'body'):
-                setattr(script, field, request.POST.get(field, ''))
+            was_approved = script.status == 'approved'
+            script.script_date = parsed_date
+            script.headline = request.POST.get('headline', '')
+            script.source = request.POST.get('source', '')
+            script.district = request.POST.get('district', '')
+            script.district_reporter = request.POST.get('district_reporter', '')
+            script.body = request.POST.get('body', '')
             script.assignment_id = assignment_id or None
             script.updated_by = request.user
+            if was_approved:
+                script.status = 'draft'
             script.save()
             if old_headline != script.headline or old_body != script.body:
                 ScriptEditHistory.objects.create(
@@ -1275,11 +1377,13 @@ def save_script(request):
                     change_summary=request.POST.get('change_summary', ''),
                     created_by=request.user,
                 )
+            if was_approved:
+                return _toast_response('Script updated and reset to draft for re-approval.', '/cms/scripts/')
             return _toast_response('Script updated successfully.', '/cms/scripts/')
         Script.objects.create(
-            script_date=request.POST.get('script_date'),
+            script_date=parsed_date,
             headline=request.POST.get('headline', ''),
-            source=request.POST.get('source', 'social'),
+            source=request.POST.get('source', ''),
             writer=request.user,
             district=request.POST.get('district', ''),
             district_reporter=request.POST.get('district_reporter', ''),
@@ -1294,6 +1398,8 @@ def save_script(request):
 @login_required
 def edit_script(request, pk):
     script = get_object_or_404(Script, id=pk, deleted_at__isnull=True)
+    if not _is_owner_or_admin(request.user, script):
+        return _toast_response('You do not have permission to edit this script.', '', 'error')
     today_assignments = Assignment.objects.filter(
         assign_date=timezone.now().date(),
         deleted_at__isnull=True,
@@ -1310,12 +1416,13 @@ def edit_script(request, pk):
 def submit_script(request, pk):
     script = get_object_or_404(Script, id=pk, deleted_at__isnull=True)
     if request.method == 'POST':
-        if script.writer != request.user:
+        if script.writer != request.user and not request.user.is_admin:
             return _toast_response('You cannot submit this script.', '', 'error')
-        if script.status == 'draft':
-            script.status = 'pending'
-            script.updated_by = request.user
-            script.save()
+        if script.status != 'draft':
+            return _toast_response('Only draft scripts can be submitted.', '', 'error')
+        script.status = 'pending'
+        script.updated_by = request.user
+        script.save()
         return _toast_response('Script submitted for approval.', '/cms/scripts/')
     return redirect('cms:cms-scripts')
 
@@ -1326,14 +1433,40 @@ def approve_script(request, pk):
     if request.method == 'POST':
         if not request.user.is_admin:
             return _toast_response('Only admins can approve scripts.', '', 'error')
-        if script.status == 'pending':
-            script.status = 'approved'
-            script.approved_by = request.user
-            script.approved_at = timezone.now()
-            script.updated_by = request.user
-            script.save()
+        if script.status != 'pending':
+            return _toast_response('Only pending scripts can be approved.', '', 'error')
+        script.status = 'approved'
+        script.approved_by = request.user
+        script.approved_at = timezone.now()
+        script.updated_by = request.user
+        script.save()
         return _toast_response('Script approved successfully.', '/cms/scripts/')
     return redirect('cms:cms-scripts')
+
+
+@login_required
+def reject_script(request, pk):
+    script = get_object_or_404(Script, id=pk, deleted_at__isnull=True)
+    if request.method == 'POST':
+        if not request.user.is_admin:
+            return _toast_response('Only admins can reject scripts.', '', 'error')
+        if script.status != 'pending':
+            return _toast_response('Only pending scripts can be rejected.', '', 'error')
+        script.status = 'draft'
+        script.updated_by = request.user
+        script.save()
+        return _toast_response('Script rejected and returned to draft.', '/cms/scripts/')
+    return redirect('cms:cms-scripts')
+
+
+@login_required
+@require_POST
+def delete_script(request, pk):
+    script = get_object_or_404(Script, id=pk, deleted_at__isnull=True)
+    if not request.user.is_admin:
+        return _toast_response('Only admins can delete scripts.', '', 'error')
+    script.soft_delete(user=request.user)
+    return _toast_response('Script deleted successfully.', '/cms/scripts/')
 
 
 # ─── User Management (Admin) ────────────────────────────────

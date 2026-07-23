@@ -10,6 +10,9 @@ from rest_framework.schemas import get_schema_view
 from rest_framework.renderers import JSONRenderer
 from rest_framework.permissions import AllowAny
 import apps.common.views
+import apps.cms.views
+
+handler404 = 'apps.cms.views.custom_404'
 
 urlpatterns = [
     path('api/v1/schema/', get_schema_view(
@@ -29,6 +32,7 @@ urlpatterns = [
     path('api/v1/sponsors/', include('apps.sponsors.urls')),
     path('api/v1/content-lists/', include('apps.contentlist.urls')),
     path('api/v1/assignments/', include('apps.assignments.urls')),
+    path('api/v1/final-packages/', include('apps.finalpackage.urls')),
     path('api/v1/scripts/', include('apps.scripts.urls')),
     path('api/v1/leaders/', include('apps.leaders.urls')),
     path('api/v1/reports/', include('apps.reports.urls')),

@@ -5,17 +5,25 @@ from apps.common.models import BaseModel
 
 class FinalPackage(BaseModel):
     STATUS_CHOICES = [
-        ('Draft', 'Draft'),
-        ('Complete', 'Complete'),
-        ('Approved', 'Approved'),
+        ('draft', 'Draft'),
+        ('complete', 'Complete'),
+        ('approved', 'Approved'),
     ]
 
     package_date = models.DateField('The Date', db_index=True)
     title = models.CharField('Title', max_length=255)
     producer = models.CharField('The Producer', max_length=255, blank=True, default='')
     editor = models.CharField('Editor', max_length=255, blank=True, default='')
+    editor_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='edited_packages',
+        verbose_name='Editor (User)',
+        db_index=True,
+    )
     runtime = models.CharField('Length', max_length=20, blank=True, default='')
     file_link = models.URLField('File Link', max_length=500, blank=True, default='')
+    video_link = models.URLField('Video Content Link', max_length=500, blank=True, default='')
+    voice_link = models.URLField('Voice Recording Link', max_length=500, blank=True, default='')
     notes = models.TextField('Note', blank=True, default='')
     status = models.CharField(
         'Status', max_length=20,

@@ -49,6 +49,10 @@
         <label for="assignDateInput">Assign Date *</label>
         <input id="assignDateInput" type="date" name="assign_date" value="{% if edit_assignment %}{{ edit_assignment.assign_date|date:'Y-m-d' }}{% else %}{{ today }}{% endif %}" required>
       </div>
+      <div class="field">
+        <label>Assignment Creator</label>
+        <input type="text" value="{{ request.user.full_name|default:request.user.username }}" readonly style="background-color: var(--bg-hover); color: var(--text-soft); cursor: not-allowed;" title="Creator is fixed to your logged-in account">
+      </div>
       <div class="field full">
         <label for="captionInput">Content Caption / Headline *</label>
         <textarea id="captionInput" name="caption" required placeholder="Describe story assignment..." rows="2">{{ edit_assignment.caption|default:'' }}</textarea>
@@ -62,16 +66,16 @@
         <input id="districtInput" type="text" name="district" value="{{ edit_assignment.district|default:'' }}" placeholder="District name">
       </div>
       <div class="field">
-        <label for="reporterUserSelect">Reporter (User)</label>
-        <select name="reporter_user" id="reporterUserSelect" onchange="var sel=this.options[this.selectedIndex];document.getElementsByName('reporter')[0].value=sel.value?sel.text.split(' (')[0]:''">
-          <option value="">— Select Reporter User —</option>
+        <label for="reporterUserSelect">Social Media Manager</label>
+        <select name="reporter_user" id="reporterUserSelect">
+          <option value="">— Select Social Media Manager —</option>
           {% for u in active_users %}
           <option value="{{ u.id }}" {% if edit_assignment.reporter_user_id == u.id %}selected{% endif %}>{{ u.full_name|default:u.username }} ({{ u.username }})</option>
           {% endfor %}
         </select>
       </div>
       <div class="field">
-        <label for="reporterInput">Reporter Name</label>
+        <label for="reporterInput">Reporter's Name</label>
         <input id="reporterInput" type="text" name="reporter" value="{{ edit_assignment.reporter|default:'' }}" placeholder="Or enter manually">
       </div>
     </div>
@@ -98,6 +102,7 @@
           <th>DATE</th>
           <th>CAPTION</th>
           <th>DISTRICT</th>
+          <th>SOCIAL MANAGER</th>
           <th>REPORTER</th>
           <th>STATUS</th>
           <th class="actions-col">ACTIONS</th>
@@ -111,6 +116,7 @@
           <td>{{ a.assign_date|date:"Y-m-d" }}</td>
           <td><strong>{{ a.caption }}</strong></td>
           <td>{{ a.district|default:'—' }}</td>
+          <td>{{ a.reporter_user.full_name|default:a.reporter_user.username|default:'—' }}</td>
           <td>{{ a.reporter }}</td>
           <td><span class="status-pill status-{{ a.status|lower }}">{{ a.get_status_display }}</span></td>
           <td><div class="row-actions">
@@ -144,11 +150,11 @@
           </div></td>
         </tr>
         {% empty %}
-        {% if page == 1 %}<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-faint);">No assignments found</td></tr>{% endif %}
+        {% if page == 1 %}<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-faint);">No assignments found</td></tr>{% endif %}
         {% endfor %}
         {% if has_more %}
         <tr id="asSentinel" hx-get="{% url 'cms:cms-assignments' %}?page={{ page|add:1 }}" hx-target="#assignmentsBody" hx-swap="beforeend" hx-trigger="intersect once" hx-on::before-request="var el=document.getElementById('asSentinel');if(el)el.remove()">
-          <td colspan="7" style="text-align:center;padding:12px;color:var(--text-faint);font-size:13px;">Loading more...</td>
+          <td colspan="8" style="text-align:center;padding:12px;color:var(--text-faint);font-size:13px;">Loading more...</td>
         </tr>
         {% endif %}
 {% if page == 1 %}

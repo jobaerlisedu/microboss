@@ -15,7 +15,7 @@ def notify_new_notice(sender, instance, created, **kwargs):
     notifications = [
         Notification(
             recipient_id=uid,
-            notification_type='notice',
+            notification_type='Notice',
             title=instance.title,
             message=instance.content[:200],
             link='/cms/notices/',

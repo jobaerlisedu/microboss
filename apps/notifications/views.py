@@ -37,7 +37,7 @@ def mark_read(request, pk):
 @login_required
 def mark_all_read(request):
     Notification.objects.filter(recipient=request.user, is_read=False).update(
-        is_read=True, read_at=timezone.now()
+        is_read=True, read_at=timezone.now(), updated_at=timezone.now()
     )
     unread_count = 0
     recent = Notification.objects.filter(recipient=request.user)[:10]
@@ -53,13 +53,12 @@ def mark_all_read(request):
 @login_required
 def unread_count(request):
     count = Notification.objects.filter(recipient=request.user, is_read=False).count()
-    html = str(count) if count > 0 else ''
     return render(request, 'cms/notification_badge.html', {'count': count, 'user': request.user})
 
 
 @login_required
 def unread_notice_count(request):
-    count = Notification.objects.filter(recipient=request.user, notification_type='notice', is_read=False).count()
+    count = Notification.objects.filter(recipient=request.user, notification_type='Notice', is_read=False).count()
     return render(request, 'cms/notice_badge.html', {'count': count, 'user': request.user})
 
 
@@ -154,4 +153,4 @@ class DeviceTokenUnregisterAPIView(generics.GenericAPIView):
         token = request.data.get('token', '')
         if token:
             DeviceToken.objects.filter(user=request.user, token=token).update(is_active=False)
-        return Response({'Detail': 'Token Disabled'})
+        return Response({'detail': 'Token Disabled'})

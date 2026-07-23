@@ -1,0 +1,162 @@
+<div class="detail-overlay" onclick="closeFpDetail()">
+  <div class="detail-modal" onclick="event.stopPropagation()">
+    <div class="detail-header">
+      <div>
+        <h3 style="margin:0;font-size:17px;display:flex;align-items:center;gap:8px;">
+          <i class="bi bi-box-seam-fill" style="color:#22c55e;"></i> Package Details
+        </h3>
+        <p style="margin:3px 0 0;font-size:12px;color:var(--text-soft);">{{ item.package_date|date:"Y-m-d" }} — {{ item.title }}</p>
+      </div>
+      <button class="icon-mini" onclick="closeFpDetail()" title="Close"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="detail-body">
+      <div class="detail-section">
+        <div class="detail-info-grid">
+          <div class="detail-info-item">
+            <span class="detail-label">Status</span>
+            <span class="status-pill status-{{ item.status }}">{{ item.get_status_display }}</span>
+          </div>
+          <div class="detail-info-item">
+            <span class="detail-label">Added By</span>
+            <span>{{ item.member.full_name|default:item.member.username }}</span>
+          </div>
+          <div class="detail-info-item">
+            <span class="detail-label">Producer</span>
+            <span>{{ item.producer|default:'—' }}</span>
+          </div>
+          <div class="detail-info-item">
+            <span class="detail-label">Editor</span>
+            <span>{% if item.editor_user %}{{ item.editor_user.full_name|default:item.editor_user.username }}{% else %}{{ item.editor|default:'—' }}{% endif %}</span>
+          </div>
+          <div class="detail-info-item">
+            <span class="detail-label">Runtime</span>
+            <span>{{ item.runtime|default:'—' }}</span>
+          </div>
+        </div>
+      </div>
+
+      {% if item.assignment %}
+      <div class="detail-section" style="border-top:1px solid var(--border);padding-top:16px;">
+        <h4 class="detail-subtitle"><i class="bi bi-pin-angle-fill" style="color:#f59e0b;"></i> Linked Assignment</h4>
+        <div class="detail-info-grid">
+          <div class="detail-info-item" style="grid-column:span 2;">
+            <span class="detail-label">Caption</span>
+            <span style="font-weight:600;">{{ item.assignment.caption }}</span>
+          </div>
+          <div class="detail-info-item">
+            <span class="detail-label">Reporter</span>
+            <span>{{ item.assignment.reporter }}</span>
+          </div>
+          <div class="detail-info-item">
+            <span class="detail-label">District</span>
+            <span>{{ item.assignment.district|default:'—' }}</span>
+          </div>
+          {% if item.assignment.source_link and item.assignment.source_link|slice:':11' != 'javascript:' %}
+          <div class="detail-info-item" style="grid-column:span 2;">
+            <span class="detail-label">Source Link</span>
+            <a href="{% if item.assignment.source_link|slice:':8' != 'https://' and item.assignment.source_link|slice:':7' != 'http://' and item.assignment.source_link|slice:':2' != '//' %}https://{% endif %}{{ item.assignment.source_link }}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-size:12px;">{{ item.assignment.source_link }}</a>
+          </div>
+          {% elif item.assignment.source_link %}
+          <div class="detail-info-item" style="grid-column:span 2;">
+            <span class="detail-label">Source Link</span>
+            <span style="color:var(--text-faint);font-size:11px;">{{ item.assignment.source_link }} (unsupported scheme)</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="detail-section" style="border-top:1px solid var(--border);padding-top:16px;">
+        <h4 class="detail-subtitle"><i class="bi bi-file-earmark-play" style="color:#ef4444;"></i> Media Files</h4>
+        <div class="detail-info-grid">
+          <div class="detail-info-item" style="grid-column:span 2;">
+            <span class="detail-label">File Link</span>
+            {% if item.file_link %}
+            <a href="{% if item.file_link|slice:':8' != 'https://' and item.file_link|slice:':7' != 'http://' and item.file_link|slice:':2' != '//' %}https://{% endif %}{{ item.file_link }}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-size:12px;display:block;">{{ item.file_link }}</a>
+            {% else %}<span style="color:var(--text-faint);">—</span>{% endif %}
+          </div>
+          <div class="detail-info-item" style="grid-column:span 2;">
+            <span class="detail-label">Video Content</span>
+            {% if item.video_link %}
+            <a href="{% if item.video_link|slice:':8' != 'https://' and item.video_link|slice:':7' != 'http://' and item.video_link|slice:':2' != '//' %}https://{% endif %}{{ item.video_link }}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-size:12px;display:block;">{{ item.video_link }}</a>
+            {% endif %}
+            {% if video_entries %}
+              {% for v in video_entries %}
+                <div style="margin-top:2px;">
+                  {% if v.file_location %}
+                  <a href="{% if v.file_location|slice:':8' != 'https://' and v.file_location|slice:':7' != 'http://' and v.file_location|slice:':2' != '//' %}https://{% endif %}{{ v.file_location }}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-size:12px;font-weight:500;display:inline-block;">
+                    {{ v.file_name|default:v.file_location|truncatechars:50 }}
+                  </a>
+                  {% else %}
+                  <span style="color:var(--text);font-size:12px;">{{ v.file_name|default:'—' }}</span>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            {% endif %}
+            {% if not item.video_link and not video_entries %}
+            <span style="color:var(--text-faint);">—</span>
+            {% endif %}
+          </div>
+          <div class="detail-info-item" style="grid-column:span 2;">
+            <span class="detail-label">Voice Recording</span>
+            {% if item.voice_link %}
+            <a href="{% if item.voice_link|slice:':8' != 'https://' and item.voice_link|slice:':7' != 'http://' and item.voice_link|slice:':2' != '//' %}https://{% endif %}{{ item.voice_link }}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-size:12px;display:block;">{{ item.voice_link }}</a>
+            {% endif %}
+            {% if audio_entries %}
+              {% for a in audio_entries %}
+                <div style="margin-top:2px;">
+                  {% if a.file_location %}
+                  <a href="{% if a.file_location|slice:':8' != 'https://' and a.file_location|slice:':7' != 'http://' and a.file_location|slice:':2' != '//' %}https://{% endif %}{{ a.file_location }}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-size:12px;font-weight:500;display:inline-block;">
+                    {{ a.file_name|default:a.file_location|truncatechars:50 }}
+                  </a>
+                  {% else %}
+                  <span style="color:var(--text);font-size:12px;">{{ a.file_name|default:'—' }}</span>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            {% endif %}
+            {% if not item.voice_link and not audio_entries %}
+            <span style="color:var(--text-faint);">—</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+
+
+      {% if item.notes %}
+      <div class="detail-section" style="border-top:1px solid var(--border);padding-top:16px;">
+        <h4 class="detail-subtitle"><i class="bi bi-journal-text" style="color:#6366f1;"></i> Notes</h4>
+        <div style="font-size:13px;color:var(--text);white-space:pre-wrap;">{{ item.notes }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="detail-footer">
+      <button class="btn btn-ghost" onclick="closeFpDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.detail-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px);}
+.detail-modal{background:var(--surface);border-radius:var(--radius-lg);width:700px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.detail-header{display:flex;align-items:flex-start;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);}
+.detail-body{flex:1;overflow-y:auto;padding:18px 22px;}
+.detail-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;}
+.detail-section{margin-bottom:18px;}
+.detail-subtitle{font-size:13.5px;font-weight:700;margin:0 0 8px;display:flex;align-items:center;gap:6px;}
+.detail-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.detail-info-item{display:flex;flex-direction:column;gap:2px;}
+.detail-label{font-size:10.5px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.3px;}
+.count-badge{font-size:10.5px;font-weight:600;padding:0 7px;border-radius:8px;background:var(--border);color:var(--text-soft);}
+.detail-table{width:100%;border-collapse:collapse;font-size:11.5px;}
+.detail-table th{text-align:left;padding:6px 8px;font-size:10px;font-weight:700;color:var(--text-faint);text-transform:uppercase;border-bottom:1px solid var(--border);}
+.detail-table td{padding:6px 8px;border-bottom:1px solid var(--border);}
+.platform-tag{text-transform:uppercase;font-weight:600;}
+</style>
+
+<script>
+function closeFpDetail(){var el=document.querySelector('.detail-overlay');if(el)el.remove();}
+</script>

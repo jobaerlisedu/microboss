@@ -74,9 +74,10 @@
       }
     });
 
-    // HTMX: suppress swap on 4xx/5xx
+    // HTMX: suppress swap on 5xx; pass 404 through so error content renders
     document.addEventListener('htmx:beforeSwap', function(evt) {
       if (evt.detail.xhr && evt.detail.xhr.status >= 400) {
+        if (evt.detail.xhr.status === 404) return;
         evt.detail.shouldSwap = false;
       }
     });

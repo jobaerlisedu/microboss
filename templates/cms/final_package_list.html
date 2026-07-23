@@ -40,10 +40,19 @@
     </div>
   </div>
 
-  <form hx-post="/cms/final-packages/save/">
+  <form hx-post="{% url 'cms:cms-save-final-package' %}">
     {% csrf_token %}
     {% if edit_item %}<input type="hidden" name="item_id" value="{{ edit_item.id }}">{% endif %}
     <div class="form-grid">
+      <div class="field full">
+        <label><i class="bi bi-pin-angle-fill" style="color:#f59e0b;"></i> Link to Assignment <span style="font-size:10.5px;font-weight:500;color:var(--text-faint);">(Optional)</span></label>
+        <select id="fpAsSelect" name="assignment_id">
+          <option value="">— No Assignment —</option>
+          {% for a in today_assignments %}
+          <option value="{{ a.id }}" {% if edit_item and edit_item.assignment_id|stringformat:'s' == a.id|stringformat:'s' %}selected{% endif %}>{{ a.caption|truncatechars:45 }} — {{ a.reporter }}</option>
+          {% endfor %}
+        </select>
+      </div>
       <div class="field">
         <label>Date *</label>
         <input type="date" name="package_date" value="{% if edit_item %}{{ edit_item.package_date|date:'Y-m-d' }}{% else %}{{ today }}{% endif %}" required>
@@ -65,56 +74,21 @@
         <input type="text" name="producer" placeholder="Producer name" value="{{ edit_item.producer|default:'' }}">
       </div>
       <div class="field">
-        <label>Editor</label>
-        <input type="text" name="editor" placeholder="Editor name" value="{{ edit_item.editor|default:'' }}">
+        <label>Editor (Video Editor)</label>
+        <select name="editor_user">
+          <option value="">— Select Video Editor —</option>
+          {% for u in active_users %}
+          <option value="{{ u.id }}" {% if edit_item.editor_user_id|stringformat:'s' == u.id|stringformat:'s' %}selected{% endif %}>{{ u.full_name|default:u.username }} ({{ u.username }})</option>
+          {% endfor %}
+        </select>
       </div>
       <div class="field">
         <label>Runtime</label>
         <input type="text" name="runtime" placeholder="e.g. 5:30" value="{{ edit_item.runtime|default:'' }}">
       </div>
       <div class="field full">
-        <label>File Link</label>
-        <input type="url" name="file_link" placeholder="https://..." value="{{ edit_item.file_link|default:'' }}">
-      </div>
-      <div class="field full">
         <label>Notes</label>
         <textarea name="notes" rows="2" placeholder="Additional notes..." style="resize:vertical;">{{ edit_item.notes|default:'' }}</textarea>
-      </div>
-      <div class="field full">
-        <div class="assignment-panel" style="border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;margin-top:4px;background:var(--surface);">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <label style="font-size:12.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;">
-              <i class="bi bi-pin-angle-fill" style="color:#f59e0b;"></i> Link to Assignment <span style="font-size:10.5px;font-weight:500;color:var(--text-faint);">(Optional)</span>
-            </label>
-            <span style="font-size:10.5px;color:var(--text-soft);">{{ today_assignments|length }} today</span>
-          </div>
-          {% if today_assignments %}
-          <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;max-height:150px;overflow-y:auto;">
-            {% for a in today_assignments %}
-            <label data-value="{{ a.id }}" style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11.5px;transition:background 0.15s;{% if edit_item and edit_item.assignment_id|stringformat:'s' == a.id|stringformat:'s' %}background:rgba(245,158,11,0.12);{% endif %}"
-                   onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='{% if edit_item and edit_item.assignment_id|stringformat:'s' == a.id|stringformat:'s' %}rgba(245,158,11,0.12){% else %}transparent{% endif %}'"
-                   onclick="document.getElementById('fpAsSelect').value='{{ a.id }}';this.parentElement.querySelectorAll('label[data-value]').forEach(function(el){el.style.background='transparent'});this.style.background='rgba(245,158,11,0.12)';">
-              <div style="flex:1;min-width:0;">
-                <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ a.caption|truncatechars:50 }}</div>
-                <div style="font-size:10px;color:var(--text-soft);">
-                  <span><i class="bi bi-person"></i> {{ a.reporter }}</span>
-                  {% if a.district %}<span style="margin-left:6px;"><i class="bi bi-geo-alt"></i> {{ a.district }}</span>{% endif %}
-                </div>
-              </div>
-              <span class="status-pill status-{{ a.status|lower }}" style="font-size:9px;padding:1px 7px;">{{ a.status }}</span>
-            </label>
-            {% endfor %}
-          </div>
-          {% else %}
-          <div style="font-size:11px;color:var(--text-faint);padding:6px 0;margin-bottom:6px;"><i class="bi bi-info-circle"></i> No assignments today</div>
-          {% endif %}
-          <select id="fpAsSelect" name="assignment_id" style="font-size:11.5px;">
-            <option value="">— No Assignment —</option>
-            {% for a in today_assignments %}
-            <option value="{{ a.id }}" {% if edit_item and edit_item.assignment_id|stringformat:'s' == a.id|stringformat:'s' %}selected{% endif %}>{{ a.caption|truncatechars:45 }} — {{ a.reporter }}</option>
-            {% endfor %}
-          </select>
-        </div>
       </div>
     </div>
     <div class="form-actions" style="margin-top:20px;">
@@ -154,14 +128,15 @@
           <td>{{ item.package_date|date:"Y-m-d" }}</td>
           <td><strong>{{ item.title }}</strong></td>
           <td>{{ item.producer|default:'—' }}</td>
-          <td>{{ item.editor|default:'—' }}</td>
+          <td>{% if item.editor_user %}{{ item.editor_user.full_name|default:item.editor_user.username }}{% else %}{{ item.editor|default:'—' }}{% endif %}</td>
           <td>{{ item.runtime|default:'—' }}</td>
           <td><span class="status-pill status-{{ item.status }}">{{ item.get_status_display }}</span></td>
           <td>{% if item.assignment %}<span style="font-size:11px;color:var(--text-soft);"><i class="bi bi-pin-angle"></i> {{ item.assignment.caption|truncatechars:25 }}</span>{% else %}<span style="color:var(--text-faint);">—</span>{% endif %}</td>
           <td>{{ item.member.username }}</td>
           <td><div class="row-actions">
-            <button class="icon-mini" title="Edit" hx-get="/cms/final-packages/{{ item.id }}/edit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
-            <button class="icon-mini" title="Delete" hx-post="/cms/final-packages/{{ item.id }}/delete/" hx-confirm="Delete package?" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-trash-fill"></i></button>
+            <button class="icon-mini" title="View Details" hx-get="{% url 'cms:cms-view-final-package' item.id %}" hx-target="#fpModalContainer" hx-swap="innerHTML"><i class="bi bi-eye-fill"></i></button>
+            <button class="icon-mini" title="Edit" hx-get="{% url 'cms:cms-edit-final-package' item.id %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
+            <button class="icon-mini" title="Delete" hx-post="{% url 'cms:cms-delete-final-package' item.id %}" hx-confirm="Delete package?" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-trash-fill"></i></button>
           </div></td>
         </tr>
         {% empty %}
@@ -171,3 +146,5 @@
     </table>
   </div>
 </div>
+
+<div id="fpModalContainer"></div>

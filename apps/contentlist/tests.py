@@ -55,7 +55,7 @@ class ContentListAPITest(APITestCase):
         resp = self.client.post(self.url, {
             'list_date': '2024-03-15',
             'content': 'API Test Content',
-            'source': 'social',
+            'source': 'Social',
             'footage_source': 'WhatsApp',
             'member': str(self.user.id),
         }, format='json')

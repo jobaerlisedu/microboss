@@ -10,7 +10,7 @@ def notify_assignment_reporter(sender, instance, created, **kwargs):
     if created and instance.reporter_user and instance.reporter_user != instance.member:
         Notification.objects.create(
             recipient=instance.reporter_user,
-            notification_type='assignment',
+            notification_type='Assignment',
             title='New Assignment',
             message=instance.caption[:200],
             link=reverse('cms:cms-assignments'),

@@ -42,7 +42,7 @@
     {% if script.writer == user or user.is_admin %}
     <button class="btn btn-primary btn-sm" hx-get="/cms/scripts/{{ script.id }}/edit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i> Edit Script</button>
     {% endif %}
-    {% if script.status == 'draft' and script.writer == user %}
+    {% if script.status == 'draft' and script.writer == user or script.status == 'draft' and user.is_admin %}
     <form method="post" action="/cms/scripts/{{ script.id }}/submit/" hx-post="/cms/scripts/{{ script.id }}/submit/" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
       {% csrf_token %}
       <button class="btn btn-primary btn-sm"><i class="bi bi-send-fill"></i> Submit for Approval</button>
@@ -53,8 +53,18 @@
       {% csrf_token %}
       <button class="btn btn-primary btn-sm"><i class="bi bi-check-circle-fill"></i> Approve Script</button>
     </form>
+    <form method="post" action="/cms/scripts/{{ script.id }}/reject/" hx-post="/cms/scripts/{{ script.id }}/reject/" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+      {% csrf_token %}
+      <button class="btn btn-danger btn-sm"><i class="bi bi-x-circle-fill"></i> Reject</button>
+    </form>
     {% endif %}
     <a class="btn btn-ghost btn-sm" href="/api/v1/reports/script-pdf/{{ script.id }}/" target="_blank"><i class="bi bi-file-pdf-fill"></i> PDF Export</a>
     <button class="btn btn-ghost btn-sm" hx-get="/cms/scripts/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-arrow-left"></i> Back</button>
+    {% if user.is_admin %}
+    <form method="post" action="/cms/scripts/{{ script.id }}/delete/" hx-post="/cms/scripts/{{ script.id }}/delete/" hx-confirm="Delete this script permanently?" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+      {% csrf_token %}
+      <button class="btn btn-danger btn-sm"><i class="bi bi-trash-fill"></i> Delete</button>
+    </form>
+    {% endif %}
   </div>
 </div>

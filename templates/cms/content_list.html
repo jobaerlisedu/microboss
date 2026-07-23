@@ -44,7 +44,7 @@
     {% csrf_token %}
     {% if edit_item %}<input type="hidden" name="item_id" value="{{ edit_item.id }}">{% endif %}
     <div class="form-grid">
-      <div class="field full">
+      <div class="field">
         <label><i class="bi bi-pin-angle-fill" style="color:#f59e0b;"></i> Link to Assignment <span style="font-size:10.5px;font-weight:500;color:var(--text-faint);">(Optional)</span></label>
         <select name="assignment_id" style="font-size:12px;">
           <option value="">— No Assignment —</option>

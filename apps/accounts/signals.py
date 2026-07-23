@@ -16,7 +16,7 @@ def notify_registration_approval(sender, instance, **kwargs):
             approver = User.objects.filter(is_admin=True, is_active=True).exclude(pk=instance.pk).first()
             Notification.objects.create(
                 recipient=instance,
-                notification_type='registration',
+                notification_type='Registration',
                 title='Your registration has been approved',
                 message='Your registration has been approved. You can login now.',
                 link='/cms/',

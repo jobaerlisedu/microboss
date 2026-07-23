@@ -1,0 +1,59 @@
+{% load static %}
+{% if request.META.HTTP_HX_REQUEST %}{% else %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Phoenix CMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<script src="{% static 'js/htmx.min.js' %}"></script>
+<script src="{% static 'js/theme.js' %}"></script>
+<script src="{% static 'js/main.js' %}"></script>
+<meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+{% if user.is_authenticated %}
+<div class="app-layout">
+  {% include 'includes/sidebar.html' %}
+  <div class="main-wrapper">
+    {% include 'includes/topbar.html' %}
+    <main class="main-content">
+      <div id="tab-content">
+{% endif %}
+{% endif %}
+
+<div class="error-page">
+  <div class="error-card">
+    <div class="error-icon"><i class="bi bi-file-earmark-excel"></i></div>
+    <div class="error-code">404</div>
+    <div class="error-title">Content Not Found</div>
+    <div class="error-desc">
+      The page or resource you're looking for doesn't exist, has been removed, or the link is invalid.
+    </div>
+    {% if exception %}
+    <div class="error-detail">{{ exception }}</div>
+    {% endif %}
+    <div class="error-actions">
+      <a href="/cms/dashboard/" class="btn btn-primary"><i class="bi bi-speedometer2"></i> Go to Dashboard</a>
+      <a href="/cms/scripts/" class="btn btn-ghost"><i class="bi bi-arrow-left"></i> Back to Scripts</a>
+    </div>
+  </div>
+</div>
+
+{% if request.META.HTTP_HX_REQUEST %}{% else %}
+{% if user.is_authenticated %}
+      </div>
+    </main>
+  </div>
+</div>
+{% else %}
+<div class="auth-shell">{{ error_content|safe }}</div>
+{% endif %}
+</body>
+</html>
+{% endif %}

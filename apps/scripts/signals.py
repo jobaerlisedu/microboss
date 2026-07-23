@@ -21,7 +21,7 @@ def notify_script_status_change(sender, instance, **kwargs):
         Notification.objects.bulk_create([
             Notification(
                 recipient=admin,
-                notification_type='script_submit',
+                notification_type='Script_Submit',
                 title='New Script Submitted',
                 message=f'{instance.writer.full_name or instance.writer.username} submitted a script: {instance.headline[:100]}',
                 link=f'/cms/scripts/{instance.id}/',
@@ -34,7 +34,7 @@ def notify_script_status_change(sender, instance, **kwargs):
         if instance.approved_by and instance.writer != instance.approved_by:
             Notification.objects.create(
                 recipient=instance.writer,
-                notification_type='script_approve',
+                notification_type='Script_Approve',
                 title='Script Approved',
                 message=f'Your Script"{instance.headline[:100]}"Has Been Approved.',
                 link=f'/cms/scripts/{instance.id}/',

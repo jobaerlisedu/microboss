@@ -9,7 +9,7 @@
   <form method="post" action="/cms/scripts/save/" hx-post="/cms/scripts/save/" hx-target="#tab-content" hx-swap="innerHTML">
     {% csrf_token %}
     <div class="form-grid">
-      <div class="field full">
+      <div class="field">
         <label><i class="bi bi-pin-angle-fill" style="color:#f59e0b;"></i> Link to Assignment <span style="font-size:10.5px;font-weight:500;color:var(--text-faint);">(Optional)</span></label>
         <select name="assignment_id" style="font-size:12px;">
           <option value="">— No Assignment —</option>
@@ -17,6 +17,10 @@
           <option value="{{ a.id }}">{{ a.caption|truncatechars:45 }} — {{ a.reporter }}</option>
           {% endfor %}
         </select>
+      </div>
+      <div class="field">
+        <label>Script Creator Name</label>
+        <input type="text" value="{{ request.user.full_name|default:request.user.username }}" readonly style="background-color: var(--bg-hover); color: var(--text-soft); cursor: not-allowed;" title="Creator is fixed to your logged-in account">
       </div>
       <div class="field">
         <label>Date *</label>
@@ -40,9 +44,9 @@
         <label>District Name</label>
         <input type="text" name="district" placeholder="District name">
       </div>
-      <div class="field">
-        <label>District Reporter</label>
-        <input type="text" name="district_reporter" placeholder="Reporter name">
+      <div class="field full">
+        <label>Thumbnail Text</label>
+        <input type="text" name="district_reporter" placeholder="Thumbnail text">
       </div>
       <div class="field full">
         <label>Script Content</label>

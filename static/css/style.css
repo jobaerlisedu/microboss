@@ -2429,3 +2429,62 @@ td .row-actions {
     width: 100% !important;
   }
 }
+
+/* ─── 404 ERROR PAGE ─── */
+.error-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 32px 16px;
+}
+.error-card {
+  text-align: center;
+  max-width: 480px;
+  padding: 48px 40px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+.error-icon {
+  font-size: 48px;
+  color: #f59e0b;
+  margin-bottom: 8px;
+}
+.error-code {
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text);
+  letter-spacing: -2px;
+  margin-bottom: 8px;
+}
+.error-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.error-desc {
+  font-size: 13px;
+  color: var(--text-soft);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.error-detail {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  background: var(--surface-2);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+  font-family: monospace;
+  word-break: break-all;
+}
+.error-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}

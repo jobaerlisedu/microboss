@@ -29,15 +29,15 @@ class ScriptEditHistory(BaseModel):
 
 class Script(BaseModel):
     STATUS_CHOICES = [
-        ('Draft', 'Draft'),
-        ('Pending', 'Awaiting Approval'),
-        ('Approved', 'Approved'),
+        ('draft', 'Draft'),
+        ('pending', 'Awaiting Approval'),
+        ('approved', 'Approved'),
     ]
     SOURCE_CHOICES = [
-        ('District', 'District'),
-        ('Reuters', 'Reuters'),
-        ('Social', 'Social Media'),
-        ('Studio', 'Studio Shooting'),
+        ('district', 'District'),
+        ('reuters', 'Reuters'),
+        ('social', 'Social Media'),
+        ('studio', 'Studio Shooting'),
     ]
 
     script_date = models.DateField('The Date', db_index=True)
