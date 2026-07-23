@@ -847,23 +847,20 @@ def delete_content_list(request, pk):
 
 @login_required
 def audio_tab(request):
-    today = _today_str()
-    qs = AudioItem.objects.filter(deleted_at__isnull=True, audio_date=today).select_related('member', 'assignment')
-    now = timezone.now()
+    qs = AudioItem.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment')
     today_assignments = Assignment.objects.filter(
         assign_date=timezone.now().date(),
         deleted_at__isnull=True,
     ).select_related('reporter_user', 'member').order_by('created_at')
+    total_media = sum(len(item.media_entries or []) for item in qs)
     stats = {
         'total': qs.count(),
-        'today': qs.filter(audio_date=today).count(),
-        'this_month': qs.filter(audio_date__year=now.year, audio_date__month=now.month).count(),
+        'total_media': total_media,
     }
     return _tab_response(request, 'cms/audio_list.html', {
-        'items': qs.order_by('-audio_date', '-created_at'),
+        'items': qs.order_by('-created_at'),
         'today_assignments': today_assignments,
         'stats': stats,
-        'today': today,
         'user': request.user,
     })
 
@@ -875,44 +872,49 @@ def save_audio(request):
         assignment_id = request.POST.get('assignment_id', '')
         if assignment_id and not Assignment.objects.filter(id=assignment_id, deleted_at__isnull=True).exists():
             assignment_id = None
-        data = {
-            'audio_date': request.POST.get('audio_date'),
-            'title': request.POST.get('title', ''),
-            'source': request.POST.get('source', 'social'),
-            'district': request.POST.get('district', ''),
-            'duration': request.POST.get('duration', ''),
-            'file_link': request.POST.get('file_link', ''),
-            'voice_over': request.POST.get('voice_over', ''),
-            'assignment_id': assignment_id or None,
-            'member': request.user,
-        }
+
+        media_entries = []
+        types = request.POST.getlist('media_type[]')
+        names = request.POST.getlist('file_name[]')
+        locations = request.POST.getlist('file_location[]')
+        for t, n, loc in zip(types, names, locations):
+            if t or n or loc:
+                media_entries.append({
+                    'type': t,
+                    'file_name': n,
+                    'file_location': loc,
+                })
+
         if item_id:
             item = get_object_or_404(AudioItem, id=item_id, deleted_at__isnull=True)
-            for k, v in data.items():
-                setattr(item, k, v)
+            item.assignment_id = assignment_id or None
+            item.media_entries = media_entries
             item.updated_by = request.user
             item.save()
-            return _toast_response('Audio updated.', '/cms/audio/')
-        data['created_by'] = request.user
-        AudioItem.objects.create(**data)
-        return _toast_response('Audio saved.', '/cms/audio/')
+            return _toast_response('Content updated.', '/cms/audio/')
+
+        AudioItem.objects.create(
+            assignment_id=assignment_id or None,
+            media_entries=media_entries,
+            member=request.user,
+            created_by=request.user,
+        )
+        return _toast_response('Content saved.', '/cms/audio/')
     return redirect('cms:cms-audio')
 
 
 @login_required
 def edit_audio(request, pk):
     item = get_object_or_404(AudioItem, id=pk, deleted_at__isnull=True)
-    today = _today_str()
     qs = AudioItem.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment')
     today_assignments = Assignment.objects.filter(
         assign_date=timezone.now().date(),
         deleted_at__isnull=True,
     ).select_related('reporter_user', 'member').order_by('created_at')
     return render(request, 'cms/audio_list.html', {
-        'items': qs.order_by('-audio_date', '-created_at'),
+        'items': qs.order_by('-created_at'),
         'today_assignments': today_assignments,
         'edit_item': item,
-        'today': today,
         'user': request.user,
     })
 

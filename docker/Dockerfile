@@ -12,8 +12,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     default-libmysqlclient-dev \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
-    libgdk-pixbuf2.0-0 \
+    libgdk-pixbuf-2.0-0 \
     libffi-dev \
+    pkg-config \
     shared-mime-info \
     && rm -rf /var/lib/apt/lists/*
 
@@ -24,9 +25,9 @@ RUN pip install --no-cache-dir -r requirements/prod.txt
 # Copy project
 COPY . .
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Create required directories
+RUN mkdir -p /app/logs /app/media
 
 EXPOSE 8000
 
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4"]
+ENTRYPOINT ["/app/docker/entrypoint.sh"]

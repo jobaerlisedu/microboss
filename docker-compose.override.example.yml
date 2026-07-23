@@ -1,0 +1,29 @@
+# Local development overrides for docker-compose
+# Copy to docker-compose.override.yml to use:
+#   cp docker-compose.override.example.yml docker-compose.override.yml
+# Then start with: docker-compose up
+services:
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DEBUG: "True"
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: content_tracker
+      DB_USER: root
+      DB_PASSWORD: rootpass
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    command: python manage.py runserver 0.0.0.0:8000
+
+  nginx:
+    ports:
+      - "80:80"

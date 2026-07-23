@@ -76,15 +76,32 @@
 
       {% if audio_items %}
       <div class="detail-section">
-        <h4 class="detail-subtitle"><i class="bi bi-music-note-beamed" style="color:#6366f1;"></i> Audio <span class="count-badge">{{ audio_items|length }}</span></h4>
-        <table class="detail-table">
-          <thead><tr><th>#</th><th>Date</th><th>Title</th><th>Source</th><th>Duration</th></tr></thead>
-          <tbody>
-            {% for a in audio_items %}
-            <tr><td>{{ forloop.counter }}</td><td>{{ a.audio_date|date:"Y-m-d" }}</td><td>{{ a.title|truncatechars:40 }}</td><td><span class="status-pill status-pending" style="font-size:10px;">{{ a.get_source_display }}</span></td><td>{{ a.duration|default:'—' }}</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <h4 class="detail-subtitle"><i class="bi bi-collection-fill" style="color:#6366f1;"></i> Content Management <span class="count-badge">{{ audio_items|length }}</span></h4>
+        {% for a in audio_items %}
+        <div style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;">
+          <div style="font-size:11px;color:var(--text-faint);margin-bottom:6px;">
+            <i class="bi bi-calendar3"></i> {{ a.created_at|date:"Y-m-d H:i" }} &middot;
+            <i class="bi bi-person"></i> {{ a.member.username }}
+          </div>
+          {% if a.media_entries %}
+          <table class="detail-table">
+            <thead><tr><th>#</th><th>Type</th><th>File Name</th><th>Location</th></tr></thead>
+            <tbody>
+              {% for m in a.media_entries %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><span class="status-pill status-pending" style="font-size:9px;">{{ m.type|default:'—' }}</span></td>
+                <td>{{ m.file_name|default:'—' }}</td>
+                <td>{% if m.file_location %}<a href="{{ m.file_location }}" target="_blank" style="color:var(--accent);font-size:11px;">{{ m.file_location|truncatechars:40 }}</a>{% else %}—{% endif %}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div style="font-size:12px;color:var(--text-faint);">No media entries</div>
+          {% endif %}
+        </div>
+        {% endfor %}
       </div>
       {% endif %}
 

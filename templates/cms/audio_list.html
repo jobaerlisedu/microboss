@@ -1,23 +1,16 @@
 <div class="kpi-pills-row">
   <div class="kpi-pill">
-    <div class="kpi-icon" style="background:rgba(99, 102, 241, 0.15);color:#6366f1;"><i class="bi bi-music-note-beamed"></i></div>
+    <div class="kpi-icon" style="background:rgba(99, 102, 241, 0.15);color:#6366f1;"><i class="bi bi-folder-fill"></i></div>
     <div class="kpi-text">
       <strong>{{ stats.total }}</strong>
-      <span>Total Audio</span>
+      <span>Total Records</span>
     </div>
   </div>
   <div class="kpi-pill">
-    <div class="kpi-icon" style="background:rgba(34, 197, 94, 0.15);color:#22c55e;"><i class="bi bi-calendar-day"></i></div>
+    <div class="kpi-icon" style="background:rgba(34, 197, 94, 0.15);color:#22c55e;"><i class="bi bi-files"></i></div>
     <div class="kpi-text">
-      <strong>{{ stats.today }}</strong>
-      <span>Today</span>
-    </div>
-  </div>
-  <div class="kpi-pill">
-    <div class="kpi-icon" style="background:rgba(245, 158, 11, 0.15);color:#f59e0b;"><i class="bi bi-calendar-month"></i></div>
-    <div class="kpi-text">
-      <strong>{{ stats.this_month }}</strong>
-      <span>This Month</span>
+      <strong>{{ stats.total_media }}</strong>
+      <span>Media Files</span>
     </div>
   </div>
 </div>
@@ -25,11 +18,11 @@
 <div class="card phoenix-card" style="margin-bottom: 20px;">
   <div class="card-header-flex" style="margin-bottom: 18px;">
     <div>
-      <h3 class="phoenix-card-title" id="auFormTitle">
-        <i class="bi bi-music-note-beamed" style="color:#6366f1;margin-right:6px;"></i>
-        {% if edit_item %}Edit Audio{% else %}Add Audio{% endif %}
+      <h3 class="phoenix-card-title" id="cmFormTitle">
+        <i class="bi bi-folder-fill" style="color:#6366f1;margin-right:6px;"></i>
+        {% if edit_item %}Edit Content{% else %}Add Content{% endif %}
       </h3>
-      <p class="phoenix-card-sub">Record incoming audio clips and voice-over tracks</p>
+      <p class="phoenix-card-sub">Manage video, audio and media files for assignments</p>
     </div>
   </div>
 
@@ -37,79 +30,48 @@
     {% csrf_token %}
     {% if edit_item %}<input type="hidden" name="item_id" value="{{ edit_item.id }}">{% endif %}
     <div class="form-grid">
-      <div class="field">
-        <label>Date *</label>
-        <input type="date" name="audio_date" value="{% if edit_item %}{{ edit_item.audio_date|date:'Y-m-d' }}{% else %}{{ today }}{% endif %}" required>
-      </div>
-      <div class="field">
-        <label>Title *</label>
-        <input type="text" name="title" required placeholder="Audio title" value="{{ edit_item.title|default:'' }}">
-      </div>
-      <div class="field">
-        <label>Source *</label>
-        <select name="source" required onchange="document.getElementById('auDistrictWrap').style.display=this.value==='district'?'flex':'none'">
-          <option value="">Select Source</option>
-          <option value="district" {% if edit_item and edit_item.source == 'district' %}selected{% endif %}>District</option>
-          <option value="reuters" {% if edit_item and edit_item.source == 'reuters' %}selected{% endif %}>Reuters</option>
-          <option value="social" {% if edit_item and edit_item.source == 'social' %}selected{% endif %}>Social Media</option>
-          <option value="studio" {% if edit_item and edit_item.source == 'studio' %}selected{% endif %}>Studio Shoot</option>
+      <div class="field full">
+        <label><i class="bi bi-pin-angle-fill" style="color:#f59e0b;"></i> Link to Assignment <span style="font-size:10.5px;font-weight:500;color:var(--text-faint);">(Optional)</span></label>
+        <select name="assignment_id" style="font-size:12px;">
+          <option value="">— No Assignment —</option>
+          {% for a in today_assignments %}
+          <option value="{{ a.id }}" {% if edit_item and edit_item.assignment_id|stringformat:'s' == a.id|stringformat:'s' %}selected{% endif %}>{{ a.caption|truncatechars:45 }} — {{ a.reporter }}</option>
+          {% endfor %}
         </select>
       </div>
-      <div class="field" id="auDistrictWrap" style="display:{% if edit_item and edit_item.source == 'district' %}flex{% else %}none{% endif %};">
-        <label>District Name</label>
-        <input type="text" name="district" placeholder="Enter district name" value="{{ edit_item.district|default:'' }}">
-      </div>
-      <div class="field">
-        <label>Duration</label>
-        <input type="text" name="duration" placeholder="e.g. 3:45" value="{{ edit_item.duration|default:'' }}">
-      </div>
-      <div class="field">
-        <label>Voice Over Artist</label>
-        <input type="text" name="voice_over" placeholder="Artist name" value="{{ edit_item.voice_over|default:'' }}">
-      </div>
+
       <div class="field full">
-        <label>File Link</label>
-        <input type="url" name="file_link" placeholder="https://..." value="{{ edit_item.file_link|default:'' }}">
-      </div>
-      <div class="field full">
-        <div class="assignment-panel" style="border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;margin-top:4px;background:var(--surface);">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <label style="font-size:12.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;">
-              <i class="bi bi-pin-angle-fill" style="color:#f59e0b;"></i> Link to Assignment <span style="font-size:10.5px;font-weight:500;color:var(--text-faint);">(Optional)</span>
-            </label>
-            <span style="font-size:10.5px;color:var(--text-soft);">{{ today_assignments|length }} today</span>
-          </div>
-          {% if today_assignments %}
-          <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;max-height:150px;overflow-y:auto;">
-            {% for a in today_assignments %}
-            <label data-value="{{ a.id }}" style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11.5px;transition:background 0.15s;{% if edit_item and edit_item.assignment_id|stringformat:'s' == a.id|stringformat:'s' %}background:rgba(245,158,11,0.12);{% endif %}"
-                   onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='{% if edit_item and edit_item.assignment_id|stringformat:'s' == a.id|stringformat:'s' %}rgba(245,158,11,0.12){% else %}transparent{% endif %}'"
-                   onclick="document.getElementById('auAsSelect').value='{{ a.id }}';this.parentElement.querySelectorAll('label[data-value]').forEach(function(el){el.style.background='transparent'});this.style.background='rgba(245,158,11,0.12)';">
-              <div style="flex:1;min-width:0;">
-                <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ a.caption|truncatechars:50 }}</div>
-                <div style="font-size:10px;color:var(--text-soft);">
-                  <span><i class="bi bi-person"></i> {{ a.reporter }}</span>
-                  {% if a.district %}<span style="margin-left:6px;"><i class="bi bi-geo-alt"></i> {{ a.district }}</span>{% endif %}
-                </div>
-              </div>
-              <span class="status-pill status-{{ a.status|lower }}" style="font-size:9px;padding:1px 7px;">{{ a.status }}</span>
-            </label>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <label style="font-size:12.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;">
+            <i class="bi bi-file-earmark-plus" style="color:#22c55e;"></i> Media Files
+          </label>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="addMediaRow()"><i class="bi bi-plus-lg"></i> Add Media</button>
+        </div>
+        <div id="mediaRows">
+          {% if edit_item and edit_item.media_entries %}
+            {% for entry in edit_item.media_entries %}
+            <div class="media-row" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;padding:8px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface-2);">
+              <select name="media_type[]" style="flex:1.5;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);">
+                <option value="">Select Type</option>
+                <option value="audio" {% if entry.type == 'audio' %}selected{% endif %}>Audio</option>
+                <option value="video" {% if entry.type == 'video' %}selected{% endif %}>Video</option>
+                <option value="graphic" {% if entry.type == 'graphic' %}selected{% endif %}>Graphic</option>
+                <option value="document" {% if entry.type == 'document' %}selected{% endif %}>Document</option>
+              </select>
+              <input type="text" name="file_name[]" placeholder="File name" value="{{ entry.file_name|default:'' }}" style="flex:2;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);">
+              <input type="text" name="file_location[]" placeholder="Server path / URL" value="{{ entry.file_location|default:'' }}" style="flex:3;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);">
+              <button type="button" class="icon-mini" onclick="this.parentElement.remove()" title="Remove" style="flex-shrink:0;"><i class="bi bi-x-lg"></i></button>
+            </div>
             {% endfor %}
-          </div>
-          {% else %}
-          <div style="font-size:11px;color:var(--text-faint);padding:6px 0;margin-bottom:6px;"><i class="bi bi-info-circle"></i> No assignments today</div>
           {% endif %}
-          <select id="auAsSelect" name="assignment_id" style="font-size:11.5px;">
-            <option value="">— No Assignment —</option>
-            {% for a in today_assignments %}
-            <option value="{{ a.id }}" {% if edit_item and edit_item.assignment_id|stringformat:'s' == a.id|stringformat:'s' %}selected{% endif %}>{{ a.caption|truncatechars:45 }} — {{ a.reporter }}</option>
-            {% endfor %}
-          </select>
+        </div>
+        <div id="mediaEmpty" {% if edit_item and edit_item.media_entries %}style="display:none"{% endif %}>
+          <p style="font-size:12px;color:var(--text-faint);padding:12px 0;text-align:center;"><i class="bi bi-info-circle"></i> No media files added yet. Click "Add Media" above.</p>
         </div>
       </div>
     </div>
     <div class="form-actions" style="margin-top:20px;">
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Audio</button>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Content</button>
     </div>
   </form>
 </div>
@@ -117,8 +79,8 @@
 <div class="card phoenix-card">
   <div class="card-header-flex" style="margin-bottom: 18px;">
     <div>
-      <h3 class="phoenix-card-title"><i class="bi bi-music-note-list" style="color:#6366f1;margin-right:6px;"></i> Audio Library</h3>
-      <p class="phoenix-card-sub">Track incoming audio clips and voice recordings</p>
+      <h3 class="phoenix-card-title"><i class="bi bi-folder2-open" style="color:#6366f1;margin-right:6px;"></i> Content Records</h3>
+      <p class="phoenix-card-sub">All media content linked to assignments</p>
     </div>
   </div>
 
@@ -127,14 +89,10 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>DATE</th>
-          <th>TITLE</th>
-          <th>SOURCE</th>
-          <th>DISTRICT</th>
-          <th>DURATION</th>
-          <th>VOICE OVER</th>
           <th>ASSIGNMENT</th>
+          <th>MEDIA FILES</th>
           <th>ADDED BY</th>
+          <th>DATE</th>
           <th class="actions-col">ACTIONS</th>
         </tr>
       </thead>
@@ -142,23 +100,59 @@
         {% for item in items %}
         <tr>
           <td>{{ forloop.counter }}</td>
-          <td>{{ item.audio_date|date:"Y-m-d" }}</td>
-          <td><strong>{{ item.title }}</strong></td>
-          <td><span class="status-pill status-pending">{{ item.get_source_display }}</span></td>
-          <td>{{ item.district|default:'—' }}</td>
-          <td>{{ item.duration|default:'—' }}</td>
-          <td>{{ item.voice_over|default:'—' }}</td>
-          <td>{% if item.assignment %}<span style="font-size:11px;color:var(--text-soft);"><i class="bi bi-pin-angle"></i> {{ item.assignment.caption|truncatechars:25 }}</span>{% else %}<span style="color:var(--text-faint);">—</span>{% endif %}</td>
+          <td>
+            {% if item.assignment %}
+            <span style="font-size:11.5px;color:var(--text);"><i class="bi bi-pin-angle"></i> {{ item.assignment.caption|truncatechars:35 }}</span>
+            <div style="font-size:10px;color:var(--text-soft);">{{ item.assignment.reporter }}</div>
+            {% else %}<span style="color:var(--text-faint);">—</span>{% endif %}
+          </td>
+          <td>
+            {% if item.media_entries %}
+              {% for m in item.media_entries %}
+              <div style="font-size:11px;padding:2px 0;display:flex;align-items:center;gap:4px;">
+                {% if m.type == 'video' %}<i class="bi bi-camera-video-fill" style="color:#ef4444;"></i>
+                {% elif m.type == 'audio' %}<i class="bi bi-music-note-beamed" style="color:#6366f1;"></i>
+                {% elif m.type == 'graphic' %}<i class="bi bi-image-fill" style="color:#22c55e;"></i>
+                {% else %}<i class="bi bi-file-earmark-fill" style="color:#f59e0b;"></i>{% endif %}
+                <strong>{{ m.file_name|default:'Untitled' }}</strong>
+                {% if m.file_location %}<span style="color:var(--text-faint);font-size:10px;margin-left:4px;">{{ m.file_location|truncatechars:30 }}</span>{% endif %}
+              </div>
+              {% endfor %}
+            {% else %}<span style="color:var(--text-faint);">—</span>{% endif %}
+          </td>
           <td>{{ item.member.username }}</td>
+          <td style="white-space:nowrap;">{{ item.created_at|date:"Y-m-d H:i" }}</td>
           <td><div class="row-actions">
             <button class="icon-mini" title="Edit" hx-get="/cms/audio/{{ item.id }}/edit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
-            <button class="icon-mini" title="Delete" hx-post="/cms/audio/{{ item.id }}/delete/" hx-confirm="Delete audio?" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-trash-fill"></i></button>
+            <button class="icon-mini" title="Delete" hx-post="/cms/audio/{{ item.id }}/delete/" hx-confirm="Delete this content record?" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-trash-fill"></i></button>
           </div></td>
         </tr>
         {% empty %}
-        <tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text-faint);">No audio items recorded</td></tr>
+        <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-faint);">No content records yet</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+<script>
+function addMediaRow() {
+  document.getElementById('mediaEmpty').style.display = 'none';
+  var container = document.getElementById('mediaRows');
+  var row = document.createElement('div');
+  row.className = 'media-row';
+  row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:6px;padding:8px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface-2);';
+  row.innerHTML =
+    '<select name="media_type[]" style="flex:1.5;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);">' +
+      '<option value="">Select Type</option>' +
+      '<option value="audio">Audio</option>' +
+      '<option value="video">Video</option>' +
+      '<option value="graphic">Graphic</option>' +
+      '<option value="document">Document</option>' +
+    '</select>' +
+    '<input type="text" name="file_name[]" placeholder="File name" style="flex:2;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);">' +
+    '<input type="text" name="file_location[]" placeholder="Server path / URL" style="flex:3;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);">' +
+    '<button type="button" class="icon-mini" onclick="this.parentElement.remove()" title="Remove" style="flex-shrink:0;"><i class="bi bi-x-lg"></i></button>';
+  container.appendChild(row);
+}
+</script>

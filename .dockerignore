@@ -1,0 +1,49 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# Environment
+.env
+.env.*
+!env.example
+
+# Django
+*.log
+*.log.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose*.yml
+docker-compose*.yaml
+
+# Project specific
+server_err.txt
+server_out.txt
+server_err2.txt
+server_out2.txt
+README.md
+docs/
+scripts/
+Makefile
+pyrightconfig.json
