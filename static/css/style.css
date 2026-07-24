@@ -3032,6 +3032,200 @@ td .row-actions {
 .text-primary { color: #3b82f6 !important; }
 .text-secondary { color: var(--text-soft) !important; }
 .text-muted { color: var(--text-soft) !important; }
+.text-dark { color: var(--text) !important; }
+.text-end { text-align: right !important; }
+.text-uppercase { text-transform: uppercase !important; }
+.text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.text-warning { color: #f59e0b !important; }
+.text-success { color: #10b981 !important; }
+.text-danger  { color: #ef4444 !important; }
+
+/* Display utilities */
+.d-inline-flex { display: inline-flex !important; align-items: center; }
+.d-inline-block { display: inline-block !important; }
+
+/* Font-size extras */
+.fs-1 { font-size: 32px !important; }
+.fs-2 { font-size: 26px !important; }
+.fs-4 { font-size: 20px !important; }
+
+/* Opacity */
+.opacity-75 { opacity: 0.75 !important; }
+
+/* Spacing extras */
+.mb-4 { margin-bottom: 20px !important; }
+.py-3 { padding-top: 12px !important; padding-bottom: 12px !important; }
+.p-3 { padding: 14px !important; }
+.text-end { text-align: right !important; }
+
+/* Monospace */
+.font-monospace { font-family: monospace !important; }
+
+/* Form label */
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+
+/* form-select-sm */
+.form-select-sm {
+  padding: 5px 10px;
+  font-size: 13px;
+  height: auto;
+}
+
+/* btn-success, btn-warning, btn-danger */
+.btn-success {
+  background: #10b981;
+  color: #ffffff;
+  border-radius: 999px;
+}
+.btn-success:hover { opacity: 0.88; }
+
+.btn-warning {
+  background: #f59e0b;
+  color: #1a1a1a;
+  border-radius: 999px;
+}
+.btn-warning:hover { opacity: 0.88; }
+
+.btn-danger {
+  background: #ef4444;
+  color: #ffffff;
+  border-radius: 999px;
+}
+.btn-danger:hover { opacity: 0.88; }
+
+.btn-outline-success {
+  background: transparent;
+  border: 1.5px solid #10b981;
+  color: #10b981;
+  border-radius: 999px;
+}
+.btn-outline-success:hover { background: rgba(16,185,129,0.08); }
+
+/* btn-group: flush adjacent buttons */
+.btn-group {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Leave balance card */
+.leave-balance-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.leave-balance-card .lb-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.leave-balance-card .lb-year {
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+.leave-balance-card .lb-remaining {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* Admin stat cards */
+.leave-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.leave-stat-card .ls-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-soft);
+  margin-bottom: 2px;
+}
+
+.leave-stat-card .ls-value {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.leave-stat-card .ls-icon {
+  font-size: 28px;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+/* Status filter tabs for leave admin */
+.leave-filter-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.leave-filter-tabs .tab-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  transition: all 0.18s;
+}
+
+.leave-filter-tabs .tab-pill:hover {
+  border-color: #94a3b8;
+  color: var(--text);
+}
+
+.leave-filter-tabs .tab-pill.active-pending {
+  background: rgba(245,158,11,0.12);
+  border-color: #f59e0b;
+  color: #b45309;
+}
+
+.leave-filter-tabs .tab-pill.active-approved {
+  background: rgba(16,185,129,0.12);
+  border-color: #10b981;
+  color: #065f46;
+}
+
+.leave-filter-tabs .tab-pill.active-rejected {
+  background: rgba(239,68,68,0.12);
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+.leave-filter-tabs .tab-pill.active-all {
+  background: rgba(59,130,246,0.12);
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
 
 /* ─── 404 ERROR PAGE ─── */
 .error-page {
