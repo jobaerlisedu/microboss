@@ -204,7 +204,7 @@ def cms_login(request):
     return render(request, 'registration/cms_login.html')
 
 
-def _dashboard_context(period='month'):
+def _dashboard_context(period='month', request=None):
     today = timezone.now()
     analytics = get_dashboard_data(period=period)
     entries = ContentEntry.objects.filter(deleted_at__isnull=True)
@@ -214,6 +214,13 @@ def _dashboard_context(period='month'):
     kpi = analytics['kpi']
     kpi['active_sessions'] = svc.session_metrics()['active_sessions']
 
+    is_winner = False
+    if request and request.user.is_authenticated:
+        top_user = User.objects.filter(is_active=True).annotate(
+            entry_count=Count('content_entries', filter=Q(content_entries__deleted_at__isnull=True)),
+        ).order_by('-entry_count').first()
+        is_winner = bool(top_user and str(top_user.id) == str(request.user.id) and top_user.entry_count > 0)
+
     return {
         'today': _today_str(),
         'analytics': analytics,
@@ -222,13 +229,14 @@ def _dashboard_context(period='month'):
         'recent_entries': entries.select_related('member').order_by('-created_at')[:6],
         'today_entries': today_entries.select_related('member').order_by('-created_at')[:5],
         'notices': Notice.objects.filter(deleted_at__isnull=True).select_related('created_by').order_by('-created_at')[:5],
+        'is_winner': is_winner,
     }
 
 
 @login_required
 def cms_dashboard(request):
     period = request.GET.get('period', 'month')
-    ctx = _dashboard_context(period=period)
+    ctx = _dashboard_context(period=period, request=request)
     ctx['user'] = request.user
     ctx['title'] = 'Content Dashboard'
     return render(request, 'cms/dashboard.html', ctx)
@@ -237,7 +245,7 @@ def cms_dashboard(request):
 @login_required
 def dashboard_tab(request):
     period = request.GET.get('period', 'month')
-    ctx = _dashboard_context(period=period)
+    ctx = _dashboard_context(period=period, request=request)
     return _tab_response(request, 'cms/dashboard_tab.html', ctx)
 
 

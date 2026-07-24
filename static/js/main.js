@@ -268,4 +268,41 @@
 
   });
 
+  // ─── Confetti / Celebration ───
+  window.closeCongrats = function() {
+    var m = document.getElementById('congratsModal');
+    if (m) m.classList.add('hidden');
+  };
+
+  window.fireConfetti = function() {
+    var layer = document.getElementById('confettiLayer');
+    if (!layer) return;
+    layer.innerHTML = '';
+    var colors = ['#f59e0b','#3b82f6','#ef4444','#22c55e','#8b5cf6','#ec4899','#06b6d4','#f97316'];
+    var shapes = ['●','■','▲','★','♦'];
+    for (var i = 0; i < 120; i++) {
+      var el = document.createElement('span');
+      el.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+      el.style.cssText = [
+        'position:fixed',
+        'z-index:9999',
+        'pointer-events:none',
+        'font-size:' + (8 + Math.random() * 16) + 'px',
+        'color:' + colors[Math.floor(Math.random() * colors.length)],
+        'left:' + (Math.random() * 100) + 'vw',
+        'top:' + (-5 - Math.random() * 10) + 'vh',
+        'opacity:' + (0.7 + Math.random() * 0.3),
+        'transform:rotate(' + (Math.random() * 360) + 'deg)',
+        'transition:transform ' + (2 + Math.random() * 3) + 's linear,top ' + (2 + Math.random() * 3) + 's ease-in,opacity ' + (2 + Math.random() * 2) + 's ease-out',
+      ].join(';');
+      layer.appendChild(el);
+      requestAnimationFrame(function() {
+        el.style.top = (100 + Math.random() * 20) + 'vh';
+        el.style.transform = 'rotate(' + (720 + Math.random() * 720) + 'deg)';
+        el.style.opacity = '0';
+      });
+    }
+    setTimeout(function() { layer.innerHTML = ''; }, 5000);
+  };
+
 })();

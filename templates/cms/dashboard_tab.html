@@ -270,6 +270,18 @@
   </div>
 </div>
 
+{% if is_winner %}
+<div id="congratsModal" class="congrats-modal">
+  <div class="congrats-box">
+    <h2>🏆 Congratulations!</h2>
+    <p>You are currently the <strong>#1 Top Contributor</strong>!</p>
+    <p class="text-muted" style="font-size:13px;">Keep up the great work leading the team.</p>
+    <div style="margin-top:18px;"><button class="btn btn-primary" onclick="closeCongrats()">Awesome!</button></div>
+  </div>
+</div>
+<script>setTimeout(fireConfetti, 300);</script>
+{% endif %}
+
 <script>
 window.dashboardPeriod = '{{ request.GET.period|default:"month" }}';
 setTimeout(refreshDashboardData, 100);
