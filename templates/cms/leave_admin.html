@@ -5,7 +5,10 @@
     <p class="dash-sub">Review, approve, and manage all employee leave requests</p>
   </div>
   <div class="dash-header-actions">
-    <a class="btn btn-ghost btn-sm" hx-get="/cms/leave/" hx-target="#tab-content" hx-swap="innerHTML">
+    <a class="btn btn-outline-secondary btn-sm" hx-get="{% url 'cms:cms-leave-balances' %}" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="bi bi-pie-chart me-1"></i> Balances
+    </a>
+    <a class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-leave' %}" hx-target="#tab-content" hx-swap="innerHTML">
       <i class="bi bi-arrow-left me-1"></i> My Leave Applications
     </a>
   </div>
@@ -39,19 +42,19 @@
 <!-- Status Filter Pills -->
 <div class="leave-filter-tabs">
   <button class="tab-pill {% if status_filter == 'pending' %}active-pending{% endif %}"
-          hx-get="/cms/leave-admin/?status=pending" hx-target="#tab-content" hx-swap="innerHTML">
+          hx-get="{% url 'cms:cms-leave-admin' %}?status=pending" hx-target="#tab-content" hx-swap="innerHTML">
     <i class="bi bi-clock"></i> Pending ({{ pending_count|default:0 }})
   </button>
   <button class="tab-pill {% if status_filter == 'approved' %}active-approved{% endif %}"
-          hx-get="/cms/leave-admin/?status=approved" hx-target="#tab-content" hx-swap="innerHTML">
+          hx-get="{% url 'cms:cms-leave-admin' %}?status=approved" hx-target="#tab-content" hx-swap="innerHTML">
     <i class="bi bi-check-lg"></i> Approved ({{ approved_count|default:0 }})
   </button>
   <button class="tab-pill {% if status_filter == 'rejected' %}active-rejected{% endif %}"
-          hx-get="/cms/leave-admin/?status=rejected" hx-target="#tab-content" hx-swap="innerHTML">
+          hx-get="{% url 'cms:cms-leave-admin' %}?status=rejected" hx-target="#tab-content" hx-swap="innerHTML">
     <i class="bi bi-x-lg"></i> Rejected ({{ rejected_count|default:0 }})
   </button>
   <button class="tab-pill {% if not status_filter %}active-all{% endif %}"
-          hx-get="/cms/leave-admin/?status=" hx-target="#tab-content" hx-swap="innerHTML">
+          hx-get="{% url 'cms:cms-leave-admin' %}?status=" hx-target="#tab-content" hx-swap="innerHTML">
     <i class="bi bi-list-ul"></i> All Applications
   </button>
 </div>
@@ -112,7 +115,7 @@
               <td class="pe-3" style="text-align:right;">
                 {% if l.status == 'pending' %}
                   <div class="d-inline-flex gap-1">
-                    <form hx-post="/cms/leave/{{ l.id }}/approve/" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+                    <form hx-post="{% url 'cms:cms-leave-approve' pk=l.id %}" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
                       {% csrf_token %}
                       <input type="hidden" name="action" value="approve">
                       <button type="submit" class="btn btn-success btn-sm" title="Approve Leave">
@@ -169,6 +172,9 @@
   function openRejectModal(leaveId, empName) {
     var form = document.getElementById('rejectForm');
     form.setAttribute('hx-post', '/cms/leave/' + leaveId + '/approve/');
+    htmx.process(form);
+    document.getElementById('rejectModalTitle').innerText = empName + ' — Reject Application';
+    document.getElementById('rejectModalOverlay').classList.remove('hidden');
     htmx.process(form);
     document.getElementById('rejectModalTitle').innerText = empName + ' — Reject Application';
     document.getElementById('rejectModalOverlay').classList.remove('hidden');

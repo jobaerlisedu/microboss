@@ -2557,3 +2557,135 @@ def _update_leave_balance(leave):
     balance.used_days = used
     balance.save(update_fields=['used_days'])
 
+
+# ─── Leave Balance Management ───────────────────────────────────
+
+@login_required
+def leave_balances_tab(request):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    year_param = request.GET.get('year')
+    try:
+        year = int(year_param) if year_param else timezone.now().year
+    except (ValueError, TypeError):
+        year = timezone.now().year
+    leave_types = LeaveType.objects.filter(is_active=True).order_by('sort_order')
+    employees = User.objects.filter(is_active=True).order_by('full_name')
+    balances = LeaveBalance.objects.filter(year=year).select_related('employee', 'leave_type')
+    balance_map = {}
+    for b in balances:
+        emp_key = str(b.employee_id)
+        lt_key = str(b.leave_type_id)
+        if emp_key not in balance_map:
+            balance_map[emp_key] = {}
+        balance_map[emp_key][lt_key] = b
+    prev_year = year - 1
+    next_year = year + 1
+    return _tab_response(request, 'cms/leave_balances.html', {
+        'year': year,
+        'prev_year': prev_year,
+        'next_year': next_year,
+        'leave_types': leave_types,
+        'employees': employees,
+        'balance_map': balance_map,
+        'user': request.user,
+    })
+
+
+@login_required
+@require_POST
+def leave_balance_save(request):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    employee_id = request.POST.get('employee_id')
+    leave_type_id = request.POST.get('leave_type_id')
+    year = request.POST.get('year')
+    total_days = request.POST.get('total_days')
+    if not all([employee_id, leave_type_id, year, total_days]):
+        return _toast_response('All fields required.', '', 'error')
+    try:
+        year = int(year)
+        total_days = float(total_days)
+        if total_days < 0:
+            return _toast_response('Days cannot be negative.', '', 'error')
+    except (ValueError, TypeError):
+        return _toast_response('Invalid values.', '', 'error')
+    balance, created = LeaveBalance.objects.update_or_create(
+        employee_id=employee_id,
+        leave_type_id=leave_type_id,
+        year=year,
+        defaults={'total_days': total_days},
+    )
+    action = 'created' if created else 'updated'
+    return _toast_response(f'Balance {action} ({total_days} days).', reverse('cms:cms-leave-balances'))
+
+
+# ─── Leave Type Management ──────────────────────────────────────
+
+@login_required
+def leave_types_tab(request):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    leave_types = LeaveType.objects.all().order_by('sort_order')
+    return _tab_response(request, 'cms/leave_types.html', {
+        'leave_types': leave_types,
+        'user': request.user,
+    })
+
+
+@login_required
+@require_POST
+def leave_type_save(request):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    lt_id = request.POST.get('lt_id', '').strip()
+    name = request.POST.get('name', '').strip()
+    code = request.POST.get('code', '').strip().upper()
+    days = request.POST.get('days_per_year', '').strip()
+    carry = request.POST.get('carry_forward') == 'on'
+    approval = request.POST.get('requires_approval') == 'on'
+    sort = request.POST.get('sort_order', '0').strip()
+    is_active = request.POST.get('is_active') == 'on'
+    if not all([name, code, days]):
+        return _toast_response('Name, code, and days per year are required.', '', 'error')
+    try:
+        days = int(days)
+        sort = int(sort) if sort else 0
+    except (ValueError, TypeError):
+        return _toast_response('Invalid number.', '', 'error')
+    if lt_id:
+        try:
+            lt = LeaveType.objects.get(id=lt_id)
+            lt.name = name; lt.code = code; lt.days_per_year = days
+            lt.carry_forward = carry; lt.requires_approval = approval
+            lt.sort_order = sort; lt.is_active = is_active
+            lt.save()
+            return _toast_response(f'Leave type "{name}" updated.', reverse('cms:cms-leave-types'))
+        except LeaveType.DoesNotExist:
+            return _toast_response('Not found.', '', 'error')
+    else:
+        if LeaveType.objects.filter(code=code).exists():
+            return _toast_response(f'Code "{code}" already exists.', '', 'error')
+        LeaveType.objects.create(
+            name=name, code=code, days_per_year=days,
+            carry_forward=carry, requires_approval=approval,
+            sort_order=sort, is_active=is_active,
+        )
+        return _toast_response(f'Leave type "{name}" created.', reverse('cms:cms-leave-types'))
+
+
+@login_required
+@require_POST
+def leave_type_delete(request, pk):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    try:
+        lt = LeaveType.objects.get(id=pk)
+        if lt.leave_requests.exists():
+            return _toast_response('Cannot delete leave type with existing requests. Deactivate it instead.', '', 'error')
+        name = lt.name
+        lt.delete()
+        return _toast_response(f'Leave type "{name}" deleted.', reverse('cms:cms-leave-types'))
+    except LeaveType.DoesNotExist:
+        return _toast_response('Not found.', '', 'error')
+

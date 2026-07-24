@@ -105,5 +105,10 @@ urlpatterns = [
     path('leave/admin/', views.leave_admin_tab, name='cms-leave-admin'),
     path('leave-admin/', views.leave_admin_tab, name='cms-leave-admin-alias'),
     path('leave/<hexuuid:pk>/approve/', views.leave_approve, name='cms-leave-approve'),
+    path('leave/balances/', views.leave_balances_tab, name='cms-leave-balances'),
+    path('leave/balances/save/', views.leave_balance_save, name='cms-leave-balance-save'),
+    path('leave/types/', views.leave_types_tab, name='cms-leave-types'),
+    path('leave/types/save/', views.leave_type_save, name='cms-leave-type-save'),
+    path('leave/types/<hexuuid:pk>/delete/', views.leave_type_delete, name='cms-leave-type-delete'),
 ]
 

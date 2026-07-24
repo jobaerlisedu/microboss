@@ -1,0 +1,117 @@
+{% load static common_filters %}
+<div class="dash-page-header">
+  <div>
+    <h1 class="dash-title"><i class="bi bi-pie-chart-fill" style="color:#10b981;"></i> Leave Balances</h1>
+    <p class="dash-sub">Set and manage yearly leave balances per employee</p>
+  </div>
+  <div class="dash-header-actions">
+    <a class="btn btn-outline-secondary btn-sm" hx-get="{% url 'cms:cms-leave-types' %}" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="bi bi-tags me-1"></i> Leave Types
+    </a>
+    <a class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-leave-admin' %}" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="bi bi-arrow-left me-1"></i> Leave Admin
+    </a>
+  </div>
+</div>
+
+<div class="d-flex align-items-center justify-content-between mb-3 p-3 bg-light rounded border">
+  <div class="d-flex align-items-center gap-2">
+    <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'cms:cms-leave-balances' %}?year={{ prev_year }}" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="bi bi-chevron-left"></i>
+    </a>
+    <span class="fw-bold fs-6 px-3">{{ year }}</span>
+    <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'cms:cms-leave-balances' %}?year={{ next_year }}" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="bi bi-chevron-right"></i>
+    </a>
+    <span class="badge bg-primary ms-2">{{ employees|length }} employees</span>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-bordered table-hover align-middle" style="font-size:13px;">
+    <thead class="table-light">
+      <tr>
+        <th class="ps-3" style="min-width:140px;">Employee</th>
+        {% for lt in leave_types %}
+          <th class="text-center">{{ lt.name }} <small class="d-block text-muted" style="font-size:10px;">{{ lt.code }}</small></th>
+        {% endfor %}
+        <th class="pe-3 text-center" style="width:100px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for emp in employees %}
+        <tr>
+          <td class="ps-3">
+            <strong>{{ emp.full_name }}</strong>
+            <small class="d-block text-muted">{{ emp.designation|default:emp.username }}</small>
+          </td>
+          {% for lt in leave_types %}
+            {% with balance=balance_map|get_item:emp.id|get_item:lt.id %}
+            <td class="text-center">
+              {% if balance %}
+                <span class="fw-bold">{{ balance.used_days }}</span> / {{ balance.total_days }}
+                <small class="d-block {% if balance.remaining_days <= 2 %}text-danger{% elif balance.remaining_days <= 5 %}text-warning{% else %}text-muted{% endif %}" style="font-size:10px;">
+                  {{ balance.remaining_days }} left
+                </small>
+              {% else %}
+                <span class="text-muted" style="font-size:11px;">—</span>
+              {% endif %}
+            </td>
+            {% endwith %}
+          {% endfor %}
+          <td class="pe-3 text-center">
+            <button class="btn btn-sm btn-outline-primary" title="Set Balances"
+              onclick="openBalanceModal('{{ emp.id }}', '{{ emp.full_name|escapejs }}')">
+              <i class="bi bi-sliders"></i>
+            </button>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="{{ leave_types|length|add:2 }}" class="text-center text-muted py-4">
+            No active employees found.
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="modal-overlay hidden" id="balanceModalOverlay" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal-box" style="max-width:500px;">
+    <div class="modal-header">
+      <h3 id="balanceModalTitle">Set Leave Balances</h3>
+      <button type="button" class="modal-close" onclick="document.getElementById('balanceModalOverlay').classList.add('hidden')">&times;</button>
+    </div>
+    <form hx-post="{% url 'cms:cms-leave-balance-save' %}" hx-target="#tab-content" hx-swap="innerHTML">
+      {% csrf_token %}
+      <input type="hidden" name="employee_id" id="balEmployeeId">
+      <input type="hidden" name="year" value="{{ year }}">
+      <div class="mb-3">
+        <label class="fw-bold small">Leave Type</label>
+        <select name="leave_type_id" class="form-select" required>
+          <option value="">— Select —</option>
+          {% for lt in leave_types %}
+            <option value="{{ lt.id }}">{{ lt.name }} ({{ lt.code }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="fw-bold small">Total Days for {{ year }}</label>
+        <input type="number" name="total_days" class="form-control" required min="0" step="0.5" placeholder="e.g. 20">
+      </div>
+      <div class="form-actions d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('balanceModalOverlay').classList.add('hidden')">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i> Save Balance</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openBalanceModal(empId, empName) {
+    document.getElementById('balEmployeeId').value = empId;
+    document.getElementById('balanceModalTitle').innerText = empName + ' — Set Balances';
+    document.getElementById('balanceModalOverlay').classList.remove('hidden');
+  }
+</script>
