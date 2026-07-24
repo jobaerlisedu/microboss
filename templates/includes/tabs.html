@@ -1,14 +1,14 @@
 <div class="tabs">
-  <button class="tab-btn" data-tab="dashboard" hx-get="{% url 'cms:cms-dashboard-tab' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">ড্যাশবোর্ড</button>
-  <button class="tab-btn" data-tab="notices" hx-get="{% url 'cms:cms-notices-tab' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">📢 নোটিশ</button>
-  <button class="tab-btn" data-tab="new" hx-get="{% url 'cms:cms-new-entry' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">+ নতুন আপলোড</button>
-  <button class="tab-btn" data-tab="all" hx-get="{% url 'cms:cms-all-entries' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">সব আপলোড</button>
-  <button class="tab-btn" data-tab="sponsors" hx-get="{% url 'cms:cms-sponsors' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">স্পন্সর</button>
-  <button class="tab-btn" data-tab="contentlist" hx-get="{% url 'cms:cms-content-list' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">কন্টেন্ট সোর্স</button>
-  <button class="tab-btn" data-tab="assignment" hx-get="{% url 'cms:cms-assignments' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">এসাইনমেন্ট</button>
-  <button class="tab-btn" data-tab="scripts" hx-get="{% url 'cms:cms-scripts' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">ডিজিটাল স্ক্রিপ্ট</button>
-  <button class="tab-btn" data-tab="leaderboard" hx-get="{% url 'cms:cms-leaderboard' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">টপ ৫</button>
+  <button class="tab-btn" data-tab="dashboard" hx-get="{% url 'cms:cms-dashboard-tab' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">Dashboard</button>
+  <button class="tab-btn" data-tab="notices" hx-get="{% url 'cms:cms-notices-tab' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">📢 Notices</button>
+  <button class="tab-btn" data-tab="new" hx-get="{% url 'cms:cms-new-entry' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">+ New Upload</button>
+  <button class="tab-btn" data-tab="all" hx-get="{% url 'cms:cms-all-entries' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">All Uploads</button>
+  <button class="tab-btn" data-tab="sponsors" hx-get="{% url 'cms:cms-sponsors' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">Sponsors</button>
+  <button class="tab-btn" data-tab="contentlist" hx-get="{% url 'cms:cms-content-list' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">Content Source</button>
+  <button class="tab-btn" data-tab="assignment" hx-get="{% url 'cms:cms-assignments' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">Assignment</button>
+  <button class="tab-btn" data-tab="scripts" hx-get="{% url 'cms:cms-scripts' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">Digital Script</button>
+  <button class="tab-btn" data-tab="leaderboard" hx-get="{% url 'cms:cms-leaderboard' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">Top 5</button>
   {% if user.is_admin %}
-  <button class="tab-btn" data-tab="admin" hx-get="{% url 'cms:cms-admin' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">অ্যাডমিন</button>
+  <button class="tab-btn" data-tab="admin" hx-get="{% url 'cms:cms-admin' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML">Admin</button>
   {% endif %}
 </div>

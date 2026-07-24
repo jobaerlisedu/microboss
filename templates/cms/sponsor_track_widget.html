@@ -1,10 +1,10 @@
 {% for s in active_sponsors %}
 <div class="sp-track-item">
   <div class="n">{{ s.name }}</div>
-  <div class="rows"><span>মোট বাকি</span><span>{{ s.remaining_count }}/{{ s.total_quota }}</span></div>
-  <div class="rows"><span>আজ দেওয়া</span><span>{{ s.today_given }}/{{ s.daily_quota }}</span></div>
-  <div class="rows"><span>আজ বাকি</span><span>{{ s.today_remaining }}</span></div>
+  <div class="rows"><span>Total Remaining</span><span>{{ s.remaining_count }}/{{ s.total_quota }}</span></div>
+  <div class="rows"><span>Given Today</span><span>{{ s.today_given }}/{{ s.daily_quota }}</span></div>
+  <div class="rows"><span>Remaining Today</span><span>{{ s.today_remaining }}</span></div>
 </div>
 {% empty %}
-<p style="color:var(--text-faint);font-size:12px;">চলমান কোনো স্পন্সর নেই</p>
+<p style="color:var(--text-faint);font-size:12px;">No active sponsors</p>
 {% endfor %}

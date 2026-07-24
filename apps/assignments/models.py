@@ -17,7 +17,7 @@ class Assignment(BaseModel):
     caption = models.TextField('Content Caption')
     source_link = models.URLField('Source Link', max_length=500, blank=True, default='')
     district = models.CharField('District', max_length=100, blank=True, default='')
-    reporter = models.CharField('Reporterের নাম', max_length=255, db_index=True)
+    reporter = models.CharField('Reporter Name', max_length=255, db_index=True)
     reporter_user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
         null=True, blank=True, related_name='assigned_assignments',

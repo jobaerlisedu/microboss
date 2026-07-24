@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <style>
@@ -18,13 +18,13 @@
 <body>
 <div class="header">
   <h1>{{ title }}</h1>
-  <div class="meta">তৈরির তারিখ: {{ generated_at|date:"d/m/Y h:i A" }} • মোট {{ total }}টি এন্ট্রি</div>
+  <div class="meta">Generated: {{ generated_at|date:"d/m/Y h:i A" }} &bull; Total {{ total }} entries</div>
 </div>
 <table>
   <thead>
     <tr>
-      <th>ক্রম</th><th>তারিখ</th><th>আপলোডকারী</th>
-      <th>হেডলাইন</th><th>স্পন্সর</th><th>লিংক</th><th>মন্তব্য</th>
+      <th>#</th><th>Date</th><th>Uploaded By</th>
+      <th>Headline</th><th>Sponsor</th><th>Link</th><th>Comment</th>
     </tr>
   </thead>
   <tbody>
@@ -45,6 +45,6 @@
     {% endfor %}
   </tbody>
 </table>
-<div class="footer">চ্যানেল ওয়ান ডিজিটাল — কন্টেন্ট লগ</div>
+<div class="footer">Channel One Digital — Content Log</div>
 </body>
 </html>

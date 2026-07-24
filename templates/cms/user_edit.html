@@ -1,5 +1,5 @@
 <div style="padding:0 0 4px 0;">
-<form method="post" action="{% url 'cms:cms-user-edit' target_user.id %}" hx-post="{% url 'cms:cms-user-edit' target_user.id %}" hx-target="#tab-content" hx-swap="innerHTML">
+<form method="post" hx-post="{% url 'cms:cms-user-edit' target_user.id %}" hx-target="#tab-content" hx-swap="innerHTML">
   {% csrf_token %}
   <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;margin-bottom:16px;">
     <h4 style="margin:0 0 14px;font-size:14px;color:var(--text);display:flex;align-items:center;gap:6px;">
@@ -75,7 +75,7 @@
   </div>
 
   <div class="form-actions" style="display:flex;gap:8px;">
-    <button type="button" class="btn btn-ghost btn-sm" onclick="htmx.ajax('GET','/cms/admin-panel/',{target:'#tab-content',swap:'innerHTML'})">Cancel</button>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="htmx.ajax('GET','{% url 'cms:cms-admin' %}',{target:'#tab-content',swap:'innerHTML'})">Cancel</button>
     <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Save User</button>
   </div>
 </form>

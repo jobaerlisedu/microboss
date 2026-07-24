@@ -1,11 +1,11 @@
 <div class="admin-subnav" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
-  <button class="btn btn-primary btn-sm active" hx-get="/cms/admin-panel/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-people-fill"></i> Users</button>
-  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/audit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-journal-check"></i> Audit Log</button>
-  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/health/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-activity"></i> System Health</button>
-  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/settings/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-sliders"></i> Settings</button>
-  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/activity/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-clock-history"></i> Activity</button>
-  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/roles/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-shield-lock-fill"></i> Roles &amp; Perms</button>
-  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/csv-import/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-file-earmark-spreadsheet-fill"></i> CSV Import</button>
+  <button class="btn btn-primary btn-sm active" hx-get="{% url 'cms:cms-admin' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-people-fill"></i> Users</button>
+  <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-roles' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-shield-lock-fill"></i> Roles &amp; Perms</button>
+  <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-admin-audit' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-journal-check"></i> Audit Log</button>
+  <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-admin-health' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-activity"></i> System Health</button>
+  <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-admin-settings' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-sliders"></i> Settings</button>
+  <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-admin-activity' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-clock-history"></i> Activity</button>
+  <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-admin-csv-import' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-file-earmark-spreadsheet-fill"></i> CSV Import</button>
 </div>
 
 {% if pending_users %}
@@ -43,7 +43,7 @@
 
   <div id="addUserForm" class="hidden" style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;margin-bottom:16px;">
     <h4 style="margin:0 0 12px;font-size:14px;color:var(--text);">Create New User</h4>
-    <form method="post" action="/cms/admin-panel/users/add/" hx-post="{% url 'cms:cms-admin-add-user' %}" hx-target="#tab-content" hx-swap="innerHTML">
+    <form method="post" hx-post="{% url 'cms:cms-admin-add-user' %}" hx-target="#tab-content" hx-swap="innerHTML">
       {% csrf_token %}
       <div class="form-grid">
         <div class="field"><label>Username *</label><input type="text" name="username" required placeholder="Username"></div>
@@ -84,7 +84,7 @@
       {% if user.is_admin %}
       <button class="icon-mini" title="View Details" hx-get="{% url 'cms:cms-user-detail' u.id %}" hx-target="#modalContainer" hx-swap="innerHTML"><i class="bi bi-eye-fill"></i></button>
       <button class="icon-mini" title="Edit User" hx-get="{% url 'cms:cms-user-edit' u.id %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
-      <button class="btn btn-ghost btn-sm" onclick="var pw=prompt('New password for {{ u.username }}:'); if(pw&&pw.length>=4){ htmx.ajax('POST','/cms/admin-panel/{{ u.id }}/reset-password/',{values:{password:pw},target:'#tab-content',swap:'innerHTML'}); } else if(pw){ alert('Password must be at least 4 characters'); }"><i class="bi bi-key-fill"></i></button>
+      <button class="btn btn-ghost btn-sm" onclick="var pw=prompt('New password for {{ u.username }}:'); if(pw&&pw.length>=4){ htmx.ajax('POST','{% url 'cms:cms-admin-reset-pw' user_id=u.id %}',{values:{password:pw},target:'#tab-content',swap:'innerHTML'}); } else if(pw){ alert('Password must be at least 4 characters'); }"><i class="bi bi-key-fill"></i></button>
       <button class="btn btn-ghost btn-sm" hx-post="{% url 'cms:cms-admin-toggle-admin' u.id %}" hx-target="#tab-content" hx-swap="innerHTML" {% if u.is_founder %}disabled{% endif %}>
         {% if u.is_admin %}<i class="bi bi-shield-minus"></i>{% else %}<i class="bi bi-shield-plus"></i>{% endif %}
       </button>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <style>
@@ -14,16 +14,16 @@
 </head>
 <body>
 <div class="header">
-  <h1>{{ script.headline|default:"স্ক্রিপ্ট" }}</h1>
+  <h1>{{ script.headline|default:"Script" }}</h1>
   <div class="meta-grid">
-    <span>তারিখ: {{ script.script_date|date:"d/m/Y" }}</span>
-    <span>সোর্স: {{ script.get_source_display }}</span>
-    {% if script.district %}<span>জেলা: {{ script.district }}</span>{% endif %}
-    {% if script.district_reporter %}<span>রিপোর্টার: {{ script.district_reporter }}</span>{% endif %}
-    <span>লেখক: {{ script.writer.username }}</span>
+    <span>Date: {{ script.script_date|date:"d/m/Y" }}</span>
+    <span>Source: {{ script.get_source_display }}</span>
+    {% if script.district %}<span>District: {{ script.district }}</span>{% endif %}
+    {% if script.district_reporter %}<span>Reporter: {{ script.district_reporter }}</span>{% endif %}
+    <span>Writer: {{ script.writer.username }}</span>
   </div>
 </div>
-<div class="body-text">{{ script.body|default:"কোনো স্ক্রিপ্ট বডি নেই" }}</div>
-<div class="footer">চ্যানেল ওয়ান ডিজিটাল — ডিজিটাল স্ক্রিপ্ট • ফাইল: {{ script.filename }}</div>
+<div class="body-text">{{ script.body|default:"No script body" }}</div>
+<div class="footer">Channel One Digital — Digital Script &bull; File: {{ script.filename }}</div>
 </body>
 </html>

@@ -1,10 +1,11 @@
 <div class="admin-subnav" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
-  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-people-fill"></i> Users</button>
-  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/audit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-journal-check"></i> Audit Log</button>
-  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/health/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-activity"></i> System Health</button>
-  <button class="btn btn-primary btn-sm active" hx-get="/cms/admin-panel/settings/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-sliders"></i> Settings</button>
-  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/activity/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-clock-history"></i> Activity</button>
-  <button class="btn btn-ghost btn-sm" hx-get="/cms/admin-panel/csv-import/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-file-earmark-spreadsheet-fill"></i> CSV Import</button>
+  <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-admin' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-people-fill"></i> Users</button>
+  <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-roles' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-shield-lock-fill"></i> Roles &amp; Perms</button>
+  <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-admin-audit' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-journal-check"></i> Audit Log</button>
+  <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-admin-health' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-activity"></i> System Health</button>
+  <button class="btn btn-primary btn-sm active" hx-get="{% url 'cms:cms-admin-settings' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-sliders"></i> Settings</button>
+  <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-admin-activity' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-clock-history"></i> Activity</button>
+  <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-admin-csv-import' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-file-earmark-spreadsheet-fill"></i> CSV Import</button>
 </div>
 
 <div class="card phoenix-card">
@@ -15,7 +16,7 @@
     </div>
   </div>
 
-  <form hx-post="/cms/admin-panel/settings/" hx-target="#tab-content" hx-swap="innerHTML" style="max-width:500px;">
+  <form hx-post="{% url 'cms:cms-admin-settings' %}" hx-target="#tab-content" hx-swap="innerHTML" style="max-width:500px;">
     {% csrf_token %}
     <div class="field" style="margin-bottom:16px;">
       <label style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text);">

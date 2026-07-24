@@ -1774,7 +1774,7 @@ def save_role(request):
         role_id = request.POST.get('role_id', '').strip()
         name = request.POST.get('name', '').strip()
         if not name:
-            return _toast_response('Role name is required.', '/cms/admin-panel/roles/', 'error')
+            return _toast_response('Role name is required.', reverse('cms:cms-roles'), 'error')
         group, created = (Group.objects.get_or_create(id=role_id, defaults={'name': name})
                           if role_id else (Group.objects.create(name=name), True))
         if not created and role_id:
@@ -1783,7 +1783,7 @@ def save_role(request):
         perm_ids = request.POST.getlist('permissions')
         group.permissions.set(Permission.objects.filter(id__in=perm_ids))
         msg = f'Role "{name}" {"created" if created else "updated"} with {len(perm_ids)} permission(s).'
-        return _toast_response(msg, '/cms/admin-panel/roles/')
+        return _toast_response(msg, reverse('cms:cms-roles'))
     return redirect('cms:cms-roles')
 
 
@@ -1809,7 +1809,7 @@ def delete_role(request, pk):
     group = get_object_or_404(Group, id=pk)
     name = group.name
     group.delete()
-    return _toast_response(f'Role "{name}" deleted.', '/cms/admin-panel/roles/')
+    return _toast_response(f'Role "{name}" deleted.', reverse('cms:cms-roles'))
 
 
 # ─── USER DETAIL & EDIT ───
