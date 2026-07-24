@@ -2150,63 +2150,146 @@ def content_calendar_tab(request, year=None, month=None):
 @login_required
 def roster_tab(request):
     today = timezone.now().date()
-    month_param = request.GET.get('month')
-    year_param = request.GET.get('year')
+    view_mode = request.GET.get('view', 'week')
 
-    if month_param and isinstance(month_param, str) and '-' in month_param:
-        try:
-            parts = month_param.split('-')
-            year = int(parts[0])
-            month = int(parts[1])
-        except (ValueError, TypeError, IndexError):
-            year = today.year
-            month = today.month
-    else:
-        try:
-            year = int(year_param) if year_param else today.year
-            month = int(month_param) if month_param else today.month
-        except (ValueError, TypeError):
-            year = today.year
-            month = today.month
-
-    import calendar as cal_mod
-    _, last_day = cal_mod.monthrange(year, month)
-    month_start = date(year, month, 1)
-    month_end = date(year, month, last_day)
-    rosters = DutyRoster.objects.filter(
-        date__gte=month_start, date__lte=month_end,
-    ).select_related('employee', 'shift').order_by('date', 'employee')
-    shifts = Shift.objects.filter(is_active=True)
-    employees = User.objects.filter(is_active=True).order_by('full_name')
-    roster_by_day = defaultdict(list)
-    for r in rosters:
-        roster_by_day[r.date.day].append(r)
-    weeks = []
-    week = [None] * month_start.weekday()
-    for day in range(1, last_day + 1):
-        d = month_start.replace(day=day)
-        week.append({'day': day, 'date': d, 'rosters': roster_by_day.get(day, [])})
-        if len(week) == 7:
+    if view_mode == 'month':
+        month_param = request.GET.get('month')
+        year_param = request.GET.get('year')
+        if month_param and isinstance(month_param, str) and '-' in month_param:
+            try:
+                parts = month_param.split('-')
+                year = int(parts[0])
+                month = int(parts[1])
+            except (ValueError, TypeError, IndexError):
+                year = today.year
+                month = today.month
+        else:
+            try:
+                year = int(year_param) if year_param else today.year
+                month = int(month_param) if month_param else today.month
+            except (ValueError, TypeError):
+                year = today.year
+                month = today.month
+        import calendar as cal_mod
+        _, last_day = cal_mod.monthrange(year, month)
+        month_start = date(year, month, 1)
+        month_end = date(year, month, last_day)
+        rosters = DutyRoster.objects.filter(
+            date__gte=month_start, date__lte=month_end,
+        ).select_related('employee', 'shift').order_by('date', 'employee')
+        roster_by_day = defaultdict(list)
+        for r in rosters:
+            roster_by_day[r.date.day].append(r)
+        weeks = []
+        week = [None] * month_start.weekday()
+        for day in range(1, last_day + 1):
+            d = month_start.replace(day=day)
+            week.append({'day': day, 'date': d, 'rosters': roster_by_day.get(day, [])})
+            if len(week) == 7:
+                weeks.append(week)
+                week = []
+        if week:
+            while len(week) < 7:
+                week.append(None)
             weeks.append(week)
-            week = []
-    if week:
-        while len(week) < 7:
-            week.append(None)
-        weeks.append(week)
-    prev = month_start - timedelta(days=1)
-    next_d = month_end + timedelta(days=1)
+        prev = month_start - timedelta(days=1)
+        next_d = month_end + timedelta(days=1)
+        return _tab_response(request, 'cms/roster.html', {
+            'view_mode': 'month',
+            'weeks': weeks,
+            'today': today,
+            'month_label': month_start.strftime('%B %Y'),
+            'month_year': month_start.strftime('%Y-%m'),
+            'prev_year': prev.year,
+            'prev_month': prev.month,
+            'next_year': next_d.year,
+            'next_month': next_d.month,
+            'shifts': Shift.objects.filter(is_active=True),
+            'employees': User.objects.filter(is_active=True).order_by('full_name'),
+        })
+
+    if view_mode == 'day':
+        day_param = request.GET.get('day')
+        if day_param:
+            try:
+                day_date = datetime.strptime(day_param, '%Y-%m-%d').date()
+            except ValueError:
+                day_date = today
+        else:
+            day_date = today
+
+        day_rosters = DutyRoster.objects.filter(
+            date=day_date,
+        ).select_related('employee', 'shift').order_by('shift__start_time', 'employee__full_name')
+
+        shifts = Shift.objects.filter(is_active=True).order_by('start_time')
+        employees = User.objects.filter(is_active=True).order_by('full_name')
+
+        rosters_by_shift = defaultdict(list)
+        for r in day_rosters:
+            rosters_by_shift[r.shift_id].append(r)
+
+        prev_day = day_date - timedelta(days=1)
+        next_day = day_date + timedelta(days=1)
+        return _tab_response(request, 'cms/roster.html', {
+            'view_mode': 'day',
+            'day_date': day_date,
+            'day_label': day_date.strftime('%A, %b %d, %Y'),
+            'day_param': day_date.isoformat(),
+            'prev_day': prev_day.isoformat(),
+            'next_day': next_day.isoformat(),
+            'is_today': day_date == today,
+            'shifts': shifts,
+            'employees': employees,
+            'rosters_by_shift': dict(rosters_by_shift),
+            'today': today,
+        })
+
+    # ── Week view (default) ──
+    week_start_param = request.GET.get('week_start')
+    if week_start_param:
+        try:
+            week_start = datetime.strptime(week_start_param, '%Y-%m-%d').date()
+        except ValueError:
+            week_start = today
+    else:
+        week_start = today
+    week_start = week_start - timedelta(days=week_start.weekday())
+    week_end = week_start + timedelta(days=6)
+
+    days = []
+    for i in range(7):
+        d = week_start + timedelta(days=i)
+        days.append({'date': d, 'label': d.strftime('%a'), 'day': d.day, 'is_today': d == today})
+
+    week_rosters = DutyRoster.objects.filter(
+        date__gte=week_start, date__lte=week_end,
+    ).select_related('employee', 'shift').order_by('shift__start_time', 'employee__full_name')
+
+    shifts = Shift.objects.filter(is_active=True).order_by('start_time')
+    employees = User.objects.filter(is_active=True).order_by('full_name')
+
+    roster_grid = {}
+    for r in week_rosters:
+        key = r.date.isoformat()
+        if key not in roster_grid:
+            roster_grid[key] = defaultdict(list)
+        roster_grid[key][r.shift_id].append(r)
+
+    prev_week = week_start - timedelta(days=7)
+    next_week = week_start + timedelta(days=7)
+    week_label = week_start.strftime('%b %d') + ' — ' + week_end.strftime('%b %d, %Y')
     return _tab_response(request, 'cms/roster.html', {
-        'weeks': weeks,
-        'today': today,
-        'month_label': month_start.strftime('%B %Y'),
-        'month_year': month_start.strftime('%Y-%m'),
-        'prev_year': prev.year,
-        'prev_month': prev.month,
-        'next_year': next_d.year,
-        'next_month': next_d.month,
+        'view_mode': 'week',
+        'days': days,
         'shifts': shifts,
         'employees': employees,
-        'user': request.user,
+        'roster_grid': dict(roster_grid),
+        'week_start': week_start.isoformat(),
+        'prev_week': prev_week.isoformat(),
+        'next_week': next_week.isoformat(),
+        'week_label': week_label,
+        'today': today,
     })
 
 
@@ -2232,7 +2315,20 @@ def roster_save(request):
             date=roster_date,
             defaults={'shift': shift, 'note': note, 'assigned_by': request.user},
         )
-        return _toast_response(f'Saved roster for {len(employee_ids)} people.', reverse('cms:cms-roster'))
+    return _toast_response(f'Saved roster for {len(employee_ids)} people.', reverse('cms:cms-roster'))
+
+
+@login_required
+@require_POST
+def roster_delete(request, pk):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    try:
+        roster = DutyRoster.objects.get(id=pk)
+        roster.delete()
+        return _toast_response('Roster entry deleted.', reverse('cms:cms-roster'))
+    except DutyRoster.DoesNotExist:
+        return _toast_response('Not found.', '', 'error')
 
 
 @login_required
@@ -2248,6 +2344,89 @@ def my_roster_tab(request):
         'today': today,
         'user': request.user,
     })
+
+
+# ─── Shift Management ────────────────────────────────────────────
+
+@login_required
+def shift_manage_tab(request):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    shifts = Shift.objects.all().order_by('start_time')
+    return _tab_response(request, 'cms/shift_manage.html', {
+        'shifts': shifts,
+        'user': request.user,
+    })
+
+
+@login_required
+@require_POST
+def shift_save(request):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    shift_id = request.POST.get('shift_id', '').strip()
+    name = request.POST.get('name', '').strip()
+    code = request.POST.get('code', '').strip().upper()
+    start_time = request.POST.get('start_time', '').strip()
+    end_time = request.POST.get('end_time', '').strip()
+    is_active = request.POST.get('is_active') == 'on'
+    if not all([name, code, start_time, end_time]):
+        return _toast_response('Name, code, start time, and end time are required.', '', 'error')
+    try:
+        st = datetime.strptime(start_time, '%H:%M').time()
+        et = datetime.strptime(end_time, '%H:%M').time()
+    except ValueError:
+        return _toast_response('Invalid time format. Use HH:MM.', '', 'error')
+    if shift_id:
+        try:
+            shift = Shift.objects.get(id=shift_id)
+            shift.name = name
+            shift.code = code
+            shift.start_time = st
+            shift.end_time = et
+            shift.is_active = is_active
+            shift.save()
+            return _toast_response(f'Shift "{name}" updated.', reverse('cms:cms-roster'))
+        except Shift.DoesNotExist:
+            return _toast_response('Shift not found.', '', 'error')
+    else:
+        if Shift.objects.filter(code=code).exists():
+            return _toast_response(f'Shift code "{code}" already exists.', '', 'error')
+        Shift.objects.create(
+            name=name, code=code, start_time=st, end_time=et, is_active=is_active,
+        )
+        return _toast_response(f'Shift "{name}" created.', reverse('cms:cms-roster'))
+
+
+@login_required
+@require_POST
+def shift_toggle(request, pk):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    try:
+        shift = Shift.objects.get(id=pk)
+        shift.is_active = not shift.is_active
+        shift.save(update_fields=['is_active'])
+        status = 'activated' if shift.is_active else 'deactivated'
+        return _toast_response(f'Shift "{shift.name}" {status}.', reverse('cms:cms-roster'))
+    except Shift.DoesNotExist:
+        return _toast_response('Shift not found.', '', 'error')
+
+
+@login_required
+@require_POST
+def shift_delete(request, pk):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    try:
+        shift = Shift.objects.get(id=pk)
+        if shift.rosters.exists():
+            return _toast_response('Cannot delete shift with active rosters. Deactivate it instead.', '', 'error')
+        name = shift.name
+        shift.delete()
+        return _toast_response(f'Shift "{name}" deleted.', reverse('cms:cms-roster'))
+    except Shift.DoesNotExist:
+        return _toast_response('Shift not found.', '', 'error')
 
 
 # ─── Leave Management ────────────────────────────────────────────

@@ -26,12 +26,6 @@
           hx-trigger="load, every 30s, notification-update from:body"
           hx-target="this"
           hx-swap="innerHTML"></span>
-        <span class="notif-badge notice-badge" id="notice-badge"
-          hx-get="/api/v1/notifications/notice-count/"
-          hx-trigger="load, every 30s, notification-update from:body"
-          hx-target="this"
-          hx-swap="innerHTML"
-          title="Unread notices"></span>
       </button>
       <div class="notif-dropdown" id="notif-dropdown"><div id="notif-dropdown-content"></div></div>
     </div>

@@ -1604,12 +1604,6 @@ textarea {
   line-height: 1;
 }
 
-.notice-badge {
-  right: auto;
-  left: -2px;
-  background: #f59e0b;
-  pointer-events: auto;
-}
 
 .notif-dropdown {
   position: fixed;
@@ -2349,6 +2343,283 @@ td .row-actions {
   border-radius: 10px;
   padding: 10px 16px;
   margin-bottom: 16px;
+}
+
+/* Weekly Shift Grid */
+.roster-week-grid {
+  display: grid;
+  grid-template-columns: 140px repeat(7, 1fr);
+  gap: 1px;
+  background: var(--border, #e5e7eb);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.rg-header {
+  background: var(--surface-2, #f3f4f6);
+  padding: 10px 8px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-soft, #374151);
+  text-align: center;
+}
+
+.rg-corner {
+  text-align: left;
+  padding-left: 12px;
+}
+
+.rg-day-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px;
+}
+
+.rg-day-name {
+  font-size: 12px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.rg-day-date {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.rg-today-header {
+  background: rgba(59,130,246,0.12);
+  color: #2563eb;
+}
+
+.rg-row-label {
+  background: var(--surface, #ffffff);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  justify-content: center;
+  font-size: 12px;
+  min-height: 72px;
+}
+
+.rg-shift-code {
+  display: inline-block;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 10px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.rg-shift-name {
+  font-weight: 700;
+  color: var(--text, #1f2937);
+  font-size: 13px;
+}
+
+.rg-shift-time {
+  font-size: 11px;
+  color: var(--text-faint, #94a3b8);
+}
+
+.rg-cell {
+  background: var(--surface, #ffffff);
+  padding: 6px;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rg-cell-today {
+  background: rgba(59,130,246,0.03);
+}
+
+.rg-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  background: rgba(0,0,0,0.03);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text, #1f2937);
+  transition: background 0.15s;
+}
+
+.rg-chip:hover {
+  background: rgba(0,0,0,0.07);
+}
+
+.rg-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.rg-chip-del {
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.rg-chip:hover .rg-chip-del {
+  opacity: 1;
+}
+
+.rg-empty {
+  color: var(--text-faint, #d1d5db);
+  font-size: 11px;
+  text-align: center;
+  display: block;
+  padding: 4px 0;
+}
+
+@media(max-width: 900px) {
+  .roster-week-grid {
+    grid-template-columns: 100px repeat(7, 1fr);
+    font-size: 11px;
+    overflow-x: auto;
+  }
+  .rg-row-label { min-height: 60px; padding: 6px; }
+  .rg-cell { min-height: 60px; padding: 4px; }
+  .rg-chip { font-size: 10px; padding: 1px 4px; }
+}
+
+/* Daily Shift View */
+.roster-day-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rd-shift-card {
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.rd-shift-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface-2, #f9fafb);
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.rd-shift-code {
+  display: inline-block;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.rd-shift-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text, #1f2937);
+}
+
+.rd-shift-time {
+  font-size: 12px;
+  color: var(--text-faint, #94a3b8);
+}
+
+.rd-count {
+  font-size: 11px;
+}
+
+.rd-shift-body {
+  padding: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rd-employee-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,0,0,0.03);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 20px;
+  padding: 4px 12px 4px 4px;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+
+.rd-employee-chip:hover {
+  background: rgba(0,0,0,0.06);
+}
+
+.rd-emp-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.rd-emp-name {
+  font-weight: 600;
+  color: var(--text, #1f2937);
+}
+
+.rd-emp-note {
+  color: #f59e0b;
+  font-size: 12px;
+}
+
+.rd-del-btn {
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.rd-employee-chip:hover .rd-del-btn {
+  opacity: 1;
+}
+
+.rd-empty {
+  color: var(--text-faint, #d1d5db);
+  font-size: 13px;
+  padding: 4px 0;
 }
 
 .month-label {

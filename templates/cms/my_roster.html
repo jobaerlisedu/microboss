@@ -5,7 +5,7 @@
     <p class="dash-sub">Your assigned duty schedule and shift assignments</p>
   </div>
   <div class="dash-header-actions">
-    <a class="btn btn-ghost btn-sm" hx-get="/cms/roster/" hx-target="#tab-content" hx-swap="innerHTML">
+    <a class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-roster' %}" hx-target="#tab-content" hx-swap="innerHTML">
       <i class="bi bi-calendar2-week"></i> Full Roster
     </a>
   </div>

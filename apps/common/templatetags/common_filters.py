@@ -23,4 +23,15 @@ def bn_number(num):
 
 @register.filter
 def get_item(d, key):
-    return d.get(key, '') if isinstance(d, dict) else ''
+    return d.get(key) if isinstance(d, dict) else ''
+
+@register.filter
+def split(value, delimiter):
+    return value.split(delimiter) if value else []
+
+@register.filter
+def list_index(lst, i):
+    try:
+        return lst[i]
+    except (IndexError, TypeError, ValueError):
+        return ''

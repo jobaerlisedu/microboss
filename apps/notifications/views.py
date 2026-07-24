@@ -53,7 +53,7 @@ def mark_all_read(request):
 @login_required
 def unread_count(request):
     count = Notification.objects.filter(recipient=request.user, is_read=False).count()
-    return render(request, 'cms/notification_badge.html', {'count': count, 'user': request.user})
+    return render(request, 'cms/notification_badge.html', {'count': count})
 
 
 @login_required

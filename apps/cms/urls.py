@@ -92,6 +92,11 @@ urlpatterns = [
     # ─── Duty Roster ───
     path('roster/', views.roster_tab, name='cms-roster'),
     path('roster/save/', views.roster_save, name='cms-roster-save'),
+    path('roster/<hexuuid:pk>/delete/', views.roster_delete, name='cms-roster-delete'),
+    path('roster/shifts/', views.shift_manage_tab, name='cms-shift-manage'),
+    path('roster/shifts/save/', views.shift_save, name='cms-shift-save'),
+    path('roster/shifts/<hexuuid:pk>/toggle/', views.shift_toggle, name='cms-shift-toggle'),
+    path('roster/shifts/<hexuuid:pk>/delete/', views.shift_delete, name='cms-shift-delete'),
     path('my-roster/', views.my_roster_tab, name='cms-my-roster'),
 
     # ─── Leave Management ───
