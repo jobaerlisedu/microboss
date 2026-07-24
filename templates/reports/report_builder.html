@@ -6,12 +6,12 @@
       </h3>
       <p class="phoenix-card-sub">Configure your custom report and save it for later use</p>
     </div>
-    <button class="btn btn-ghost btn-sm" hx-get="/cms/reports/" hx-target="#tab-content" hx-swap="innerHTML">
+    <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-reports' %}" hx-target="#tab-content" hx-swap="innerHTML">
       <i class="bi bi-arrow-left"></i> Back
     </button>
   </div>
 
-  <form method="post" hx-post="{% if config %}/cms/reports/builder/{{ config.id }}/{% else %}/cms/reports/builder/{% endif %}" hx-target="#tab-content" hx-swap="innerHTML" style="margin-top:4px;">
+  <form method="post" hx-post="{% if config %}{% url 'cms:cms-report-edit' pk=config.id %}{% else %}{% url 'cms:cms-report-builder' %}{% endif %}" hx-target="#tab-content" hx-swap="innerHTML" style="margin-top:4px;">
     {% csrf_token %}
 
     <div class="form-grid">
@@ -78,7 +78,7 @@
         <i class="bi bi-floppy-fill"></i> {% if config %}Update Report{% else %}Save Report{% endif %}
       </button>
       {% if config %}
-      <button type="button" class="btn btn-success" hx-get="/cms/reports/{{ config.id }}/run/" hx-target="#tab-content" hx-swap="innerHTML" style="margin-left:4px;">
+      <button type="button" class="btn btn-success" hx-get="{% url 'cms:cms-report-run' pk=config.id %}" hx-target="#tab-content" hx-swap="innerHTML" style="margin-left:4px;">
         <i class="bi bi-play-fill"></i> Run Now
       </button>
       {% endif %}

@@ -36,7 +36,7 @@
     {% for n in notices %}
     <div class="notice-item">
       <div class="notice-row">
-        <div class="notice-body" onclick="openNoticeModal('{{ n.id }}')">
+        <div class="notice-body" onclick="openNoticeModal('{% url 'cms:cms-notice-detail' pk=n.id %}')">
           <h4 class="notice-title">{{ n.title }}</h4>
           <div class="notice-meta">
             <span><i class="bi bi-clock"></i> {{ n.created_at|date:"M d, Y H:i" }}</span>

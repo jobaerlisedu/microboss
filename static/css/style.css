@@ -2829,6 +2829,7 @@ td .row-actions {
   line-height: 1.2;
 }
 
+.hidden { display: none !important; }
 .bg-primary { background: #3b82f6 !important; color: #ffffff !important; }
 .bg-secondary { background: #6b7280 !important; color: #ffffff !important; }
 .bg-success { background: #10b981 !important; color: #ffffff !important; }

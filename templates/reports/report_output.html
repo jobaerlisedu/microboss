@@ -12,16 +12,16 @@
       </p>
     </div>
     <div style="display:flex;gap:6px;">
-      <button class="btn btn-ghost btn-sm" hx-get="/cms/reports/builder/{{ config.id }}/" hx-target="#tab-content" hx-swap="innerHTML">
+      <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-report-edit' pk=config.id %}" hx-target="#tab-content" hx-swap="innerHTML">
         <i class="bi bi-pencil-fill"></i> Edit
       </button>
-      <button class="btn btn-ghost btn-sm" hx-get="/cms/reports/{{ config.id }}/csv/" hx-target="body" hx-swap="none">
+      <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-report-csv' pk=config.id %}" hx-target="body" hx-swap="none">
         <i class="bi bi-filetype-csv" style="color:#3b82f6;"></i> CSV
       </button>
-      <button class="btn btn-ghost btn-sm" hx-get="/cms/reports/{{ config.id }}/pdf/" hx-target="body" hx-swap="none">
+      <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-report-pdf' pk=config.id %}" hx-target="body" hx-swap="none">
         <i class="bi bi-filetype-pdf" style="color:#ef4444;"></i> PDF
       </button>
-      <button class="btn btn-ghost btn-sm" hx-get="/cms/reports/" hx-target="#tab-content" hx-swap="innerHTML">
+      <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-reports' %}" hx-target="#tab-content" hx-swap="innerHTML">
         <i class="bi bi-arrow-left"></i> Back
       </button>
     </div>

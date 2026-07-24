@@ -27,6 +27,7 @@ from apps.audio.models import AudioItem
 from apps.finalpackage.models import FinalPackage
 from apps.reports.models import ReportConfig
 from apps.reports.report_engine import ReportEngine
+from apps.reports.pdf_utils import render_to_pdf_response
 from apps.hr.models import Shift, DutyRoster, LeaveType, LeaveRequest, LeaveBalance
 
 PLATFORMS = [
@@ -1687,6 +1688,7 @@ def _notice_response(request, msg=None, msg_type='success'):
     notices = Notice.objects.filter(deleted_at__isnull=True).select_related('created_by')
     return _htmx_response(request, 'cms/notices_section.html', {
         'notices': notices,
+        'user': request.user,
     }, msg, msg_type)
 
 
@@ -2088,20 +2090,8 @@ def report_export_pdf(request, pk):
         'config': config,
         'engine': engine,
     })
-    try:
-        from weasyprint import HTML
-        pdf_file = io.BytesIO()
-        HTML(string=html).write_pdf(pdf_file)
-        pdf_file.seek(0)
-        response = HttpResponse(pdf_file.read(), content_type='application/pdf')
-        safe_name = config.name.replace(' ', '_').replace('/', '_')[:50]
-        response['Content-Disposition'] = f'attachment; filename="{safe_name}.pdf"'
-        return response
-    except ImportError:
-        response = HttpResponse(html, content_type='text/html; charset=utf-8')
-        safe_name = config.name.replace(' ', '_').replace('/', '_')[:50]
-        response['Content-Disposition'] = f'inline; filename="{safe_name}.html"'
-        return response
+    safe_name = config.name.replace(' ', '_').replace('/', '_')[:50]
+    return render_to_pdf_response(html, f'{safe_name}.pdf')
 
 
 @login_required

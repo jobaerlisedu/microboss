@@ -43,6 +43,17 @@ def generate_script_pdf(script):
         return _html_fallback(html, f'{script.filename}.html')
 
 
+def render_to_pdf_response(html_string, filename='report.pdf'):
+    """Render HTML to PDF (via WeasyPrint) or fallback to HTML response"""
+    if WEASYPRINT_AVAILABLE:
+        pdf_file = io.BytesIO()
+        HTML(string=html_string).write_pdf(pdf_file)
+        pdf_file.seek(0)
+        response = HttpResponse(pdf_file.read(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    return _html_fallback(html_string, filename.replace('.pdf', '.html'))
+
 def _html_fallback(html_string, filename):
     """Return HTML file when WeasyPrint is unavailable"""
     response = HttpResponse(html_string, content_type='text/html; charset=utf-8')

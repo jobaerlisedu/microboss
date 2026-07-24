@@ -9,7 +9,7 @@ class Notice(BaseModel):
 
     class Meta:
         verbose_name = 'Notice'
-        verbose_name_plural = 'Notice'
+        verbose_name_plural = 'Notices'
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['is_active', '-created_at']),

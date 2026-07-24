@@ -44,7 +44,7 @@
   // ─── Modal ───
   var _lastFocusedEl = null;
 
-  window.openNoticeModal = function(pk) {
+  window.openNoticeModal = function(url) {
     var overlay = document.getElementById('modal-overlay');
     var body = document.getElementById('modal-body');
     if (!overlay || !body) return;
@@ -52,7 +52,7 @@
     body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-soft);">Loading...</div>';
     overlay.classList.remove('hidden');
     overlay.focus();
-    htmx.ajax('GET', '/cms/notices/' + pk + '/', {target: '#modal-body', swap: 'innerHTML'});
+    htmx.ajax('GET', url, {target: '#modal-body', swap: 'innerHTML'});
   };
 
   window.closeModal = function() {
