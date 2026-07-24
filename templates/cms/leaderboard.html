@@ -2,16 +2,16 @@
   <div class="card-header-flex" style="margin-bottom: 18px;">
     <div>
       <h3 class="phoenix-card-title"><i class="bi bi-trophy-fill" style="color:#f59e0b;margin-right:6px;"></i> Top 5 Contributors</h3>
-      <p class="phoenix-card-sub">Click a member to view their published content entries</p>
+      <p class="phoenix-card-sub">Click a member to view their published content uploads</p>
     </div>
   </div>
 
   <div id="leaderboardFull">
     {% for u in top_users %}
-    <div class="lbd-card" style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px;cursor:pointer;" onclick="document.getElementById('lbDetailName').textContent='{{ u.username }} - {{ u.entry_count }} Content Entries'; htmx.ajax('GET','/cms/leaderboard/{{ u.id }}/','#lbDetailBody'); document.getElementById('lbDetailModal').classList.remove('hidden')">
+    <div class="lbd-card" style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px;cursor:pointer;" onclick="document.getElementById('lbDetailName').textContent='{{ u.username }} - {{ u.entry_count }} Content Uploads'; htmx.ajax('GET','/cms/leaderboard/{{ u.id }}/','#lbDetailBody'); document.getElementById('lbDetailModal').classList.remove('hidden')">
       <div class="head" style="display:flex;justify-content:space-between;align-items:center;">
         <span class="n" style="font-weight:700;font-size:14px;color:var(--text);">#{{ forloop.counter }} {{ u.username }}</span>
-        <span style="font-size:13px;color:#3b82f6;font-weight:600;">{{ u.entry_count }} Entries</span>
+        <span style="font-size:13px;color:#3b82f6;font-weight:600;">{{ u.entry_count }} Uploads</span>
       </div>
     </div>
     {% empty %}

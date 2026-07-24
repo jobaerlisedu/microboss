@@ -105,8 +105,7 @@ class LogoutView(APIView):
         try:
             refresh_token = request.data.get('refresh')
             if refresh_token:
-                from rest_framework_simplejwt.tokens import RefreshToken as JWTRefreshToken
-                token = JWTRefreshToken(refresh_token)
+                token = RefreshToken(refresh_token)
                 token.blacklist()
         except Exception:
             pass
@@ -190,7 +189,8 @@ class ToggleAdminView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             user.is_admin = not user.is_admin
-            user.save(update_fields=['is_admin'])
+            user.is_superuser = user.is_admin
+            user.save(update_fields=['is_admin', 'is_superuser'])
         return Response({
             'is_admin': user.is_admin,
             'full_name': user.full_name,
@@ -226,20 +226,17 @@ class PasswordResetRequestView(APIView):
             phone=d['phone'],
         ).first()
 
-        otp = str(random.randint(100000, 999999))
-        otp_hash = make_password(otp)
-        request.session['reset_otp_hash'] = otp_hash
-        request.session['reset_user_id'] = str(user.id) if user else ''
-        request.session['reset_created_at'] = timezone.now().timestamp()
-        request.session['reset_attempts'] = 0
-
         if not user:
             return Response({'message': 'Verification code sent (if information is correct)'})
 
-        return Response({
-            'message': 'Verification code sent',
-            'user': user.full_name,
-        })
+        otp = str(random.randint(100000, 999999))
+        otp_hash = make_password(otp)
+        request.session['reset_otp_hash'] = otp_hash
+        request.session['reset_user_id'] = str(user.id)
+        request.session['reset_created_at'] = timezone.now().timestamp()
+        request.session['reset_attempts'] = 0
+
+        return Response({'message': 'Verification code sent'})
 
     def throttled(self, request, wait):
         return Response(

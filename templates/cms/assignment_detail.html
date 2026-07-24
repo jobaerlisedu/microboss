@@ -48,7 +48,7 @@
 
       {% if content_items %}
       <div class="detail-section">
-        <h4 class="detail-subtitle"><i class="bi bi-card-checklist" style="color:#8b5cf6;"></i> Content List <span class="count-badge">{{ content_items|length }}</span></h4>
+        <h4 class="detail-subtitle"><i class="bi bi-card-checklist" style="color:#8b5cf6;"></i> Content Sources <span class="count-badge">{{ content_items|length }}</span></h4>
         <table class="detail-table">
           <thead><tr><th>#</th><th>Date</th><th>Content</th><th>Source</th><th>District</th></tr></thead>
           <tbody>
@@ -67,7 +67,7 @@
           <thead><tr><th>#</th><th>Date</th><th>Headline</th><th>Writer</th><th>Status</th></tr></thead>
           <tbody>
             {% for s in scripts %}
-            <tr><td>{{ forloop.counter }}</td><td>{{ s.script_date|date:"Y-m-d" }}</td><td><a href="#" hx-get="/cms/scripts/{{ s.id }}/" hx-target="#tab-content" style="color:var(--accent);text-decoration:none;font-weight:600;">{{ s.headline|truncatechars:40 }}</a></td><td>{{ s.writer.username }}</td><td><span class="status-pill status-{{ s.status|lower }}">{{ s.get_status_display }}</span></td></tr>
+            <tr><td>{{ forloop.counter }}</td><td>{{ s.script_date|date:"Y-m-d" }}</td><td><a href="#" hx-get="{% url 'cms:cms-script-detail' pk=s.id %}" hx-target="#tab-content" style="color:var(--accent);text-decoration:none;font-weight:600;">{{ s.headline|truncatechars:40 }}</a></td><td>{{ s.writer.username }}</td><td><span class="status-pill status-{{ s.status|lower }}">{{ s.get_status_display }}</span></td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -76,7 +76,7 @@
 
       {% if audio_items %}
       <div class="detail-section">
-        <h4 class="detail-subtitle"><i class="bi bi-collection-fill" style="color:#6366f1;"></i> Content Management <span class="count-badge">{{ audio_items|length }}</span></h4>
+        <h4 class="detail-subtitle"><i class="bi bi-collection-fill" style="color:#6366f1;"></i> Media Pool <span class="count-badge">{{ audio_items|length }}</span></h4>
         {% for a in audio_items %}
         <div style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;">
           <div style="font-size:11px;color:var(--text-faint);margin-bottom:6px;">
@@ -121,7 +121,7 @@
 
       {% if entries %}
       <div class="detail-section">
-        <h4 class="detail-subtitle"><i class="bi bi-globe2" style="color:#3b82f6;"></i> Published Entries <span class="count-badge">{{ entries|length }}</span></h4>
+        <h4 class="detail-subtitle"><i class="bi bi-globe2" style="color:#3b82f6;"></i> Published Uploads <span class="count-badge">{{ entries|length }}</span></h4>
         <table class="detail-table">
           <thead><tr><th>#</th><th>Date</th><th>Headline</th><th>Platforms</th></tr></thead>
           <tbody>

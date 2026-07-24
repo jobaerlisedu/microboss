@@ -1,5 +1,5 @@
 {% load common_filters %}
-<h3 style="margin:0 0 12px;font-size:16px;color:var(--text);">{{ target_user.full_name|default:target_user.username }} — Total {{ entries|length }} Content Entries</h3>
+<h3 style="margin:0 0 12px;font-size:16px;color:var(--text);">{{ target_user.full_name|default:target_user.username }} — Total {{ entries|length }} Content Uploads</h3>
 {% if entries %}
 <div class="table-responsive">
   <table class="phoenix-table">
@@ -17,7 +17,7 @@
   </table>
 </div>
 {% else %}
-<p style="color:var(--text-soft);font-size:13px;">No entries found.</p>
+<p style="color:var(--text-soft);font-size:13px;">No uploads found.</p>
 {% endif %}
 <div class="form-actions" style="margin-top:16px;">
   <button class="btn btn-ghost btn-sm" onclick="document.getElementById('lbDetailModal').classList.add('hidden')">Close</button>

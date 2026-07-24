@@ -38,7 +38,6 @@ def _parse_date_params(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def dashboard_api(request):
-    start, end = _parse_date_params(request)
     period = request.GET.get('period', 'month')
     data = get_dashboard_data(period=period)
     return JsonResponse(data)

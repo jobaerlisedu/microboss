@@ -33,6 +33,7 @@ class RegisterSerializer(serializers.ModelSerializer):
                 **validated_data,
                 password=password,
                 is_admin=is_first,
+                is_superuser=is_first,
                 is_founder=is_first,
             )
         return user
@@ -72,7 +73,6 @@ class PasswordResetVerifySerializer(serializers.Serializer):
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
-    token = serializers.CharField()
     password = serializers.CharField(min_length=8)
     password2 = serializers.CharField(min_length=8)
 

@@ -58,8 +58,8 @@ MIDDLEWARE = [
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'infrastructure.middleware.request_context.RequestContextMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'infrastructure.middleware.request_context.RequestContextMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]

@@ -36,8 +36,8 @@ class ContentListItem(BaseModel):
     )
 
     class Meta:
-        verbose_name = 'Table Of Contents'
-        verbose_name_plural = 'Content Lists'
+        verbose_name = 'Content Source'
+        verbose_name_plural = 'Content Sources'
         indexes = [
             models.Index(fields=['list_date']),
             models.Index(fields=['source']),

@@ -22,6 +22,7 @@
 {% if user.is_authenticated %}
   <div class="app-layout" id="appLayout">
     {% include 'includes/sidebar.html' %}
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <div class="main-wrapper">
       {% include 'includes/topbar.html' %}
       <main class="main-content">

@@ -47,7 +47,7 @@ DATE_FIELD_MAP = {
     'entries': 'entry_date',
     'assignments': 'assign_date',
     'scripts': 'script_date',
-    'audio': 'audio_date',
+    'audio': 'created_at',
     'contentlist': 'list_date',
     'finalpackage': 'package_date',
     'sponsors': 'start_date',
@@ -62,7 +62,6 @@ STATUS_FIELD_MAP = {
 
 SOURCE_FIELD_MAP = {
     'scripts': 'source',
-    'audio': 'source',
     'contentlist': 'source',
 }
 
@@ -70,7 +69,7 @@ LABEL_MAP = {
     'entries': ('Entry Date', 'Headline', 'Member', 'Sponsor', 'Platform'),
     'assignments': ('Assign Date', 'Caption', 'Reporter', 'District', 'Status'),
     'scripts': ('Script Date', 'Headline', 'Writer', 'Source', 'Status'),
-    'audio': ('Audio Date', 'Title', 'Member', 'Source', 'District'),
+    'audio': ('Created', 'Member', 'Media Count', 'Assignment', ''),
     'contentlist': ('List Date', 'Content', 'Member', 'Source', 'District'),
     'finalpackage': ('Package Date', 'Title', 'Producer', 'Status', 'Runtime'),
     'sponsors': ('Start Date', 'Name', 'Daily Quota', 'Total Quota', 'Status'),
@@ -89,7 +88,6 @@ MEMBER_FIELD_MAP = {
 DISTRICT_FIELD_MAP = {
     'assignments': 'district',
     'scripts': 'district',
-    'audio': 'district',
     'contentlist': 'district',
 }
 
@@ -189,9 +187,9 @@ class ReportEngine:
                        'writer': self._fmt(obj, 'writer'), 'source': self._fmt(obj, 'source'),
                        'status': self._fmt(obj, 'status')}
             elif self.module == 'audio':
-                row = {'date': self._fmt(obj, 'audio_date'), 'title': self._fmt(obj, 'title'),
-                       'member': self._fmt(obj, 'member'), 'source': self._fmt(obj, 'source'),
-                       'district': self._fmt(obj, 'district')}
+                row = {'date': self._fmt(obj, 'created_at'), 'member': self._fmt(obj, 'member'),
+                       'media_count': len(obj.media_entries or []),
+                       'assignment': str(obj.assignment) if obj.assignment else '—', '': ''}
             elif self.module == 'contentlist':
                 row = {'date': self._fmt(obj, 'list_date'), 'content': self._fmt(obj, 'content'),
                        'member': self._fmt(obj, 'member'), 'source': self._fmt(obj, 'source'),

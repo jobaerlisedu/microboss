@@ -34,13 +34,13 @@
     <div>
       <h3 class="phoenix-card-title" id="clFormTitle">
         <i class="bi bi-card-checklist" style="color:#3b82f6;margin-right:6px;"></i>
-        {% if edit_item %}Edit Listed Content{% else %}Add Content to List{% endif %}
+        {% if edit_item %}Edit Content Source{% else %}Add Content Source{% endif %}
       </h3>
       <p class="phoenix-card-sub">Record incoming footage and content source</p>
     </div>
   </div>
 
-  <form id="clForm" hx-post="/cms/content-lists/save/">
+  <form id="clForm" hx-post="{% url 'cms:cms-save-content-list' %}">
     {% csrf_token %}
     {% if edit_item %}<input type="hidden" name="item_id" value="{{ edit_item.id }}">{% endif %}
     <div class="form-grid">
@@ -98,8 +98,8 @@
 <div class="card phoenix-card">
   <div class="card-header-flex" style="margin-bottom: 18px;">
     <div>
-      <h3 class="phoenix-card-title"><i class="bi bi-list-stars" style="color:#3b82f6;margin-right:6px;"></i> Content List Entries</h3>
-      <p class="phoenix-card-sub">Overview of tracked content items</p>
+      <h3 class="phoenix-card-title"><i class="bi bi-list-stars" style="color:#3b82f6;margin-right:6px;"></i> Content Sources</h3>
+        <p class="phoenix-card-sub">Tracked content sources linked to assignments</p>
     </div>
   </div>
 
@@ -130,9 +130,9 @@
             <td>{% if item.assignment %}<span style="font-size:11px;color:var(--text-soft);"><i class="bi bi-pin-angle"></i> {{ item.assignment.caption|truncatechars:25 }}</span>{% else %}<span style="color:var(--text-faint);">—</span>{% endif %}</td>
             <td>{{ item.member.username }}</td>
             <td><div class="row-actions">
-              <button class="icon-mini" title="View" hx-get="/cms/content-lists/{{ item.id }}/view/" hx-target="#modalContainer" hx-swap="innerHTML"><i class="bi bi-eye-fill"></i></button>
-              <button class="icon-mini" title="Edit" hx-get="/cms/content-lists/{{ item.id }}/edit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
-              <button class="icon-mini" title="Delete" hx-post="/cms/content-lists/{{ item.id }}/delete/" hx-confirm="Delete item?" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-trash-fill"></i></button>
+              <button class="icon-mini" title="View" hx-get="{% url 'cms:cms-view-content-list' pk=item.id %}" hx-target="#modalContainer" hx-swap="innerHTML"><i class="bi bi-eye-fill"></i></button>
+              <button class="icon-mini" title="Edit" hx-get="{% url 'cms:cms-edit-content-list' pk=item.id %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
+              <button class="icon-mini" title="Delete" hx-post="{% url 'cms:cms-delete-content-list' pk=item.id %}" hx-confirm="Delete item?" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-trash-fill"></i></button>
             </div></td>
           </tr>
           {% empty %}

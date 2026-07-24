@@ -20,13 +20,13 @@
     <div>
       <h3 class="phoenix-card-title" id="cmFormTitle">
         <i class="bi bi-folder-fill" style="color:#6366f1;margin-right:6px;"></i>
-        {% if edit_item %}Edit Content{% else %}Add Content{% endif %}
+        {% if edit_item %}Edit Media Pool{% else %}Add Media Pool{% endif %}
       </h3>
       <p class="phoenix-card-sub">Manage video, audio and media files for assignments</p>
     </div>
   </div>
 
-  <form hx-post="/cms/audio/save/">
+  <form hx-post="{% url 'cms:cms-save-audio' %}">
     {% csrf_token %}
     {% if edit_item %}<input type="hidden" name="item_id" value="{{ edit_item.id }}">{% endif %}
     <div class="form-grid">
@@ -71,7 +71,7 @@
       </div>
     </div>
     <div class="form-actions" style="margin-top:20px;">
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Content</button>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Media Pool</button>
     </div>
   </form>
 </div>
@@ -79,7 +79,7 @@
 <div class="card phoenix-card">
   <div class="card-header-flex" style="margin-bottom: 18px;">
     <div>
-      <h3 class="phoenix-card-title"><i class="bi bi-folder2-open" style="color:#6366f1;margin-right:6px;"></i> Content Records</h3>
+      <h3 class="phoenix-card-title"><i class="bi bi-folder2-open" style="color:#6366f1;margin-right:6px;"></i> Media Pool Records</h3>
       <p class="phoenix-card-sub">All media content linked to assignments</p>
     </div>
   </div>
@@ -123,17 +123,20 @@
           <td>{{ item.member.username }}</td>
           <td style="white-space:nowrap;">{{ item.created_at|date:"Y-m-d H:i" }}</td>
           <td><div class="row-actions">
-            <button class="icon-mini" title="Edit" hx-get="/cms/audio/{{ item.id }}/edit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
-            <button class="icon-mini" title="Delete" hx-post="/cms/audio/{{ item.id }}/delete/" hx-confirm="Delete this content record?" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-trash-fill"></i></button>
+            <button class="icon-mini" title="View Details" hx-get="{% url 'cms:cms-view-audio' pk=item.id %}" hx-target="#mediaPoolModalContainer" hx-swap="innerHTML"><i class="bi bi-eye-fill"></i></button>
+            <button class="icon-mini" title="Edit" hx-get="{% url 'cms:cms-edit-audio' pk=item.id %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
+            <button class="icon-mini" title="Delete" hx-post="{% url 'cms:cms-delete-audio' pk=item.id %}" hx-confirm="Delete this record?" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-trash-fill"></i></button>
           </div></td>
         </tr>
         {% empty %}
-        <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-faint);">No content records yet</td></tr>
+        <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-faint);">No media pools yet</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+<div id="mediaPoolModalContainer"></div>
 
 <script>
 function addMediaRow() {

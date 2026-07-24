@@ -1,4 +1,4 @@
-from rest_framework import generics, filters, views
+from rest_framework import generics, filters, permissions, views
 from rest_framework.response import Response
 from django.utils import timezone
 from .models import Sponsor
@@ -9,6 +9,7 @@ from apps.common.mixins import AuditMixin
 class SponsorListCreateView(AuditMixin, generics.ListCreateAPIView):
     queryset = Sponsor.objects.filter(deleted_at__isnull=True)
     serializer_class = SponsorSerializer
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'content_type']
     ordering_fields = ['name', 'start_date', 'end_date']
@@ -18,12 +19,15 @@ class SponsorListCreateView(AuditMixin, generics.ListCreateAPIView):
 class SponsorDetailView(AuditMixin, generics.RetrieveUpdateDestroyAPIView):
     queryset = Sponsor.objects.filter(deleted_at__isnull=True)
     serializer_class = SponsorSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def perform_destroy(self, instance):
         instance.soft_delete()
 
 
 class SponsorTrackView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request):
         today = timezone.now().date()
         active = Sponsor.objects.filter(

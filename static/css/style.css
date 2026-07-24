@@ -148,11 +148,105 @@ textarea {
   margin-left: 6px;
 }
 
+/* ── SIDEBAR BODY + REDESIGNED INTERACTIVE SCROLLBAR ── */
 .sidebar-body {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px 12px;
+  /* Firefox */
   scrollbar-width: thin;
+  scrollbar-color: rgba(255, 199, 9, 0.35) rgba(255, 255, 255, 0.04);
+  transition: scrollbar-color 0.3s ease;
+}
+
+.sidebar-body:hover {
+  scrollbar-color: rgba(255, 199, 9, 0.7) rgba(255, 255, 255, 0.07);
+}
+
+/* WebKit scrollbar track */
+.sidebar-body::-webkit-scrollbar {
+  width: 5px;
+  transition: width 0.25s ease;
+}
+
+.sidebar-body:hover::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  margin: 6px 0;
+}
+
+.sidebar-body:hover::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Default thumb – nearly invisible */
+.sidebar-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 199, 9, 0.25) 0%,
+    rgba(59, 130, 246, 0.18) 100%
+  );
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover state – thumb glows gold */
+.sidebar-body:hover::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 199, 9, 0.75) 0%,
+    rgba(59, 130, 246, 0.55) 100%
+  );
+  border-color: rgba(255, 199, 9, 0.2);
+  box-shadow:
+    0 0 8px rgba(255, 199, 9, 0.35),
+    0 0 2px rgba(255, 199, 9, 0.6) inset;
+}
+
+/* Active / dragging thumb – full gold pulse */
+.sidebar-body::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(
+    180deg,
+    #FFC709 0%,
+    #3b82f6 100%
+  );
+  box-shadow:
+    0 0 14px rgba(255, 199, 9, 0.7),
+    0 0 4px rgba(255, 199, 9, 0.9) inset;
+  border-color: rgba(255, 199, 9, 0.5);
+}
+
+/* Corner piece (where h & v scroll meet) */
+.sidebar-body::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Active scroll glow state (toggled by JS) */
+.sidebar-body.is-scrolling {
+  scrollbar-color: rgba(255, 199, 9, 0.85) rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-body.is-scrolling::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-body.is-scrolling::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-body.is-scrolling::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #FFC709 0%, #3b82f6 100%);
+  box-shadow:
+    0 0 10px rgba(255, 199, 9, 0.5),
+    0 0 3px rgba(255, 199, 9, 0.8) inset;
+  border-color: rgba(255, 199, 9, 0.4);
 }
 
 .nav-section-label {
@@ -311,6 +405,33 @@ textarea {
 
 .sidebar.collapsed .collapse-icon {
   transform: rotate(180deg);
+}
+
+.hamburger-btn {
+  display: none;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #94a3b8;
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.2s, background 0.2s;
+}
+
+.hamburger-btn:hover {
+  color: #f1f5f9;
+  background: rgba(255,255,255,0.06);
+}
+
+@media(max-width: 768px) {
+  .hamburger-btn {
+    display: inline-flex;
+  }
 }
 
 /* MAIN WRAPPER */
@@ -1275,10 +1396,26 @@ textarea {
 
   .sidebar.mobile-open {
     transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.4);
   }
 
   .main-wrapper {
     margin-left: 0 !important;
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+
+  .sidebar-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .phoenix-dash-grid {

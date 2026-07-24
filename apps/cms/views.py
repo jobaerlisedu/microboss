@@ -369,17 +369,18 @@ def sponsors_tab(request):
     sponsors = Sponsor.objects.filter(deleted_at__isnull=True).order_by('-created_at')
     return _tab_response(request, 'cms/sponsors.html', {
         'sponsors': sponsors,
+        'today': _today_str(),
         'user': request.user,
     })
 
 
 @login_required
 def content_list_tab(request):
-    today = _today_str()
-    qs = ContentListItem.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment')
     now = timezone.now()
+    today = now.date()
+    qs = ContentListItem.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment')
     today_assignments = Assignment.objects.filter(
-        assign_date=timezone.now().date(),
+        assign_date=today,
         deleted_at__isnull=True,
     ).select_related('reporter_user', 'member').order_by('created_at')
 
@@ -401,7 +402,7 @@ def content_list_tab(request):
 
 @login_required
 def assignments_tab(request):
-    today = _today_str()
+    today = timezone.now().date()
     qs = Assignment.objects.filter(deleted_at__isnull=True).select_related('member', 'reporter_user')
     stats_qs = Assignment.objects.filter(deleted_at__isnull=True)
     now = timezone.now()
@@ -651,13 +652,13 @@ def save_entry(request):
                 setattr(entry, k, v)
             entry.updated_by = request.user
             entry.save()
-            return _toast_response('Entry updated successfully.', '/cms/entries/')
+            return _toast_response('Entry updated successfully.', reverse('cms:cms-all-entries'))
         data['member'] = request.user
         data['created_by'] = request.user
         try:
             entry = ContentEntry.objects.create(**data)
         except Exception as e:
-            return _toast_response(f'Error saving entry: {str(e)[:100]}', '/cms/entries/new/', type='error')
+            return _toast_response(f'Error saving entry: {str(e)[:100]}', reverse('cms:cms-new-entry'), type='error')
         if assignment_id:
             try:
                 assignment = get_object_or_404(Assignment, id=assignment_id)
@@ -666,8 +667,8 @@ def save_entry(request):
                 assignment.save(update_fields=['status', 'updated_by'])
             except Exception:
                 entry.delete()
-                return _toast_response('Failed to update assignment status.', '/cms/entries/new/', type='error')
-        return _toast_response('Entry saved successfully.', '/cms/entries/')
+                return _toast_response('Failed to update assignment status.', reverse('cms:cms-new-entry'), type='error')
+        return _toast_response('Entry saved successfully.', reverse('cms:cms-all-entries'))
     return redirect('cms:cms-new-entry')
 
 
@@ -700,8 +701,8 @@ def duplicate_entry(request, pk):
         deleted_at__isnull=True,
     ).select_related('reporter_user', 'member').order_by('created_at')
     initial = {
-        'entry_date': timezone.now().strftime('%Y-%m-%d'),
-        'entry_time': timezone.now().strftime('%H:%M'),
+        'date': timezone.now().strftime('%Y-%m-%d'),
+        'time': timezone.now().strftime('%H:%M'),
         'slug': original.slug,
         'headline': original.headline,
         'links': original.links or {},
@@ -727,7 +728,7 @@ def delete_entry(request, pk):
     entry.deleted_at = timezone.now()
     entry.updated_by = request.user
     entry.save()
-    return _toast_response('Entry deleted successfully.', '/cms/entries/')
+    return _toast_response('Entry deleted successfully.', reverse('cms:cms-all-entries'))
 
 
 @login_required
@@ -752,13 +753,13 @@ def save_sponsor(request):
                 setattr(sponsor, k, v)
             sponsor.updated_by = request.user
             sponsor.save()
-            return _toast_response('Sponsor updated successfully.', '/cms/sponsors/')
+            return _toast_response('Sponsor updated successfully.', reverse('cms:cms-sponsors'))
         data['created_by'] = request.user
         try:
             Sponsor.objects.create(**data)
         except Exception as e:
-            return _toast_response(f'Error saving sponsor: {str(e)[:100]}', '/cms/sponsors/', type='error')
-        return _toast_response('Sponsor saved successfully.', '/cms/sponsors/')
+            return _toast_response(f'Error saving sponsor: {str(e)[:100]}', reverse('cms:cms-sponsors'), type='error')
+        return _toast_response('Sponsor saved successfully.', reverse('cms:cms-sponsors'))
     return redirect('cms:cms-sponsors')
 
 
@@ -781,7 +782,7 @@ def delete_sponsor(request, pk):
     sponsor.deleted_at = timezone.now()
     sponsor.updated_by = request.user
     sponsor.save()
-    return _toast_response('Sponsor deleted successfully.', '/cms/sponsors/')
+    return _toast_response('Sponsor deleted successfully.', reverse('cms:cms-sponsors'))
 
 
 @login_required
@@ -790,10 +791,10 @@ def save_content_list(request):
         item_id = request.POST.get('item_id', '')
         assignment_id = request.POST.get('assignment_id', '')
         if assignment_id and not Assignment.objects.filter(id=assignment_id, deleted_at__isnull=True).exists():
-            assignment_id = None
-        source = request.POST.get('source', '')
+            return _toast_response('Referenced assignment not found.', '', 'error')
+        source = request.POST.get('source', '').capitalize()
         district = request.POST.get('district', '').strip()
-        if source and source.lower() == 'district' and not district:
+        if source.lower() == 'district' and not district:
             return _toast_response('District name is required when source is District.', '', 'error')
         data = {
             'list_date': request.POST.get('list_date'),
@@ -806,25 +807,30 @@ def save_content_list(request):
         }
         if item_id:
             item = get_object_or_404(ContentListItem, id=item_id, deleted_at__isnull=True)
+            if not _is_owner_or_admin(request.user, item):
+                return _toast_response('You do not have permission to edit this item.', '', 'error')
             for k, v in data.items():
                 setattr(item, k, v)
             item.updated_by = request.user
             item.save()
-            return _toast_response('Content list item updated.', '/cms/content-lists/')
+            return _toast_response('Content source updated.', reverse('cms:cms-content-list'))
         data['created_by'] = request.user
+        data['updated_by'] = request.user
         ContentListItem.objects.create(**data)
-        return _toast_response('Content list item saved.', '/cms/content-lists/')
+        return _toast_response('Content source saved.', reverse('cms:cms-content-list'))
     return redirect('cms:cms-content-list')
 
 
 @login_required
 def edit_content_list(request, pk):
     item = get_object_or_404(ContentListItem, id=pk, deleted_at__isnull=True)
-    today = _today_str()
-    qs = ContentListItem.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment')
+    if not _is_owner_or_admin(request.user, item):
+        return _toast_response('You do not have permission to edit this item.', '', 'error')
     now = timezone.now()
+    today = now.date()
+    qs = ContentListItem.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment')
     today_assignments = Assignment.objects.filter(
-        assign_date=timezone.now().date(),
+        assign_date=today,
         deleted_at__isnull=True,
     ).select_related('reporter_user', 'member').order_by('created_at')
     stats = {
@@ -847,10 +853,10 @@ def edit_content_list(request, pk):
 @require_POST
 def delete_content_list(request, pk):
     item = get_object_or_404(ContentListItem, id=pk, deleted_at__isnull=True)
-    item.deleted_at = timezone.now()
-    item.updated_by = request.user
-    item.save()
-    return _toast_response('Content list item deleted.', '/cms/content-lists/')
+    if not _is_owner_or_admin(request.user, item):
+        return _toast_response('You do not have permission to delete this item.', '', 'error')
+    item.soft_delete(user=request.user)
+    return _toast_response('Content source deleted.', reverse('cms:cms-content-list'))
 
 
 # ─── Audio Tab ────────────────────────────────────────────
@@ -902,7 +908,7 @@ def save_audio(request):
             item.media_entries = media_entries
             item.updated_by = request.user
             item.save()
-            return _toast_response('Content updated.', '/cms/audio/')
+            return _toast_response('Media Pool updated.', reverse('cms:cms-audio'))
 
         AudioItem.objects.create(
             assignment_id=assignment_id or None,
@@ -910,7 +916,7 @@ def save_audio(request):
             member=request.user,
             created_by=request.user,
         )
-        return _toast_response('Content saved.', '/cms/audio/')
+        return _toast_response('Media Pool saved.', reverse('cms:cms-audio'))
     return redirect('cms:cms-audio')
 
 
@@ -937,7 +943,19 @@ def delete_audio(request, pk):
     item.deleted_at = timezone.now()
     item.updated_by = request.user
     item.save()
-    return _toast_response('Audio deleted.', '/cms/audio/')
+    return _toast_response('Media Pool deleted.', reverse('cms:cms-audio'))
+
+
+@login_required
+def view_audio(request, pk):
+    item = get_object_or_404(
+        AudioItem.objects.select_related('member', 'assignment'),
+        id=pk, deleted_at__isnull=True,
+    )
+    return render(request, 'cms/audio_detail.html', {
+        'item': item,
+        'user': request.user,
+    })
 
 
 # ─── Final Package Tab ────────────────────────────────────
@@ -1012,7 +1030,7 @@ def save_final_package(request):
             item.assignment_id = assignment_id or None
             item.updated_by = request.user
             item.save()
-            return _toast_response('Final package updated.', '/cms/final-packages/')
+            return _toast_response('Final package updated.', reverse('cms:cms-final-packages'))
         FinalPackage.objects.create(
             package_date=parsed_date,
             title=title,
@@ -1026,7 +1044,7 @@ def save_final_package(request):
             member=request.user,
             created_by=request.user,
         )
-        return _toast_response('Final package saved.', '/cms/final-packages/')
+        return _toast_response('Final package saved.', reverse('cms:cms-final-packages'))
     return redirect('cms:cms-final-packages')
 
 
@@ -1075,7 +1093,7 @@ def delete_final_package(request, pk):
     item.deleted_at = timezone.now()
     item.updated_by = request.user
     item.save()
-    return _toast_response('Final package deleted.', '/cms/final-packages/')
+    return _toast_response('Final package deleted.', reverse('cms:cms-final-packages'))
 
 
 @login_required
@@ -1084,21 +1102,21 @@ def final_package_detail(request, pk):
         FinalPackage.objects.select_related('member', 'assignment', 'editor_user'),
         id=pk, deleted_at__isnull=True,
     )
-    video_entries = []
-    audio_entries = []
+    media_pool_items = []
     if item.assignment:
-        for audio_item in item.assignment.audio_items.filter(deleted_at__isnull=True):
-            for entry in (audio_item.media_entries or []):
-                m_type = str(entry.get('type', '')).lower()
-                if m_type == 'video':
-                    video_entries.append(entry)
-                elif m_type == 'audio':
-                    audio_entries.append(entry)
+        audio_qs = item.assignment.audio_items.filter(deleted_at__isnull=True).select_related('member')
+        for audio_item in audio_qs:
+            entries = audio_item.media_entries or []
+            media_pool_items.append({
+                'item': audio_item,
+                'entries': entries,
+                'video_count': sum(1 for e in entries if str(e.get('type', '')).lower() == 'video'),
+                'audio_count': sum(1 for e in entries if str(e.get('type', '')).lower() == 'audio'),
+            })
 
     return render(request, 'cms/final_package_detail.html', {
         'item': item,
-        'video_entries': video_entries,
-        'audio_entries': audio_entries,
+        'media_pool_items': media_pool_items,
         'user': request.user,
     })
 
@@ -1135,6 +1153,11 @@ def save_assignment(request):
         except (ValueError, TypeError):
             return _toast_response('Invalid date format.', '', 'error')
 
+        if not caption:
+            return _toast_response('Caption is required.', '', 'error')
+        if not parsed_date:
+            return _toast_response('Assign date is required.', '', 'error')
+
         if assignment_id:
             assignment = get_object_or_404(Assignment, id=assignment_id, deleted_at__isnull=True)
             if not _is_owner_or_admin(request.user, assignment):
@@ -1154,6 +1177,7 @@ def save_assignment(request):
             'district': district,
             'member': request.user,
             'created_by': request.user,
+            'updated_by': request.user,
         }
         if reporter_user_id:
             try:
@@ -1177,8 +1201,8 @@ def edit_assignment(request, pk):
     assignment = get_object_or_404(Assignment, id=pk, deleted_at__isnull=True)
     if not _is_owner_or_admin(request.user, assignment):
         return _toast_response('You do not have permission to edit this assignment.', '', 'error')
-    today = _today_str()
     now = timezone.now()
+    today = now.date()
     qs = Assignment.objects.filter(deleted_at__isnull=True).select_related('member', 'reporter_user')
     active_users = User.objects.filter(is_active=True).order_by('full_name')
     stats_qs = Assignment.objects.filter(deleted_at__isnull=True)
@@ -1341,7 +1365,7 @@ def save_script(request):
     if request.method == 'POST':
         assignment_id = request.POST.get('assignment_id', '')
         if assignment_id and not Assignment.objects.filter(id=assignment_id, deleted_at__isnull=True).exists():
-            assignment_id = None
+            return _toast_response('Referenced assignment not found.', '', 'error')
         script_date = request.POST.get('script_date')
         try:
             parsed_date = datetime.strptime(script_date, '%Y-%m-%d').date() if script_date else None
@@ -1349,6 +1373,11 @@ def save_script(request):
                 return _toast_response('Script date cannot be in the future.', '', 'error')
         except (ValueError, TypeError):
             return _toast_response('Invalid date format.', '', 'error')
+        headline = request.POST.get('headline', '').strip()
+        if not headline:
+            return _toast_response('Headline is required.', '', 'error')
+        if not parsed_date:
+            return _toast_response('Script date is required.', '', 'error')
         script_id = request.POST.get('script_id', '')
         if script_id:
             script = get_object_or_404(Script, id=script_id, deleted_at__isnull=True)
@@ -1358,7 +1387,7 @@ def save_script(request):
             old_body = script.body
             was_approved = script.status == 'approved'
             script.script_date = parsed_date
-            script.headline = request.POST.get('headline', '')
+            script.headline = headline
             script.source = request.POST.get('source', '')
             script.district = request.POST.get('district', '')
             script.district_reporter = request.POST.get('district_reporter', '')
@@ -1376,13 +1405,14 @@ def save_script(request):
                     editor=request.user,
                     change_summary=request.POST.get('change_summary', ''),
                     created_by=request.user,
+                    updated_by=request.user,
                 )
             if was_approved:
-                return _toast_response('Script updated and reset to draft for re-approval.', '/cms/scripts/')
-            return _toast_response('Script updated successfully.', '/cms/scripts/')
+                return _toast_response('Script updated and reset to draft for re-approval.', reverse('cms:cms-scripts'))
+            return _toast_response('Script updated successfully.', reverse('cms:cms-scripts'))
         Script.objects.create(
             script_date=parsed_date,
-            headline=request.POST.get('headline', ''),
+            headline=headline,
             source=request.POST.get('source', ''),
             writer=request.user,
             district=request.POST.get('district', ''),
@@ -1390,6 +1420,7 @@ def save_script(request):
             body=request.POST.get('body', ''),
             assignment_id=assignment_id or None,
             created_by=request.user,
+            updated_by=request.user,
         )
         return redirect('cms:cms-scripts')
     return redirect('cms:cms-scripts')
@@ -1418,12 +1449,12 @@ def submit_script(request, pk):
     if request.method == 'POST':
         if script.writer != request.user and not request.user.is_admin:
             return _toast_response('You cannot submit this script.', '', 'error')
-        if script.status != 'draft':
+        if script.status not in ('draft',):
             return _toast_response('Only draft scripts can be submitted.', '', 'error')
         script.status = 'pending'
         script.updated_by = request.user
         script.save()
-        return _toast_response('Script submitted for approval.', '/cms/scripts/')
+        return _toast_response('Script submitted for approval.', reverse('cms:cms-scripts'))
     return redirect('cms:cms-scripts')
 
 
@@ -1433,14 +1464,14 @@ def approve_script(request, pk):
     if request.method == 'POST':
         if not request.user.is_admin:
             return _toast_response('Only admins can approve scripts.', '', 'error')
-        if script.status != 'pending':
-            return _toast_response('Only pending scripts can be approved.', '', 'error')
+        if script.status not in ('pending', 'draft'):
+            return _toast_response('Only pending or draft scripts can be approved.', '', 'error')
         script.status = 'approved'
         script.approved_by = request.user
         script.approved_at = timezone.now()
         script.updated_by = request.user
         script.save()
-        return _toast_response('Script approved successfully.', '/cms/scripts/')
+        return _toast_response('Script approved successfully.', reverse('cms:cms-scripts'))
     return redirect('cms:cms-scripts')
 
 
@@ -1455,7 +1486,7 @@ def reject_script(request, pk):
         script.status = 'draft'
         script.updated_by = request.user
         script.save()
-        return _toast_response('Script rejected and returned to draft.', '/cms/scripts/')
+        return _toast_response('Script rejected and returned to draft.', reverse('cms:cms-scripts'))
     return redirect('cms:cms-scripts')
 
 
@@ -1466,7 +1497,7 @@ def delete_script(request, pk):
     if not request.user.is_admin:
         return _toast_response('Only admins can delete scripts.', '', 'error')
     script.soft_delete(user=request.user)
-    return _toast_response('Script deleted successfully.', '/cms/scripts/')
+    return _toast_response('Script deleted successfully.', reverse('cms:cms-scripts'))
 
 
 # ─── User Management (Admin) ────────────────────────────────
@@ -1513,6 +1544,7 @@ def cms_admin_toggle_admin(request, user_id):
         if target.is_founder:
             return _toast_response('Cannot remove admin from the founder account.', '', 'error')
         target.is_admin = not target.is_admin
+        target.is_superuser = target.is_admin
         target.save()
         label = 'granted admin access.' if target.is_admin else 'removed from admin.'
         return _admin_response(request, '%s %s' % (target.username, label))
@@ -1589,20 +1621,20 @@ def cms_password_reset_request(request):
                 'phone': phone,
             })
         import random
+        from django.contrib.auth.hashers import make_password, check_password
         otp = str(random.randint(100000, 999999))
-        request.session['reset_otp'] = otp
+        request.session['reset_otp_hash'] = make_password(otp)
         request.session['reset_user_id'] = str(user.id)
         request.session['reset_identifier'] = identifier
         return render(request, 'registration/password_reset_request.html', {
             'step': 'verify',
-            'otp_display': otp,
             'identifier': identifier,
             'user_name': user.full_name,
         })
     if request.method == 'POST' and step == 'verify':
         entered_otp = request.POST.get('otp', '')
-        stored_otp = request.session.get('reset_otp')
-        if stored_otp != entered_otp:
+        stored_hash = request.session.get('reset_otp_hash')
+        if not stored_hash or not check_password(entered_otp, stored_hash):
             return render(request, 'registration/password_reset_request.html', {
                 'step': 'verify',
                 'otp_error': 'Incorrect code. Please try again.',
@@ -1824,8 +1856,8 @@ def user_edit_tab(request, user_id):
 MODULE_MAP = [
     ('entries', 'Content Entries', 'bi-file-earmark-text-fill'),
     ('assignments', 'Assignments', 'bi-pin-angle-fill'),
-    ('contentlist', 'Content List', 'bi-card-checklist'),
-    ('audio', 'Audio', 'bi-music-note-beamed'),
+    ('contentlist', 'Content Sources', 'bi-card-checklist'),
+    ('audio', 'Media Pool', 'bi-music-note-beamed'),
     ('scripts', 'Digital Scripts', 'bi-file-earmark-code-fill'),
     ('finalpackage', 'Final Packages', 'bi-box-seam-fill'),
 ]
@@ -1887,11 +1919,11 @@ def archive_tab(request):
     elif module == 'audio':
         qs = AudioItem.objects.filter(
             deleted_at__isnull=True,
-            audio_date__gte=start_date,
-            audio_date__lt=end_date,
-        ).select_related('member', 'assignment').order_by('-audio_date', '-created_at')
+            created_at__date__gte=start_date,
+            created_at__date__lt=end_date,
+        ).select_related('member', 'assignment').order_by('-created_at')
         if search_q:
-            qs = qs.filter(Q(title__icontains=search_q) | Q(district__icontains=search_q) | Q(member__username__icontains=search_q))
+            qs = qs.filter(Q(member__username__icontains=search_q))
         count = qs.count()
         items = qs[:200]
 
@@ -2200,7 +2232,7 @@ def roster_save(request):
             date=roster_date,
             defaults={'shift': shift, 'note': note, 'assigned_by': request.user},
         )
-    return _toast_response(f'Saved roster for {len(employee_ids)} people.', 'roster')
+        return _toast_response(f'Saved roster for {len(employee_ids)} people.', reverse('cms:cms-roster'))
 
 
 @login_required
@@ -2273,8 +2305,8 @@ def leave_save(request):
             created_by=request.user,
         )
     except Exception as e:
-        return _toast_response(f'Error: {E}', '', 'error')
-    return _toast_response('Leave Application Submitted.', 'leave')
+        return _toast_response(f'Error: {e}', '', 'error')
+    return _toast_response('Leave Application Submitted.', reverse('cms:cms-leave'))
 
 
 @login_required
@@ -2326,7 +2358,7 @@ def leave_approve(request, pk):
         msg = 'Vacation Is Cancelled.'
     else:
         return _toast_response('Wrong Action', '', 'error')
-    return _toast_response(msg, 'leave-admin')
+    return _toast_response(msg, reverse('cms:cms-leave-admin'))
 
 
 def _update_leave_balance(leave):

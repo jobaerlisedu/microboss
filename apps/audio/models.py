@@ -24,8 +24,8 @@ class AudioItem(BaseModel):
     )
 
     class Meta:
-        verbose_name = 'Content'
-        verbose_name_plural = 'Contents'
+        verbose_name = 'Media Pool'
+        verbose_name_plural = 'Media Pools'
         ordering = ['-created_at']
 
     def __str__(self):

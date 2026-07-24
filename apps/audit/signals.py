@@ -92,4 +92,4 @@ def _audit_post_delete(sender, **kwargs):
     _safe_log(sender, kwargs['instance'], 'deleted')
 
 
-_bind_audit_signals()
+# Module-level call moved to AuditConfig.ready()

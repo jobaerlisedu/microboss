@@ -1,17 +1,62 @@
 {% load static %}
 <div class="card phoenix-card">
   <div class="card-header-flex" style="margin-bottom: 18px;">
-    <div>
-      <h3 class="phoenix-card-title">{{ script.headline|default:'Untitled Script' }}</h3>
-      <p class="phoenix-card-sub">
-        <i class="bi bi-calendar"></i> {{ script.script_date|date:"Y-m-d" }} • <i class="bi bi-person"></i> {{ script.writer.full_name|default:script.writer.username }} • {{ script.get_source_display }}{% if script.district %} • {{ script.district }}{% endif %}
-      </p>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-scripts' %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-arrow-left"></i> Back</button>
+      <h3 class="phoenix-card-title" style="margin:0;">{{ script.headline|default:'Untitled Script' }}</h3>
     </div>
-    <div><span class="status-pill status-{{ script.status }}">{{ script.get_status_display }}</span></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      {% if script.writer == user or user.is_admin %}
+      <button class="btn btn-primary btn-sm" hx-get="{% url 'cms:cms-edit-script' pk=script.id %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i> Edit</button>
+      {% endif %}
+      <a class="btn btn-ghost btn-sm" href="{% url 'reports:script-pdf' script_id=script.id %}" target="_blank"><i class="bi bi-file-pdf-fill"></i> PDF</a>
+      {% if user.is_admin %}
+      <form method="post" action="{% url 'cms:cms-delete-script' pk=script.id %}" hx-post="{% url 'cms:cms-delete-script' pk=script.id %}" hx-confirm="Delete this script permanently?" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+        {% csrf_token %}
+        <button class="btn btn-danger btn-sm"><i class="bi bi-trash-fill"></i> Delete</button>
+      </form>
+      {% endif %}
+      <span class="status-pill status-{{ script.status }}">{{ script.get_status_display }}</span>
+    </div>
   </div>
+
+  <p class="phoenix-card-sub" style="margin:-10px 0 16px;">
+    <i class="bi bi-calendar"></i> {{ script.script_date|date:"Y-m-d" }} • <i class="bi bi-person"></i> {{ script.writer.full_name|default:script.writer.username }} • {{ script.get_source_display }}{% if script.district %} • {{ script.district }}{% endif %}
+  </p>
+
+  {% if script.district_reporter %}
+  <div style="font-size:13px;font-weight:600;color:var(--text-soft);margin-bottom:12px;padding:8px 12px;background:var(--surface-2);border-radius:var(--radius-md);border:1px solid var(--border);display:inline-block;">
+    <i class="bi bi-card-image"></i> {{ script.district_reporter }}
+  </div>
+  {% endif %}
 
   <div style="white-space:pre-wrap;line-height:1.8;font-size:14px;background:var(--surface-2);padding:18px;border-radius:var(--radius-md);border:1px solid var(--border);color:var(--text);">
     {{ script.body|default:'No script content provided.' }}
+  </div>
+
+  <div class="form-actions" style="margin-top:20px;display:flex;gap:8px;">
+    {% if script.status == 'draft' and script.writer == user or script.status == 'draft' and user.is_admin %}
+    <form method="post" action="{% url 'cms:cms-submit-script' pk=script.id %}" hx-post="{% url 'cms:cms-submit-script' pk=script.id %}" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+      {% csrf_token %}
+      <button class="btn btn-primary btn-sm"><i class="bi bi-send-fill"></i> Submit for Approval</button>
+    </form>
+    {% endif %}
+    {% if script.status == 'pending' and user.is_admin %}
+    <form method="post" action="{% url 'cms:cms-approve-script' pk=script.id %}" hx-post="{% url 'cms:cms-approve-script' pk=script.id %}" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+      {% csrf_token %}
+      <button class="btn btn-primary btn-sm"><i class="bi bi-check-circle-fill"></i> Approve Script</button>
+    </form>
+    <form method="post" action="{% url 'cms:cms-reject-script' pk=script.id %}" hx-post="{% url 'cms:cms-reject-script' pk=script.id %}" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+      {% csrf_token %}
+      <button class="btn btn-danger btn-sm"><i class="bi bi-x-circle-fill"></i> Reject</button>
+    </form>
+    {% endif %}
+    {% if script.status == 'draft' and user.is_admin %}
+    <form method="post" action="{% url 'cms:cms-approve-script' pk=script.id %}" hx-post="{% url 'cms:cms-approve-script' pk=script.id %}" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+      {% csrf_token %}
+      <button class="btn btn-primary btn-sm"><i class="bi bi-check-circle-fill"></i> Approve Directly</button>
+    </form>
+    {% endif %}
   </div>
 
   {% if edit_history %}
@@ -37,34 +82,4 @@
     </div>
   </div>
   {% endif %}
-
-  <div class="form-actions" style="margin-top:20px;display:flex;gap:8px;">
-    {% if script.writer == user or user.is_admin %}
-    <button class="btn btn-primary btn-sm" hx-get="/cms/scripts/{{ script.id }}/edit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i> Edit Script</button>
-    {% endif %}
-    {% if script.status == 'draft' and script.writer == user or script.status == 'draft' and user.is_admin %}
-    <form method="post" action="/cms/scripts/{{ script.id }}/submit/" hx-post="/cms/scripts/{{ script.id }}/submit/" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
-      {% csrf_token %}
-      <button class="btn btn-primary btn-sm"><i class="bi bi-send-fill"></i> Submit for Approval</button>
-    </form>
-    {% endif %}
-    {% if script.status == 'pending' and user.is_admin %}
-    <form method="post" action="/cms/scripts/{{ script.id }}/approve/" hx-post="/cms/scripts/{{ script.id }}/approve/" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
-      {% csrf_token %}
-      <button class="btn btn-primary btn-sm"><i class="bi bi-check-circle-fill"></i> Approve Script</button>
-    </form>
-    <form method="post" action="/cms/scripts/{{ script.id }}/reject/" hx-post="/cms/scripts/{{ script.id }}/reject/" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
-      {% csrf_token %}
-      <button class="btn btn-danger btn-sm"><i class="bi bi-x-circle-fill"></i> Reject</button>
-    </form>
-    {% endif %}
-    <a class="btn btn-ghost btn-sm" href="/api/v1/reports/script-pdf/{{ script.id }}/" target="_blank"><i class="bi bi-file-pdf-fill"></i> PDF Export</a>
-    <button class="btn btn-ghost btn-sm" hx-get="/cms/scripts/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-arrow-left"></i> Back</button>
-    {% if user.is_admin %}
-    <form method="post" action="/cms/scripts/{{ script.id }}/delete/" hx-post="/cms/scripts/{{ script.id }}/delete/" hx-confirm="Delete this script permanently?" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
-      {% csrf_token %}
-      <button class="btn btn-danger btn-sm"><i class="bi bi-trash-fill"></i> Delete</button>
-    </form>
-    {% endif %}
-  </div>
 </div>

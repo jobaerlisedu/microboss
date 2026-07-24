@@ -16,35 +16,34 @@
     <!-- APPS GROUP -->
     <div class="nav-section-label">NAVIGATION</div>
 
-    <a class="nav-item tab-btn active" data-tab="dashboard" hx-get="/cms/dashboard/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="dashboard" title="Dashboard" hx-get="{% url 'cms:cms-dashboard-tab' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-pie-chart-fill"></i></span>
       <span class="nav-text">Dashboard</span>
     </a>
 
     <div class="nav-section-label">NEWS INTAKE</div>
 
-    <a class="nav-item tab-btn" data-tab="assignment" hx-get="/cms/assignments/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="assignment" title="Assignments" hx-get="{% url 'cms:cms-assignments' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-pin-angle-fill"></i></span>
       <span class="nav-text">Assignments</span>
     </a>
 
-    <a class="nav-item tab-btn" data-tab="contentlist" hx-get="/cms/content-lists/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="contentlist" title="Content Sources" hx-get="{% url 'cms:cms-content-list' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-card-checklist"></i></span>
-      <span class="nav-text">Content List</span>
+      <span class="nav-text">Content Sources</span>
     </a>
 
-    <a class="nav-item tab-btn" data-tab="scripts" hx-get="/cms/scripts/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="scripts" title="Digital Scripts" hx-get="{% url 'cms:cms-scripts' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-file-earmark-code-fill"></i></span>
       <span class="nav-text">Digital Scripts</span>
-      <span class="badge-new">NEW</span>
     </a>
 
-    <a class="nav-item tab-btn" data-tab="audio" hx-get="/cms/audio/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="audio" title="Media Pool" hx-get="{% url 'cms:cms-audio' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-folder-fill"></i></span>
-      <span class="nav-text">Content</span>
+      <span class="nav-text">Media Pool</span>
     </a>
 
-    <a class="nav-item tab-btn" data-tab="finalpackage" hx-get="/cms/final-packages/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="finalpackage" title="Final Package" hx-get="{% url 'cms:cms-final-packages' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-box-seam-fill"></i></span>
       <span class="nav-text">Final Package</span>
       <span class="badge-new">NEW</span>
@@ -52,63 +51,63 @@
 
     <div class="nav-section-label">PUBLISHING</div>
 
-    <a class="nav-item tab-btn" data-tab="new" hx-get="/cms/entries/new/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="new" title="New Upload" hx-get="{% url 'cms:cms-new-entry' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-plus-circle-fill"></i></span>
-      <span class="nav-text">New Entry</span>
+      <span class="nav-text">New Upload</span>
     </a>
 
-    <a class="nav-item tab-btn" data-tab="all" hx-get="/cms/entries/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="all" title="All Uploads" hx-get="{% url 'cms:cms-all-entries' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-file-earmark-text-fill"></i></span>
-      <span class="nav-text">All Entries</span>
+      <span class="nav-text">All Uploads</span>
       <span class="badge-new" style="background:var(--accent);font-size:9px;">TODAY</span>
     </a>
 
-    <a class="nav-item tab-btn" data-tab="archive" hx-get="/cms/archive/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="archive" title="Archive" hx-get="{% url 'cms:cms-archive' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-archive-fill"></i></span>
       <span class="nav-text">Archive</span>
     </a>
 
-    <a class="nav-item tab-btn" data-tab="sponsors" hx-get="/cms/sponsors/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="sponsors" title="Sponsors" hx-get="{% url 'cms:cms-sponsors' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-people-fill"></i></span>
       <span class="nav-text">Sponsors</span>
     </a>
 
     <div class="nav-section-label">TEAM MANAGEMENT</div>
 
-    <a class="nav-item tab-btn" data-tab="duty-roster" hx-get="/cms/roster/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="duty-roster" title="Duty Roster" hx-get="{% url 'cms:cms-roster' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-calendar-week-fill"></i></span>
       <span class="nav-text">Duty Roster</span>
     </a>
 
-    <a class="nav-item tab-btn" data-tab="leave" hx-get="/cms/leave/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="leave" title="Leave Management" hx-get="{% url 'cms:cms-leave' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-umbrella-fill"></i></span>
       <span class="nav-text">Leave Management</span>
     </a>
 
     <div class="nav-section-label">REPORTING</div>
 
-    <a class="nav-item tab-btn" data-tab="leaderboard" hx-get="/cms/leaderboard/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="leaderboard" title="Top 5" hx-get="{% url 'cms:cms-leaderboard' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-trophy-fill"></i></span>
       <span class="nav-text">Top 5</span>
     </a>
 
-    <a class="nav-item tab-btn" data-tab="notices" hx-get="/cms/notices/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="notices" title="Notices" hx-get="{% url 'cms:cms-notices-tab' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-megaphone-fill"></i></span>
       <span class="nav-text">Notices</span>
     </a>
 
-    <a class="nav-item tab-btn" data-tab="reports" hx-get="/cms/reports/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="reports" title="Reports" hx-get="{% url 'cms:cms-reports' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-bar-chart-fill"></i></span>
       <span class="nav-text">Reports</span>
     </a>
 
     {% if user.is_admin %}
     <div class="nav-section-label">ADMIN</div>
-    <a class="nav-item tab-btn" data-tab="admin" hx-get="/cms/admin-panel/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="admin" title="Admin Panel" hx-get="{% url 'cms:cms-admin' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-gear-fill"></i></span>
       <span class="nav-text">Admin Panel</span>
     </a>
-    <a class="nav-item tab-btn" data-tab="roles" hx-get="/cms/admin-panel/roles/" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+    <a class="nav-item tab-btn" data-tab="roles" title="Roles &amp; Permissions" hx-get="{% url 'cms:cms-roles' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-shield-lock-fill"></i></span>
       <span class="nav-text">Roles &amp; Perms</span>
     </a>
@@ -122,3 +121,18 @@
     </button>
   </div>
 </aside>
+
+<script>
+(function () {
+  const body = document.querySelector('.sidebar-body');
+  if (!body) return;
+  let scrollTimer = null;
+  body.addEventListener('scroll', function () {
+    body.classList.add('is-scrolling');
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(function () {
+      body.classList.remove('is-scrolling');
+    }, 600);
+  }, { passive: true });
+})();
+</script>

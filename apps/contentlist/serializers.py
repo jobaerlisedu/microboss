@@ -18,8 +18,17 @@ class ContentListItemSerializer(serializers.ModelSerializer):
         )
 
     def validate_source(self, value):
-        if value == 'district':
+        if value.lower() == 'district':
             district = self.initial_data.get('district', '')
             if not district:
                 raise serializers.ValidationError('District name is required if district source is selected')
-        return value
+        return value.capitalize()
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        validated_data['updated_by'] = self.context['request'].user
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data['updated_by'] = self.context['request'].user
+        return super().update(instance, validated_data)

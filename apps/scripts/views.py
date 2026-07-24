@@ -12,6 +12,7 @@ from apps.common.permissions import IsOwnerOrAdmin
 class ScriptListCreateView(AuditMixin, generics.ListCreateAPIView):
     queryset = Script.objects.filter(deleted_at__isnull=True)
     serializer_class = ScriptSerializer
+    permission_classes = [IsOwnerOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'source', 'script_date', 'writer']
     search_fields = ['headline', 'writer__username', 'district']
@@ -28,12 +29,13 @@ class ScriptDetailView(AuditMixin, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsOwnerOrAdmin]
 
     def perform_destroy(self, instance):
-        instance.soft_delete()
+        instance.soft_delete(user=self.request.user)
 
 
 class ScriptSubmitView(generics.UpdateAPIView):
     queryset = Script.objects.filter(deleted_at__isnull=True)
     serializer_class = ScriptSerializer
+    permission_classes = [IsOwnerOrAdmin]
 
     def patch(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -51,6 +53,7 @@ class ScriptSubmitView(generics.UpdateAPIView):
 class ScriptApproveView(generics.UpdateAPIView):
     queryset = Script.objects.filter(deleted_at__isnull=True)
     serializer_class = ScriptSerializer
+    permission_classes = [IsOwnerOrAdmin]
 
     def patch(self, request, *args, **kwargs):
         if not request.user.is_admin:
@@ -59,9 +62,9 @@ class ScriptApproveView(generics.UpdateAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         instance = self.get_object()
-        if instance.status != 'pending':
+        if instance.status not in ('pending', 'draft'):
             return Response(
-                {'error': 'Only pending scripts can be approved'},
+                {'error': 'Only pending or draft scripts can be approved'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         instance.status = 'approved'

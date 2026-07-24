@@ -7,3 +7,4 @@ class AuditConfig(AppConfig):
 
     def ready(self):
         import apps.audit.signals
+        apps.audit.signals._bind_audit_signals()

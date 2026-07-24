@@ -6,7 +6,7 @@
     </div>
   </div>
 
-  <form method="post" action="/cms/scripts/save/" hx-post="/cms/scripts/save/" hx-target="#tab-content" hx-swap="innerHTML">
+  <form method="post" action="{% url 'cms:cms-save-script' %}" hx-post="{% url 'cms:cms-save-script' %}" hx-target="#tab-content" hx-swap="innerHTML">
     {% csrf_token %}
     <input type="hidden" name="script_id" value="{{ script.id }}">
     <div class="form-grid">
@@ -28,6 +28,10 @@
         <input type="text" name="headline" value="{{ script.headline }}" required>
       </div>
       <div class="field">
+        <label>Thumbnail Text</label>
+        <input type="text" name="district_reporter" value="{{ script.district_reporter|default:'' }}">
+      </div>
+      <div class="field">
         <label>Content Source *</label>
         <select name="source" required>
           <option value="district" {% if script.source == 'district' %}selected{% endif %}>District</option>
@@ -40,10 +44,6 @@
         <label>District Name</label>
         <input type="text" name="district" value="{{ script.district|default:'' }}">
       </div>
-      <div class="field">
-        <label>District Reporter</label>
-        <input type="text" name="district_reporter" value="{{ script.district_reporter|default:'' }}">
-      </div>
       <div class="field full">
         <label>Script Content</label>
         <textarea name="body" rows="10" style="resize:vertical;">{{ script.body|default:'' }}</textarea>
@@ -55,7 +55,7 @@
     </div>
     <div class="form-actions" style="margin-top:20px;">
       <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Changes</button>
-      <button type="button" class="btn btn-ghost" hx-get="/cms/scripts/{{ script.id }}/" hx-target="#tab-content" hx-swap="innerHTML">Cancel</button>
+      <button type="button" class="btn btn-ghost" hx-get="{% url 'cms:cms-script-detail' pk=script.id %}" hx-target="#tab-content" hx-swap="innerHTML">Cancel</button>
     </div>
   </form>
 </div>

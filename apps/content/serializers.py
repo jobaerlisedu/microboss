@@ -27,10 +27,12 @@ class ContentEntrySerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        headline = attrs.get('headline', '').strip()
+        headline = attrs.get('headline', '')
+        if headline:
+            attrs['headline'] = headline.strip()
         instance_id = self.instance.id if self.instance else None
 
-        if headline:
+        if attrs.get('headline'):
             dup_qs = ContentEntry.objects.filter(
                 headline__iexact=headline, deleted_at__isnull=True,
             )

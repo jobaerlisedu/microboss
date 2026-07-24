@@ -67,65 +67,36 @@
       </div>
       {% endif %}
 
+      {% if media_pool_items %}
       <div class="detail-section" style="border-top:1px solid var(--border);padding-top:16px;">
-        <h4 class="detail-subtitle"><i class="bi bi-file-earmark-play" style="color:#ef4444;"></i> Media Files</h4>
-        <div class="detail-info-grid">
-          <div class="detail-info-item" style="grid-column:span 2;">
-            <span class="detail-label">File Link</span>
-            {% if item.file_link %}
-            <a href="{% if item.file_link|slice:':8' != 'https://' and item.file_link|slice:':7' != 'http://' and item.file_link|slice:':2' != '//' %}https://{% endif %}{{ item.file_link }}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-size:12px;display:block;">{{ item.file_link }}</a>
-            {% else %}<span style="color:var(--text-faint);">—</span>{% endif %}
+        <h4 class="detail-subtitle"><i class="bi bi-folder-fill" style="color:#6366f1;"></i> Media Pool <span class="count-badge">{{ media_pool_items|length }} record{{ media_pool_items|pluralize }}</span></h4>
+        {% for mp in media_pool_items %}
+        <div style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;">
+          <div style="font-size:11px;color:var(--text-faint);margin-bottom:6px;">
+            <i class="bi bi-calendar3"></i> {{ mp.item.created_at|date:"Y-m-d H:i" }} &middot;
+            <i class="bi bi-person"></i> {{ mp.item.member.username }} &middot;
+            <strong>{{ mp.video_count }} video{{ mp.video_count|pluralize }}</strong> &middot;
+            <strong>{{ mp.audio_count }} audio{{ mp.audio_count|pluralize }}</strong>
           </div>
-          <div class="detail-info-item" style="grid-column:span 2;">
-            <span class="detail-label">Video Content</span>
-            {% if item.video_link %}
-            <a href="{% if item.video_link|slice:':8' != 'https://' and item.video_link|slice:':7' != 'http://' and item.video_link|slice:':2' != '//' %}https://{% endif %}{{ item.video_link }}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-size:12px;display:block;">{{ item.video_link }}</a>
-            {% endif %}
-            {% if video_entries %}
-              {% for v in video_entries %}
-                <div style="margin-top:2px;">
-                  {% if v.file_location %}
-                  <a href="{% if v.file_location|slice:':8' != 'https://' and v.file_location|slice:':7' != 'http://' and v.file_location|slice:':2' != '//' %}https://{% endif %}{{ v.file_location }}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-size:12px;font-weight:500;display:inline-block;">
-                    {{ v.file_name|default:v.file_location|truncatechars:50 }}
-                  </a>
-                  {% else %}
-                  <span style="color:var(--text);font-size:12px;">{{ v.file_name|default:'—' }}</span>
-                  {% endif %}
-                </div>
+          <table class="detail-table">
+            <thead><tr><th>#</th><th>Type</th><th>File Name</th><th>Location</th></tr></thead>
+            <tbody>
+              {% for m in mp.entries %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{% if m.type == 'video' %}<span class="status-pill" style="background:rgba(239,68,68,0.15);color:#ef4444;font-size:9px;">Video</span>{% elif m.type == 'audio' %}<span class="status-pill" style="background:rgba(99,102,241,0.15);color:#6366f1;font-size:9px;">Audio</span>{% elif m.type == 'graphic' %}<span class="status-pill" style="background:rgba(34,197,94,0.15);color:#22c55e;font-size:9px;">Graphic</span>{% elif m.type == 'document' %}<span class="status-pill" style="background:rgba(245,158,11,0.15);color:#f59e0b;font-size:9px;">Document</span>{% else %}<span class="status-pill status-pending" style="font-size:9px;">{{ m.type|default:'—' }}</span>{% endif %}</td>
+                <td>{{ m.file_name|default:'—' }}</td>
+                <td>{% if m.file_location %}<a href="{{ m.file_location }}" target="_blank" style="color:var(--accent);font-size:11px;">{{ m.file_location|truncatechars:40 }}</a>{% else %}—{% endif %}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" style="text-align:center;color:var(--text-faint);padding:8px;">No media files</td></tr>
               {% endfor %}
-            {% endif %}
-            {% if not item.video_link and not video_entries %}
-            <span style="color:var(--text-faint);">—</span>
-            {% endif %}
-          </div>
-          <div class="detail-info-item" style="grid-column:span 2;">
-            <span class="detail-label">Voice Recording</span>
-            {% if item.voice_link %}
-            <a href="{% if item.voice_link|slice:':8' != 'https://' and item.voice_link|slice:':7' != 'http://' and item.voice_link|slice:':2' != '//' %}https://{% endif %}{{ item.voice_link }}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-size:12px;display:block;">{{ item.voice_link }}</a>
-            {% endif %}
-            {% if audio_entries %}
-              {% for a in audio_entries %}
-                <div style="margin-top:2px;">
-                  {% if a.file_location %}
-                  <a href="{% if a.file_location|slice:':8' != 'https://' and a.file_location|slice:':7' != 'http://' and a.file_location|slice:':2' != '//' %}https://{% endif %}{{ a.file_location }}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-size:12px;font-weight:500;display:inline-block;">
-                    {{ a.file_name|default:a.file_location|truncatechars:50 }}
-                  </a>
-                  {% else %}
-                  <span style="color:var(--text);font-size:12px;">{{ a.file_name|default:'—' }}</span>
-                  {% endif %}
-                </div>
-              {% endfor %}
-            {% endif %}
-            {% if not item.voice_link and not audio_entries %}
-            <span style="color:var(--text-faint);">—</span>
-            {% endif %}
-          </div>
+            </tbody>
+          </table>
         </div>
+        {% endfor %}
       </div>
-
-
-
-      {% if item.notes %}
+      {% endif %}      {% if item.notes %}
       <div class="detail-section" style="border-top:1px solid var(--border);padding-top:16px;">
         <h4 class="detail-subtitle"><i class="bi bi-journal-text" style="color:#6366f1;"></i> Notes</h4>
         <div style="font-size:13px;color:var(--text);white-space:pre-wrap;">{{ item.notes }}</div>

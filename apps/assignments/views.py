@@ -64,6 +64,11 @@ class AssignmentUpdateStatusView(AuditMixin, generics.UpdateAPIView):
             )
         instance.status = new_status
         instance.updated_by = request.user
+        from django.core.exceptions import ValidationError
+        try:
+            instance.full_clean()
+        except ValidationError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         instance.save()
         return Response(self.get_serializer(instance).data)
 

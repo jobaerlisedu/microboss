@@ -23,3 +23,11 @@ class FinalPackageSerializer(serializers.ModelSerializer):
         if obj.editor_user:
             return obj.editor_user.full_name or obj.editor_user.username
         return obj.editor or ''
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data['updated_by'] = self.context['request'].user
+        return super().update(instance, validated_data)

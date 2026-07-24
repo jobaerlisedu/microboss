@@ -9,6 +9,33 @@
     localStorage.setItem('phoenix-sidebar-collapsed', sidebar.classList.contains('collapsed') ? '1' : '0');
   };
 
+  window.toggleSidebarMobile = function() {
+    var sidebar = document.getElementById('appSidebar');
+    var backdrop = document.getElementById('sidebarBackdrop');
+    if (!sidebar) return;
+    var isOpen = sidebar.classList.toggle('mobile-open');
+    if (backdrop) backdrop.classList.toggle('show', isOpen);
+    if (!isOpen) sidebar.classList.remove('collapsed');
+    document.body.classList.toggle('sidebar-open', isOpen);
+  };
+
+  // Close sidebar on backdrop click
+  document.addEventListener('click', function(e) {
+    if (e.target.id === 'sidebarBackdrop') {
+      window.toggleSidebarMobile();
+    }
+  });
+
+  // Close mobile sidebar on route change (HTMX)
+  document.addEventListener('htmx:afterSwap', function() {
+    if (window.innerWidth <= 768) {
+      var sidebar = document.getElementById('appSidebar');
+      var backdrop = document.getElementById('sidebarBackdrop');
+      if (sidebar) sidebar.classList.remove('mobile-open');
+      if (backdrop) backdrop.classList.remove('show');
+    }
+  });
+
   window.toggleNavGroup = function(el) {
     var group = el.closest('.nav-group');
     if (group) group.classList.toggle('open');
@@ -90,11 +117,50 @@
       }
     });
 
-    // ─── Tab switching (event delegation — works for HTMX-loaded content) ───
+    // ─── Tab URL mapping for active-state restoration ───
+    var TAB_URL_RULES = [
+      // Specific sub-paths must come before their parent prefixes
+      { prefix: '/cms/admin-panel/roles/', tab: 'roles' },
+      { prefix: '/cms/entries/new/', tab: 'new' },
+      // General prefixes (ordered most-to-least specific)
+      { prefix: '/cms/dashboard/', tab: 'dashboard' },
+      { prefix: '/cms/assignments/', tab: 'assignment' },
+      { prefix: '/cms/content-sources/', tab: 'contentlist' },
+      { prefix: '/cms/scripts/', tab: 'scripts' },
+      { prefix: '/cms/audio/', tab: 'audio' },
+      { prefix: '/cms/final-packages/', tab: 'finalpackage' },
+      { prefix: '/cms/entries/', tab: 'all' },
+      { prefix: '/cms/archive/', tab: 'archive' },
+      { prefix: '/cms/sponsors/', tab: 'sponsors' },
+      { prefix: '/cms/roster/', tab: 'duty-roster' },
+      { prefix: '/cms/leave/', tab: 'leave' },
+      { prefix: '/cms/leaderboard/', tab: 'leaderboard' },
+      { prefix: '/cms/notices/', tab: 'notices' },
+      { prefix: '/cms/reports/', tab: 'reports' },
+      { prefix: '/cms/admin-panel/', tab: 'admin' },
+      { prefix: '/cms/', tab: 'dashboard' },
+    ];
+
+    function activateSidebarTab(tab) {
+      document.querySelectorAll('#appSidebar .nav-item.tab-btn').forEach(function(b) {
+        b.classList.toggle('active', b.getAttribute('data-tab') === tab);
+      });
+    }
+
+    // Restore active tab from current URL on page load
+    var path = window.location.pathname.replace(/\/+$/, '') + '/';
+    for (var i = 0; i < TAB_URL_RULES.length; i++) {
+      if (path.indexOf(TAB_URL_RULES[i].prefix) === 0) {
+        activateSidebarTab(TAB_URL_RULES[i].tab);
+        break;
+      }
+    }
+
+    // ─── Sidebar tab switching (event delegation) ───
     document.body.addEventListener('click', function(e) {
-      var btn = e.target.closest('.tab-btn');
+      var btn = e.target.closest('#appSidebar .nav-item.tab-btn');
       if (btn) {
-        document.querySelectorAll('.tab-btn').forEach(function(b) {
+        document.querySelectorAll('#appSidebar .nav-item.tab-btn').forEach(function(b) {
           b.classList.remove('active');
         });
         btn.classList.add('active');

@@ -12,6 +12,7 @@ from apps.common.permissions import IsOwnerOrAdmin
 class FinalPackageListCreateView(AuditMixin, generics.ListCreateAPIView):
     queryset = FinalPackage.objects.filter(deleted_at__isnull=True)
     serializer_class = FinalPackageSerializer
+    permission_classes = [IsOwnerOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'package_date']
     search_fields = ['title', 'producer', 'member__username']

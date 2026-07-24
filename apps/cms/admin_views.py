@@ -1,6 +1,7 @@
 import csv, io, json
 from functools import wraps
 from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.utils import timezone
@@ -210,5 +211,5 @@ def admin_csv_import(request):
             msg += f'. {len(errors)} error(s): {"; ".join(errors[:5])}'
             if len(errors) > 5:
                 msg += f'... and {len(errors) - 5} more'
-        return _toast_response(msg, '/cms/entries/')
+        return _toast_response(msg, reverse('cms:cms-all-entries'))
     return render(request, 'cms/admin_csv_import.html', {'user': request.user})

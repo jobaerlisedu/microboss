@@ -57,7 +57,7 @@
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No entries found for {{ month_name }} {{ year }}</td></tr>
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No uploads found for {{ month_name }} {{ year }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -113,7 +113,7 @@
           <td>{{ cl.footage_source|default:'—' }}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No content list items found for {{ month_name }} {{ year }}</td></tr>
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No content sources found for {{ month_name }} {{ year }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -125,23 +125,21 @@
       <thead>
         <tr>
           <th style="width:90px;">DATE</th>
-          <th>TITLE</th>
-          <th style="width:80px;">SOURCE</th>
-          <th style="width:100px;">DISTRICT</th>
-          <th style="width:60px;">DURATION</th>
+          <th>ASSIGNMENT</th>
+          <th style="width:80px;">FILES</th>
+          <th style="width:100px;">ADDED BY</th>
         </tr>
       </thead>
       <tbody>
         {% for a in items %}
         <tr>
-          <td>{{ a.audio_date|date:"Y-m-d" }}</td>
-          <td><strong style="color:var(--text);font-size:12.5px;">{{ a.title|truncatechars:60 }}</strong></td>
-          <td><span class="status-pill status-pending" style="font-size:10px;">{{ a.get_source_display }}</span></td>
-          <td>{{ a.district|default:'—' }}</td>
-          <td>{{ a.duration|default:'—' }}</td>
+          <td>{{ a.created_at|date:"Y-m-d" }}</td>
+          <td><strong style="color:var(--text);font-size:12.5px;">{{ a.assignment.caption|default:'—'|truncatechars:60 }}</strong></td>
+          <td>{{ a.media_entries|length|default:'0' }}</td>
+          <td>{{ a.member.username }}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No audio items found for {{ month_name }} {{ year }}</td></tr>
+        <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-faint);">No media pools found for {{ month_name }} {{ year }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -163,7 +161,7 @@
         {% for s in items %}
         <tr>
           <td>{{ s.script_date|date:"Y-m-d" }}</td>
-          <td><a href="#" hx-get="/cms/scripts/{{ s.id }}/" hx-target="#tab-content" style="color:var(--accent);text-decoration:none;font-weight:600;font-size:12.5px;">{{ s.headline|truncatechars:60 }}</a></td>
+          <td><a href="#" hx-get="{% url 'cms:cms-script-detail' pk=s.id %}" hx-target="#tab-content" style="color:var(--accent);text-decoration:none;font-weight:600;font-size:12.5px;">{{ s.headline|truncatechars:60 }}</a></td>
           <td>{{ s.writer.username }}</td>
           <td><span class="status-pill status-pending" style="font-size:10px;">{{ s.get_source_display }}</span></td>
           <td><span class="status-pill status-{{ s.status }}">{{ s.get_status_display }}</span></td>

@@ -9,7 +9,7 @@
     </div>
   </div>
 
-  <form id="sponsorForm" hx-post="/cms/sponsors/save/">
+  <form id="sponsorForm" hx-post="{% url 'cms:cms-save-sponsor' %}">
     {% csrf_token %}
     {% if edit_sponsor %}<input type="hidden" name="sponsor_id" value="{{ edit_sponsor.id }}">{% endif %}
     <div class="form-grid">
@@ -80,8 +80,8 @@
           <div style="font-size:12px;color:var(--text-soft);margin-top:2px;">{{ s.content_type|default:'' }}</div>
         </div>
         <div class="row-actions">
-          <button class="icon-mini" title="Edit" hx-get="/cms/sponsors/{{ s.id }}/edit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
-          <button class="icon-mini" title="Delete" hx-post="/cms/sponsors/{{ s.id }}/delete/" hx-confirm="Delete sponsor '{{ s.name }}'?" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-trash-fill"></i></button>
+          <button class="icon-mini" title="Edit" hx-get="{% url 'cms:cms-edit-sponsor' pk=s.id %}" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
+          <button class="icon-mini" title="Delete" hx-post="{% url 'cms:cms-delete-sponsor' pk=s.id %}" hx-confirm="Delete sponsor '{{ s.name }}'?" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-trash-fill"></i></button>
         </div>
       </div>
       <div class="meta" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--text-soft);">

@@ -229,16 +229,13 @@ class Command(BaseCommand):
 
             # AudioItem
             AudioItem.objects.get_or_create(
-                audio_date=entry_date,
-                title=HEADLINES[i],
+                member=reporter_user,
+                assignment=assignment,
                 defaults=dict(
-                    source=['district', 'reuters', 'social', 'studio'][(i + 1) % 4],
-                    district=DISTRICTS[i],
-                    duration=f'{2 + i}:{15 + i * 3:02d}',
-                    file_link=f'https://cdn.example.com/audio/{SLUGS[i]}.mp3',
-                    voice_over=['', 'Rafiq', 'Sabina', 'Zahid'][i % 4],
-                    member=reporter_user,
-                    assignment=assignment,
+                    media_entries=[
+                        {'type': 'audio', 'file_name': f'{SLUGS[i]}.mp3', 'file_location': f'https://cdn.example.com/audio/{SLUGS[i]}.mp3'},
+                        {'type': 'video', 'file_name': f'{SLUGS[i]}.mp4', 'file_location': f'https://cdn.example.com/video/{SLUGS[i]}.mp4'},
+                    ],
                     created_by=reporter_user,
                 ),
             )

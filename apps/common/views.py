@@ -28,4 +28,4 @@ def root_redirect(request):
 
 @staff_member_required
 def dashboard(request):
-    return render(request, 'admin/dashboard.html')
+    return render(request, 'cms/dashboard.html')
