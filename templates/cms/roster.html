@@ -2,7 +2,7 @@
 <div class="dash-page-header">
   <div>
     <h1 class="dash-title"><i class="bi bi-calendar2-week" style="color:#3b82f6;"></i> Duty Roster</h1>
-    <p class="dash-sub">Daily, Weekly & Monthly Shift Schedule Management</p>
+    <p class="dash-sub">Daily, Weekly &amp; Monthly Shift Schedule Management</p>
   </div>
   <div class="dash-header-actions">
     <a class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-my-roster' %}" hx-target="#tab-content" hx-swap="innerHTML">
@@ -21,31 +21,33 @@
 
 {% with palette='#2563eb,#059669,#d97706,#dc2626,#7c3aed,#0891b2,#db2777'|split:',' %}
 
-<div class="view-tabs d-flex gap-1 mb-3 p-1 bg-light rounded border" style="width:fit-content;">
-  <a class="btn btn-sm {% if view_mode == 'day' %}btn-primary{% else %}btn-ghost{% endif %}" hx-get="{% url 'cms:cms-roster' %}?view=day" hx-target="#tab-content" hx-swap="innerHTML">
+<!-- View Mode Tabs -->
+<div class="view-tabs">
+  <a class="btn {% if view_mode == 'day' %}btn-primary{% else %}btn-ghost{% endif %}" hx-get="{% url 'cms:cms-roster' %}?view=day" hx-target="#tab-content" hx-swap="innerHTML">
     <i class="bi bi-calendar-day me-1"></i>Daily
   </a>
-  <a class="btn btn-sm {% if view_mode == 'week' %}btn-primary{% else %}btn-ghost{% endif %}" hx-get="{% url 'cms:cms-roster' %}?view=week" hx-target="#tab-content" hx-swap="innerHTML">
+  <a class="btn {% if view_mode == 'week' %}btn-primary{% else %}btn-ghost{% endif %}" hx-get="{% url 'cms:cms-roster' %}?view=week" hx-target="#tab-content" hx-swap="innerHTML">
     <i class="bi bi-calendar-week me-1"></i>Weekly
   </a>
-  <a class="btn btn-sm {% if view_mode == 'month' %}btn-primary{% else %}btn-ghost{% endif %}" hx-get="{% url 'cms:cms-roster' %}?view=month" hx-target="#tab-content" hx-swap="innerHTML">
+  <a class="btn {% if view_mode == 'month' %}btn-primary{% else %}btn-ghost{% endif %}" hx-get="{% url 'cms:cms-roster' %}?view=month" hx-target="#tab-content" hx-swap="innerHTML">
     <i class="bi bi-calendar3 me-1"></i>Monthly
   </a>
 </div>
 
 {% if view_mode == 'day' %}
 
-<div class="toolbar-row d-flex align-items-center justify-content-between mb-3 p-3 bg-light rounded border">
+<!-- Day Toolbar -->
+<div class="toolbar-row">
   <div class="d-flex align-items-center gap-2">
-    <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'cms:cms-roster' %}?view=day&day={{ prev_day }}" hx-target="#tab-content" hx-swap="innerHTML">
+    <a class="btn btn-outline-secondary btn-sm" hx-get="{% url 'cms:cms-roster' %}?view=day&day={{ prev_day }}" hx-target="#tab-content" hx-swap="innerHTML">
       <i class="bi bi-chevron-left"></i>
     </a>
-    <span class="fw-bold fs-6 px-3">{{ day_label }}</span>
-    <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'cms:cms-roster' %}?view=day&day={{ next_day }}" hx-target="#tab-content" hx-swap="innerHTML">
+    <span class="fw-bold fs-6 px-2">{{ day_label }}</span>
+    <a class="btn btn-outline-secondary btn-sm" hx-get="{% url 'cms:cms-roster' %}?view=day&day={{ next_day }}" hx-target="#tab-content" hx-swap="innerHTML">
       <i class="bi bi-chevron-right"></i>
     </a>
     {% if not is_today %}
-      <a class="btn btn-sm btn-outline-primary ms-2" hx-get="{% url 'cms:cms-roster' %}?view=day" hx-target="#tab-content" hx-swap="innerHTML">
+      <a class="btn btn-outline-primary btn-sm ms-2" hx-get="{% url 'cms:cms-roster' %}?view=day" hx-target="#tab-content" hx-swap="innerHTML">
         <i class="bi bi-calendar-check me-1"></i>Today
       </a>
     {% endif %}
@@ -59,7 +61,7 @@
         <span class="rd-shift-code" style="background:{{ palette|list_index:forloop.counter0 }};">{{ shift.code }}</span>
         <span class="rd-shift-name">{{ shift.name }}</span>
         <span class="rd-shift-time">{{ shift.start_time|time:'H:i' }} – {{ shift.end_time|time:'H:i' }}</span>
-        <span class="rd-count badge bg-secondary ms-auto">{{ rosters_by_shift|get_item:shift.id|length }}</span>
+        <span class="badge bg-secondary ms-auto" style="font-size:11px;">{{ rosters_by_shift|get_item:shift.id|length }}</span>
       </div>
       <div class="rd-shift-body">
         {% with shift_rosters=rosters_by_shift|get_item:shift.id %}
@@ -69,7 +71,7 @@
               <span class="rd-emp-name">{{ r.employee.full_name }}</span>
               {% if r.note %}<span class="rd-emp-note"><i class="bi bi-info-circle"></i></span>{% endif %}
               {% if user.is_admin %}
-                <button class="rd-del-btn" onclick="if(confirm('Remove {{ r.employee.full_name }}?')){htmx.ajax('POST', '{% url 'cms:cms-roster-delete' pk=r.id %}', {target:'#tab-content', swap:'innerHTML', values:{csrfmiddlewaretoken:'{{ csrf_token }}'}})}" title="Remove">&times;</button>
+                <button class="rd-del-btn" onclick="if(confirm('Remove {{ r.employee.full_name }}?')){htmx.ajax('POST', '{% url 'cms:cms-roster-delete' pk=r.id %}', {target:'#tab-content', swap:'innerHTML', values:{csrfmiddlewaretoken:'{{ csrf_token }}'}})}">&#x2715;</button>
               {% endif %}
             </div>
           {% empty %}
@@ -83,16 +85,17 @@
 
 {% elif view_mode == 'week' %}
 
-<div class="toolbar-row d-flex align-items-center justify-content-between mb-3 p-3 bg-light rounded border">
+<!-- Week Toolbar -->
+<div class="toolbar-row">
   <div class="d-flex align-items-center gap-2">
-    <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'cms:cms-roster' %}?view=week&week_start={{ prev_week }}" hx-target="#tab-content" hx-swap="innerHTML">
+    <a class="btn btn-outline-secondary btn-sm" hx-get="{% url 'cms:cms-roster' %}?view=week&week_start={{ prev_week }}" hx-target="#tab-content" hx-swap="innerHTML">
       <i class="bi bi-chevron-left"></i>
     </a>
-    <span class="fw-bold fs-6 px-3">{{ week_label }}</span>
-    <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'cms:cms-roster' %}?view=week&week_start={{ next_week }}" hx-target="#tab-content" hx-swap="innerHTML">
+    <span class="fw-bold fs-6 px-2">{{ week_label }}</span>
+    <a class="btn btn-outline-secondary btn-sm" hx-get="{% url 'cms:cms-roster' %}?view=week&week_start={{ next_week }}" hx-target="#tab-content" hx-swap="innerHTML">
       <i class="bi bi-chevron-right"></i>
     </a>
-    <a class="btn btn-sm btn-outline-primary ms-2" hx-get="{% url 'cms:cms-roster' %}?view=week&week_start={{ today|date:'Y-m-d' }}" hx-target="#tab-content" hx-swap="innerHTML">
+    <a class="btn btn-outline-primary btn-sm ms-2" hx-get="{% url 'cms:cms-roster' %}?view=week&week_start={{ today|date:'Y-m-d' }}" hx-target="#tab-content" hx-swap="innerHTML">
       <i class="bi bi-calendar-check me-1"></i>This Week
     </a>
   </div>
@@ -123,7 +126,7 @@
           <div class="rg-chip" style="border-left:3px solid {{ palette|list_index:shift_idx }};" title="{{ r.employee.full_name }} — {{ r.note|default:shift.name }}">
             <span class="rg-chip-name">{{ r.employee.full_name }}</span>
             {% if user.is_admin %}
-              <button class="rg-chip-del" onclick="if(confirm('Remove {{ r.employee.full_name }} from {{ shift.name }} on {{ day.date }}?')){htmx.ajax('POST', '{% url 'cms:cms-roster-delete' pk=r.id %}', {target:'#tab-content', swap:'innerHTML', values:{csrfmiddlewaretoken:'{{ csrf_token }}'}})}" title="Remove">&times;</button>
+              <button class="rg-chip-del" onclick="if(confirm('Remove {{ r.employee.full_name }} from {{ shift.name }} on {{ day.date }}?')){htmx.ajax('POST', '{% url 'cms:cms-roster-delete' pk=r.id %}', {target:'#tab-content', swap:'innerHTML', values:{csrfmiddlewaretoken:'{{ csrf_token }}'}})}">&#x2715;</button>
             {% endif %}
           </div>
           {% endwith %}
@@ -140,19 +143,20 @@
 
 {% elif view_mode == 'month' %}
 
-<div class="toolbar-row d-flex align-items-center justify-content-between mb-3 p-3 bg-light rounded border">
-  <form hx-get="{% url 'cms:cms-roster' %}" hx-target="#tab-content" hx-swap="innerHTML" class="d-flex align-items-center gap-2 mb-0">
+<!-- Month Toolbar -->
+<div class="toolbar-row">
+  <form hx-get="{% url 'cms:cms-roster' %}" hx-target="#tab-content" hx-swap="innerHTML" class="d-flex align-items-center gap-2" style="margin:0;">
     <input type="hidden" name="view" value="month">
-    <label class="fw-bold text-nowrap small">Month</label>
-    <input type="month" name="month" value="{{ month_year }}" class="form-control form-control-sm d-inline-block style-input" style="width:170px;"
+    <label class="fw-bold small text-muted" style="white-space:nowrap;">Month</label>
+    <input type="month" name="month" value="{{ month_year }}" class="form-control" style="width:170px;"
            onchange="this.form.dispatchEvent(new Event('submit', {bubbles:true}))">
   </form>
   <div class="d-flex align-items-center gap-2">
-    <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'cms:cms-roster' %}?view=month&year={{ prev_year }}&month={{ prev_month }}" hx-target="#tab-content" hx-swap="innerHTML">
+    <a class="btn btn-outline-secondary btn-sm" hx-get="{% url 'cms:cms-roster' %}?view=month&year={{ prev_year }}&month={{ prev_month }}" hx-target="#tab-content" hx-swap="innerHTML">
       <i class="bi bi-chevron-left"></i>
     </a>
     <span class="fw-bold px-2">{{ month_label }}</span>
-    <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'cms:cms-roster' %}?view=month&year={{ next_year }}&month={{ next_month }}" hx-target="#tab-content" hx-swap="innerHTML">
+    <a class="btn btn-outline-secondary btn-sm" hx-get="{% url 'cms:cms-roster' %}?view=month&year={{ next_year }}&month={{ next_month }}" hx-target="#tab-content" hx-swap="innerHTML">
       <i class="bi bi-chevron-right"></i>
     </a>
   </div>
@@ -171,19 +175,19 @@
     {% for day in week %}
       {% if day %}
         <div class="cal-day{% if day.date == today %} cal-today{% endif %}">
-          <div class="cal-day-header d-flex justify-content-between align-items-center mb-1">
-            <span class="cal-day-num fw-bold {% if day.date == today %}text-primary fs-6{% endif %}">{{ day.day }}</span>
+          <div class="cal-day-header">
+            <span class="cal-day-num {% if day.date == today %}text-primary{% endif %}" style="font-weight:800;">{{ day.day }}</span>
             {% if day.date == today %}
               <span class="badge bg-primary" style="font-size:9px;">Today</span>
             {% endif %}
           </div>
           <div class="cal-day-entries">
             {% for r in day.rosters %}
-              <div class="entry-chip shadow-sm" style="background:#2563eb;color:#fff;font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ r.employee.full_name }} ({{ r.shift.name }})">
-                <i class="bi bi-person-fill me-1" style="font-size:9px;"></i>{{ r.employee.full_name }} – {{ r.shift.code }}
+              <div class="entry-chip shadow-sm" title="{{ r.employee.full_name }} ({{ r.shift.name }})">
+                <i class="bi bi-person-fill" style="font-size:9px;"></i> {{ r.employee.full_name }} – {{ r.shift.code }}
               </div>
             {% empty %}
-              <span style="color:var(--text-faint, #9ca3af);font-size:10px;">—</span>
+              <span style="color:var(--text-faint);font-size:10px;">—</span>
             {% endfor %}
           </div>
         </div>
@@ -206,11 +210,11 @@
     </div>
     <form hx-post="{% url 'cms:cms-roster-save' %}" hx-target="#tab-content" hx-swap="innerHTML">
       {% csrf_token %}
-      <div class="form-group mb-3">
+      <div class="form-group">
         <label class="fw-bold">Date</label>
         <input type="date" name="date" class="form-control" required value="{{ today|date:'Y-m-d' }}">
       </div>
-      <div class="form-group mb-3">
+      <div class="form-group">
         <label class="fw-bold">Shift</label>
         <select name="shift_id" class="form-select" required>
           <option value="">— Select Shift —</option>
@@ -219,20 +223,20 @@
           {% endfor %}
         </select>
       </div>
-      <div class="form-group mb-3">
-        <label class="fw-bold">Employees (Multi-select)</label>
+      <div class="form-group">
+        <label class="fw-bold">Employees <span class="small text-muted">(Multi-select)</span></label>
         <select name="employee_ids" class="form-select" multiple required size="6">
           {% for e in employees %}
             <option value="{{ e.id }}">{{ e.full_name }} ({{ e.designation|default:e.username }})</option>
           {% endfor %}
         </select>
-        <small class="text-muted d-block mt-1">Hold Ctrl (or Cmd) to select multiple employees</small>
+        <small class="text-muted">Hold Ctrl (or Cmd) to select multiple employees</small>
       </div>
-      <div class="form-group mb-3">
-        <label class="fw-bold">Note (Optional)</label>
+      <div class="form-group">
+        <label class="fw-bold">Note <span class="small text-muted">(Optional)</span></label>
         <input type="text" name="note" class="form-control" placeholder="Special instructions or notes">
       </div>
-      <div class="form-actions d-flex justify-content-end gap-2">
+      <div class="form-actions">
         <button type="button" class="btn btn-ghost" onclick="document.getElementById('rosterFormOverlay').classList.add('hidden')">Cancel</button>
         <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i> Save Roster</button>
       </div>
