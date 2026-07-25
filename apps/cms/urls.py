@@ -99,6 +99,12 @@ urlpatterns = [
     path('roster/shifts/<hexuuid:pk>/delete/', views.shift_delete, name='cms-shift-delete'),
     path('my-roster/', views.my_roster_tab, name='cms-my-roster'),
 
+    # ─── Attendance ───
+    path('attendance/', views.attendance_tab, name='cms-attendance'),
+    path('attendance/check-in/', views.attendance_check_in, name='cms-attendance-check-in'),
+    path('attendance/check-out/', views.attendance_check_out, name='cms-attendance-check-out'),
+    path('attendance/<hexuuid:pk>/checkout/', views.attendance_admin_checkout, name='cms-attendance-admin-checkout'),
+
     # ─── Leave Management ───
     path('leave/', views.leave_tab, name='cms-leave'),
     path('leave/save/', views.leave_save, name='cms-leave-save'),

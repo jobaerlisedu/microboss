@@ -5,9 +5,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Shift, DutyRoster, LeaveType, LeaveRequest, LeaveBalance
+from .models import Shift, DutyRoster, Attendance, LeaveType, LeaveRequest, LeaveBalance
 from .serializers import (
     ShiftSerializer, DutyRosterSerializer, DutyRosterBulkSerializer,
+    AttendanceSerializer, AttendanceCheckSerializer,
     LeaveTypeSerializer, LeaveRequestSerializer, LeaveRequestActionSerializer,
     LeaveBalanceSerializer,
 )
@@ -66,6 +67,72 @@ class DutyRosterViewSet(viewsets.ModelViewSet):
         ).order_by('date')
         page = self.paginate_queryset(rosters)
         serializer = self.get_serializer(page, many=True) if page else self.get_serializer(rosters, many=True)
+        return self.get_paginated_response(serializer.data) if page else Response(serializer.data)
+
+
+class AttendanceViewSet(viewsets.ModelViewSet):
+    queryset = Attendance.objects.select_related('employee', 'shift').all()
+    serializer_class = AttendanceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['date', 'status', 'employee']
+
+    @action(detail=False, methods=['post'])
+    def check_in(self, request):
+        today = timezone.now().date()
+        now = timezone.now()
+        existing = Attendance.objects.filter(employee=request.user, date=today).first()
+        if existing:
+            if existing.check_in:
+                return Response({'detail': 'Already checked in today.'}, status=status.HTTP_400_BAD_REQUEST)
+            existing.check_in = now
+            existing.save(update_fields=['check_in'])
+            serializer = self.get_serializer(existing)
+            return Response(serializer.data)
+        # Determine shift from roster
+        from .models import DutyRoster
+        roster = DutyRoster.objects.filter(employee=request.user, date=today).first()
+        att = Attendance.objects.create(
+            employee=request.user, date=today,
+            check_in=now, shift=roster.shift if roster else None,
+        )
+        serializer = self.get_serializer(att)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['post'])
+    def check_out(self, request):
+        today = timezone.now().date()
+        now = timezone.now()
+        att = Attendance.objects.filter(employee=request.user, date=today).first()
+        if not att:
+            return Response({'detail': 'No check-in found for today.'}, status=status.HTTP_400_BAD_REQUEST)
+        if att.check_out:
+            return Response({'detail': 'Already checked out today.'}, status=status.HTTP_400_BAD_REQUEST)
+        att.check_out = now
+        # Auto-mark status
+        if att.shift:
+            late_threshold = (timezone.timedelta(hours=0, minutes=15))
+            scheduled_start = timezone.datetime.combine(today, att.shift.start_time)
+            scheduled_start = timezone.make_aware(scheduled_start)
+            if att.check_in and att.check_in > scheduled_start + late_threshold:
+                att.status = Attendance.Status.LATE
+        att.save(update_fields=['check_out', 'status'])
+        serializer = self.get_serializer(att)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def today(self, request):
+        today = timezone.now().date()
+        records = self.get_queryset().filter(date=today).order_by('employee__full_name')
+        page = self.paginate_queryset(records)
+        serializer = self.get_serializer(page, many=True) if page else self.get_serializer(records, many=True)
+        return self.get_paginated_response(serializer.data) if page else Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def my(self, request):
+        records = self.get_queryset().filter(employee=request.user).order_by('-date')
+        page = self.paginate_queryset(records)
+        serializer = self.get_serializer(page, many=True) if page else self.get_serializer(records, many=True)
         return self.get_paginated_response(serializer.data) if page else Response(serializer.data)
 
 

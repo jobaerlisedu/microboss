@@ -5,6 +5,7 @@ from . import views
 router = DefaultRouter()
 router.register(r'shifts', views.ShiftViewSet)
 router.register(r'rosters', views.DutyRosterViewSet)
+router.register(r'attendance', views.AttendanceViewSet)
 router.register(r'leave-types', views.LeaveTypeViewSet)
 router.register(r'leave-requests', views.LeaveRequestViewSet)
 router.register(r'leave-balances', views.LeaveBalanceViewSet)

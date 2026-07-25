@@ -211,8 +211,21 @@
     <form hx-post="{% url 'cms:cms-roster-save' %}" hx-target="#tab-content" hx-swap="innerHTML">
       {% csrf_token %}
       <div class="form-group">
-        <label class="fw-bold">Date</label>
-        <input type="date" name="date" class="form-control" required value="{{ today|date:'Y-m-d' }}">
+        <label class="fw-bold">Month</label>
+        <input type="month" name="month" class="form-control" required value="{{ today|date:'Y-m' }}">
+      </div>
+      <div class="form-group">
+        <label class="fw-bold">Weekdays</label>
+        <div class="weekday-checkboxes" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="0"> Mon</label>
+          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="1"> Tue</label>
+          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="2"> Wed</label>
+          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="3"> Thu</label>
+          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="4"> Fri</label>
+          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="5"> Sat</label>
+          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="6"> Sun</label>
+        </div>
+        <small class="text-muted">Select one or more days of the week</small>
       </div>
       <div class="form-group">
         <label class="fw-bold">Shift</label>

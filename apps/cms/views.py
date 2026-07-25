@@ -28,7 +28,7 @@ from apps.finalpackage.models import FinalPackage
 from apps.reports.models import ReportConfig
 from apps.reports.report_engine import ReportEngine
 from apps.reports.pdf_utils import render_to_pdf_response
-from apps.hr.models import Shift, DutyRoster, LeaveType, LeaveRequest, LeaveBalance
+from apps.hr.models import Shift, DutyRoster, Attendance, LeaveType, LeaveRequest, LeaveBalance
 
 PLATFORMS = [
     {'key': 'fb', 'label': 'Facebook', 'color': '#3B82F6'},
@@ -2298,22 +2298,38 @@ def roster_save(request):
         return _toast_response('Not Allowed', '', 'error')
     employee_ids = request.POST.getlist('employee_ids')
     shift_id = request.POST.get('shift_id')
-    roster_date = request.POST.get('date')
+    month = request.POST.get('month')
+    weekdays = request.POST.getlist('weekdays')
     note = request.POST.get('note', '')
-    if not employee_ids or not shift_id or not roster_date:
-        return _toast_response('Please select employee, shift and date.', '', 'error')
+    if not employee_ids or not shift_id or not month:
+        return _toast_response('Please select employee, shift and month.', '', 'error')
+    if not weekdays:
+        return _toast_response('Please select at least one weekday.', '', 'error')
     try:
         shift = Shift.objects.get(id=shift_id, is_active=True)
-        roster_date = datetime.strptime(roster_date, '%Y-%m-%d').date()
-    except (Shift.DoesNotExist, ValueError):
-        return _toast_response('Incorrect Data.', '', 'error')
+        year, m = map(int, month.split('-'))
+        import calendar as cal_mod
+        _, last_day = cal_mod.monthrange(year, m)
+        weekdays_int = [int(d) for d in weekdays]
+    except (Shift.DoesNotExist, ValueError, TypeError):
+        return _toast_response('Invalid data.', '', 'error')
+    from datetime import date as dt_date
+    roster_dates = []
+    for day in range(1, last_day + 1):
+        d = dt_date(year, m, day)
+        if d.weekday() in weekdays_int:
+            roster_dates.append(d)
+    created_count = 0
     for emp_id in employee_ids:
-        DutyRoster.objects.update_or_create(
-            employee_id=emp_id,
-            date=roster_date,
-            defaults={'shift': shift, 'note': note, 'assigned_by': request.user},
-        )
-    return _toast_response(f'Saved roster for {len(employee_ids)} people.', reverse('cms:cms-roster'))
+        for d in roster_dates:
+            _, created = DutyRoster.objects.update_or_create(
+                employee_id=emp_id,
+                date=d,
+                defaults={'shift': shift, 'note': note, 'assigned_by': request.user},
+            )
+            if created:
+                created_count += 1
+    return _toast_response(f'Saved {created_count} roster entries for {len(employee_ids)} employee(s).', reverse('cms:cms-roster'))
 
 
 @login_required
@@ -2342,6 +2358,108 @@ def my_roster_tab(request):
         'today': today,
         'user': request.user,
     })
+
+
+# ─── Attendance (Check In / Check Out) ───────────────────────────
+
+@login_required
+def attendance_tab(request):
+    today = timezone.now().date()
+    day_param = request.GET.get('day')
+    if day_param:
+        try:
+            day_date = datetime.strptime(day_param, '%Y-%m-%d').date()
+        except ValueError:
+            day_date = today
+    else:
+        day_date = today
+
+    records = Attendance.objects.filter(date=day_date).select_related('employee', 'shift').order_by('employee__full_name')
+    my_attendance = Attendance.objects.filter(employee=request.user, date=today).first()
+    employees = User.objects.filter(is_active=True).order_by('full_name')
+    prev_day = day_date - timedelta(days=1)
+    next_day = day_date + timedelta(days=1)
+
+    # Monthly summary
+    month_start = day_date.replace(day=1)
+    if day_date.month == 12:
+        month_end = day_date.replace(year=day_date.year + 1, month=1, day=1) - timedelta(days=1)
+    else:
+        month_end = day_date.replace(month=day_date.month + 1, day=1) - timedelta(days=1)
+    monthly = Attendance.objects.filter(
+        employee=request.user,
+        date__gte=month_start,
+        date__lte=month_end,
+    ).order_by('date')
+
+    return _tab_response(request, 'cms/attendance.html', {
+        'day_date': day_date,
+        'day_label': day_date.strftime('%A, %b %d, %Y'),
+        'prev_day': prev_day.isoformat(),
+        'next_day': next_day.isoformat(),
+        'is_today': day_date == today,
+        'records': records,
+        'my_attendance': my_attendance,
+        'employees': employees,
+        'monthly': monthly,
+        'today': today,
+        'STATUS_CHOICES': Attendance.Status.choices,
+    })
+
+
+@login_required
+@require_POST
+def attendance_check_in(request):
+    today = timezone.now().date()
+    now = timezone.now()
+    existing = Attendance.objects.filter(employee=request.user, date=today).first()
+    if existing and existing.check_in:
+        return _toast_response('Already checked in today.', '', 'error')
+    if existing:
+        existing.check_in = now
+        existing.save(update_fields=['check_in'])
+    else:
+        roster = DutyRoster.objects.filter(employee=request.user, date=today).first()
+        Attendance.objects.create(
+            employee=request.user, date=today,
+            check_in=now, shift=roster.shift if roster else None,
+        )
+    return _toast_response('Check-in recorded.', reverse('cms:cms-attendance'))
+
+
+@login_required
+@require_POST
+def attendance_check_out(request):
+    today = timezone.now().date()
+    now = timezone.now()
+    att = Attendance.objects.filter(employee=request.user, date=today).first()
+    if not att:
+        return _toast_response('No check-in found for today.', '', 'error')
+    if att.check_out:
+        return _toast_response('Already checked out today.', '', 'error')
+    att.check_out = now
+    if att.shift:
+        late_threshold = timedelta(minutes=15)
+        scheduled_start = datetime.combine(today, att.shift.start_time)
+        if timezone.is_naive(scheduled_start):
+            scheduled_start = timezone.make_aware(scheduled_start)
+        if att.check_in and att.check_in > scheduled_start + late_threshold:
+            att.status = Attendance.Status.LATE
+    att.save(update_fields=['check_out', 'status'])
+    return _toast_response('Check-out recorded.', reverse('cms:cms-attendance'))
+
+
+@login_required
+@require_POST
+def attendance_admin_checkout(request, pk):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    att = get_object_or_404(Attendance, id=pk)
+    if not att.check_out:
+        att.check_out = timezone.now()
+        att.save(update_fields=['check_out'])
+        return _toast_response(f'Check-out recorded for {att.employee.full_name}.', reverse('cms:cms-attendance'))
+    return _toast_response('Already checked out.', '', 'error')
 
 
 # ─── Shift Management ────────────────────────────────────────────

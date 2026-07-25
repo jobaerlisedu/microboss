@@ -1,0 +1,210 @@
+{% load static %}
+<div class="dash-page-header">
+  <div>
+    <h1 class="dash-title"><i class="bi bi-clock-history" style="color:#3b82f6;"></i> Attendance</h1>
+    <p class="dash-sub">Daily Check-In &amp; Check-Out Tracking</p>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar-row">
+  <div class="d-flex align-items-center gap-2">
+    <a class="btn btn-outline-secondary btn-sm" hx-get="{% url 'cms:cms-attendance' %}?day={{ prev_day }}" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="bi bi-chevron-left"></i>
+    </a>
+    <span class="fw-bold fs-6 px-2">{{ day_label }}</span>
+    <a class="btn btn-outline-secondary btn-sm" hx-get="{% url 'cms:cms-attendance' %}?day={{ next_day }}" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="bi bi-chevron-right"></i>
+    </a>
+    {% if not is_today %}
+      <a class="btn btn-outline-primary btn-sm ms-2" hx-get="{% url 'cms:cms-attendance' %}" hx-target="#tab-content" hx-swap="innerHTML">
+        <i class="bi bi-calendar-check me-1"></i>Today
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row" style="display:flex;gap:24px;flex-wrap:wrap;margin-top:16px;">
+
+  <!-- Check In / Out Card -->
+  <div class="card phoenix-card" style="flex:1;min-width:300px;">
+    <div class="card-body" style="padding:20px;text-align:center;">
+      <h3 class="phoenix-card-title" style="justify-content:center;">
+        <i class="bi bi-person-check-fill" style="color:#22c55e;margin-right:6px;"></i>
+        My Status — {{ today|date:'d M Y' }}
+      </h3>
+      {% if my_attendance %}
+        <div style="margin:20px 0;">
+          <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;">
+            <div>
+              <span class="text-muted small">Check In</span>
+              <div style="font-size:1.5rem;font-weight:700;color:var(--text);">
+                {% if my_attendance.check_in %}{{ my_attendance.check_in|date:'H:i' }}{% else %}--:--{% endif %}
+              </div>
+            </div>
+            <div>
+              <span class="text-muted small">Check Out</span>
+              <div style="font-size:1.5rem;font-weight:700;color:var(--text);">
+                {% if my_attendance.check_out %}{{ my_attendance.check_out|date:'H:i' }}{% else %}--:--{% endif %}
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <span class="badge {% if my_attendance.status == 'present' %}bg-success{% elif my_attendance.status == 'late' %}bg-warning text-dark{% else %}bg-secondary{% endif %}" style="font-size:14px;padding:6px 16px;">
+              {{ my_attendance.get_status_display }}
+            </span>
+            {% if my_attendance.shift %}
+              <span class="badge bg-info ms-2" style="font-size:12px;">{{ my_attendance.shift.name }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;justify-content:center;">
+          {% if not my_attendance.check_in %}
+            <form hx-post="{% url 'cms:cms-attendance-check-in' %}" hx-target="#tab-content" hx-swap="innerHTML">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-success btn-lg" style="min-width:140px;">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Check In
+              </button>
+            </form>
+          {% elif not my_attendance.check_out %}
+            <form hx-post="{% url 'cms:cms-attendance-check-out' %}" hx-target="#tab-content" hx-swap="innerHTML">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-lg" style="min-width:140px;">
+                <i class="bi bi-box-arrow-right me-1"></i> Check Out
+              </button>
+            </form>
+          {% else %}
+            <div class="alert alert-success d-inline-flex align-items-center gap-2" style="margin:0;">
+              <i class="bi bi-check-circle-fill"></i> Completed
+            </div>
+          {% endif %}
+        </div>
+      {% else %}
+        {% if is_today %}
+          <div style="margin:24px 0;">
+            <div style="font-size:3rem;color:var(--text-faint);"><i class="bi bi-clock"></i></div>
+            <p class="text-muted mt-2">You haven't checked in yet today.</p>
+          </div>
+          <form hx-post="{% url 'cms:cms-attendance-check-in' %}" hx-target="#tab-content" hx-swap="innerHTML">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success btn-lg" style="min-width:140px;">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Check In Now
+            </button>
+          </form>
+        {% else %}
+          <div style="margin:24px 0;">
+            <p class="text-muted">No record for this day.</p>
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Today's All Records (Admin) -->
+  {% if user.is_admin and records %}
+  <div class="card phoenix-card" style="flex:2;min-width:400px;">
+    <div class="card-body" style="padding:20px;">
+      <h3 class="phoenix-card-title">
+        <i class="bi bi-people-fill" style="color:#3b82f6;margin-right:6px;"></i>
+        All Records — {{ day_label }}
+      </h3>
+      <div style="margin-top:12px;overflow-x:auto;">
+        <table class="phoenix-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Check In</th>
+              <th>Check Out</th>
+              <th>Status</th>
+              <th>Shift</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in records %}
+            <tr>
+              <td><strong>{{ r.employee.full_name }}</strong></td>
+              <td>{% if r.check_in %}{{ r.check_in|date:'H:i' }}{% else %}<span class="text-muted">--</span>{% endif %}</td>
+              <td>{% if r.check_out %}{{ r.check_out|date:'H:i' }}{% else %}
+                {% if user.is_admin %}
+                <form hx-post="{% url 'cms:cms-attendance-admin-checkout' pk=r.id %}" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+                  {% csrf_token %}
+                  <button class="btn btn-sm btn-outline-danger">Check Out</button>
+                </form>
+                {% else %}
+                <span class="text-muted">--</span>
+                {% endif %}
+              {% endif %}</td>
+              <td>
+                <span class="badge {% if r.status == 'present' %}bg-success{% elif r.status == 'late' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                  {{ r.get_status_display }}
+                </span>
+              </td>
+              <td><small>{{ r.shift.name|default:'—' }}</small></td>
+              <td><small class="text-muted">{{ r.employee.designation|default:'' }}</small></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% elif user.is_admin and is_today %}
+  <div class="card phoenix-card" style="flex:2;min-width:400px;">
+    <div class="card-body" style="padding:20px;text-align:center;">
+      <p class="text-muted">No attendance records for today yet.</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Monthly Summary -->
+<div class="card phoenix-card" style="margin-top:20px;">
+  <div class="card-body" style="padding:20px;">
+    <h3 class="phoenix-card-title">
+      <i class="bi bi-calendar3" style="color:#8b5cf6;margin-right:6px;"></i>
+      My Monthly Summary — {{ day_date|date:'F Y' }}
+    </h3>
+    <div style="margin-top:12px;">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+        <div class="stat-box" style="flex:1;min-width:100px;text-align:center;padding:12px;background:var(--bg-card);border-radius:8px;">
+          <div style="font-size:1.8rem;font-weight:700;color:var(--text);">{{ monthly|length }}</div>
+          <div class="small text-muted">Total Days</div>
+        </div>
+        <div class="stat-box" style="flex:1;min-width:100px;text-align:center;padding:12px;background:#dcfce7;border-radius:8px;">
+          <div style="font-size:1.8rem;font-weight:700;color:#16a34a;">{{ monthly|dictsort:'status'|slice:':100'|length }}</div>
+          <div class="small text-muted">Present</div>
+        </div>
+        <div class="stat-box" style="flex:1;min-width:100px;text-align:center;padding:12px;background:#fef3c7;border-radius:8px;">
+          <div style="font-size:1.8rem;font-weight:700;color:#d97706;">{{ monthly|dictsortreversed:'status'|slice:':100'|length }}</div>
+          <div class="small text-muted">Late</div>
+        </div>
+      </div>
+      {% if monthly %}
+      <div style="overflow-x:auto;">
+        <table class="phoenix-table">
+          <thead>
+            <tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for a in monthly %}
+            <tr>
+              <td>{{ a.date|date:'d M (D)' }}</td>
+              <td>{{ a.check_in|date:'H:i'|default:'--' }}</td>
+              <td>{{ a.check_out|date:'H:i'|default:'--' }}</td>
+              <td>
+                <span class="badge {% if a.status == 'present' %}bg-success{% elif a.status == 'late' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                  {{ a.get_status_display }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted">No attendance records this month.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>

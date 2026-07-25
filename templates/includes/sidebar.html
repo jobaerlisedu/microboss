@@ -74,6 +74,11 @@
 
     <div class="nav-section-label">TEAM MANAGEMENT</div>
 
+    <a class="nav-item tab-btn" data-tab="attendance" title="Attendance" hx-get="{% url 'cms:cms-attendance' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+      <span class="nav-icon"><i class="bi bi-clock-history"></i></span>
+      <span class="nav-text">Attendance</span>
+    </a>
+
     <a class="nav-item tab-btn" data-tab="duty-roster" title="Duty Roster" hx-get="{% url 'cms:cms-roster' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-calendar-week-fill"></i></span>
       <span class="nav-text">Duty Roster</span>
