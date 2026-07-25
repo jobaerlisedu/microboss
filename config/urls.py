@@ -16,7 +16,7 @@ handler404 = 'apps.cms.views.custom_404'
 
 urlpatterns = [
     path('api/v1/schema/', get_schema_view(
-        title='Phoenix CMS API',
+        title='Microboss CMS API',
         description='Enterprise content management API for Channel One',
         version='1.0.0',
         urlconf='config.urls',
