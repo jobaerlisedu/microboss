@@ -2300,19 +2300,34 @@ def roster_save(request):
     shift_id = request.POST.get('shift_id')
     month = request.POST.get('month')
     weekdays = request.POST.getlist('weekdays')
+    all_weekdays = request.POST.get('all_weekdays') == '1'
+    all_shifts = request.POST.get('all_shifts') == '1'
     note = request.POST.get('note', '')
-    if not employee_ids or not shift_id or not month:
-        return _toast_response('Please select employee, shift and month.', '', 'error')
-    if not weekdays:
-        return _toast_response('Please select at least one weekday.', '', 'error')
+    if not employee_ids or not month:
+        return _toast_response('Please select employees and month.', '', 'error')
+    if all_weekdays:
+        weekdays_int = list(range(7))
+    else:
+        if not weekdays:
+            return _toast_response('Please select at least one weekday or enable "All Weekdays".', '', 'error')
+        weekdays_int = [int(d) for d in weekdays]
     try:
-        shift = Shift.objects.get(id=shift_id, is_active=True)
         year, m = map(int, month.split('-'))
         import calendar as cal_mod
         _, last_day = cal_mod.monthrange(year, m)
-        weekdays_int = [int(d) for d in weekdays]
-    except (Shift.DoesNotExist, ValueError, TypeError):
-        return _toast_response('Invalid data.', '', 'error')
+    except (ValueError, TypeError):
+        return _toast_response('Invalid month.', '', 'error')
+    if all_shifts:
+        shifts = Shift.objects.filter(is_active=True)
+        if not shifts.exists():
+            return _toast_response('No active shifts available.', '', 'error')
+    else:
+        if not shift_id:
+            return _toast_response('Please select a shift or enable "All Shifts".', '', 'error')
+        try:
+            shifts = [Shift.objects.get(id=shift_id, is_active=True)]
+        except Shift.DoesNotExist:
+            return _toast_response('Invalid shift.', '', 'error')
     from datetime import date as dt_date
     roster_dates = []
     for day in range(1, last_day + 1):
@@ -2322,14 +2337,20 @@ def roster_save(request):
     created_count = 0
     for emp_id in employee_ids:
         for d in roster_dates:
-            _, created = DutyRoster.objects.update_or_create(
-                employee_id=emp_id,
-                date=d,
-                defaults={'shift': shift, 'note': note, 'assigned_by': request.user},
-            )
-            if created:
-                created_count += 1
-    return _toast_response(f'Saved {created_count} roster entries for {len(employee_ids)} employee(s).', reverse('cms:cms-roster'))
+            for shift in shifts:
+                _, created = DutyRoster.objects.update_or_create(
+                    employee_id=emp_id,
+                    date=d,
+                    shift=shift,
+                    defaults={'note': note, 'assigned_by': request.user},
+                )
+                if created:
+                    created_count += 1
+    shift_label = 'all shifts' if all_shifts else shifts[0].name
+    return _toast_response(
+        f'Saved {created_count} roster entries for {len(employee_ids)} employee(s) across {len(roster_dates)} day(s) — {shift_label}.',
+        reverse('cms:cms-roster'),
+    )
 
 
 @login_required

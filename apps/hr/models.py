@@ -46,7 +46,7 @@ class DutyRoster(models.Model):
     class Meta:
         verbose_name = 'Duty Roster'
         verbose_name_plural = 'Duty Rosters'
-        unique_together = ['employee', 'date']
+        unique_together = ['employee', 'date', 'shift']
         indexes = [
             models.Index(fields=['date', 'shift']),
         ]
