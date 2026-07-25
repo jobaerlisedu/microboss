@@ -2292,6 +2292,45 @@ def roster_tab(request):
 
 
 @login_required
+@require_POST
+def roster_save(request):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    month_param = request.POST.get('month')
+    if not month_param or '-' not in month_param:
+        return _toast_response('Invalid month.', '', 'error')
+    try:
+        year = int(month_param.split('-')[0])
+        month = int(month_param.split('-')[1])
+    except (ValueError, IndexError):
+        return _toast_response('Invalid month format.', '', 'error')
+    import calendar as cal_mod
+    _, last_day = cal_mod.monthrange(year, month)
+    shift_ids = request.POST.getlist('shift_ids')
+    employee_ids = request.POST.getlist('employee_ids')
+    note = request.POST.get('note', '')
+    if not shift_ids or not employee_ids:
+        return _toast_response('Select at least one shift and one employee.', '', 'error')
+    total_created = 0
+    for day in range(1, last_day + 1):
+        d = date(year, month, day)
+        for sid in shift_ids:
+            shift = Shift.objects.filter(id=sid, is_active=True).first()
+            if not shift:
+                continue
+            for eid in employee_ids:
+                DutyRoster.objects.get_or_create(
+                    employee_id=eid, date=d, shift=shift,
+                    defaults={'note': note, 'assigned_by': request.user},
+                )
+                total_created += 1
+    return _toast_response(
+        f'Saved {total_created} roster entries for {month_param}.',
+        reverse('cms:cms-roster') + f'?view=month&year={year}&month={month}',
+    )
+
+
+@login_required
 def roster_day_edit(request):
     if not request.user.is_admin:
         return _toast_response('Not Allowed', '', 'error')
