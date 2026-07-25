@@ -1,0 +1,44 @@
+<div class="modal-overlay" id="dayEditorOverlay" onclick="if(event.target===this)this.remove()">
+  <div class="modal-box" style="max-width:600px;">
+    <div class="modal-header">
+      <h3><i class="bi bi-calendar-day me-1"></i> {{ day_label }}</h3>
+      <button type="button" class="modal-close"
+              onclick="this.closest('.modal-overlay').remove()">&times;</button>
+    </div>
+    <form hx-post="{% url 'cms:cms-roster-day-save' %}" hx-target="#tab-content" hx-swap="innerHTML">
+      {% csrf_token %}
+      <input type="hidden" name="date" value="{{ day_date|date:'Y-m-d' }}">
+      {% for shift in shifts %}
+      <div class="form-group" style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;">
+        <label class="fw-bold" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span class="badge" style="background:{{ forloop.counter0|stringformat:'s'|make_list|first }};">{{ shift.code }}</span>
+          {{ shift.name }}
+          <span class="text-muted small" style="font-weight:normal;">{{ shift.start_time|time:'H:i' }}–{{ shift.end_time|time:'H:i' }}</span>
+        </label>
+        {% with shift_key=shift.id|stringformat:'s' %}
+        <select name="shift_{{ shift_key }}" class="form-select" multiple size="4">
+          {% for e in employees %}
+            {% with emp_key=e.id|stringformat:'s' %}
+            <option value="{{ e.id }}"
+              {% if emp_key in roster_by_shift|get_item:shift_key %}selected{% endif %}>
+              {{ e.full_name }} ({{ e.designation|default:e.username }})
+            </option>
+            {% endwith %}
+          {% endfor %}
+        </select>
+        {% endwith %}
+        <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+      </div>
+      {% endfor %}
+      <div class="form-group">
+        <label class="fw-bold">Note <span class="small text-muted">(Optional)</span></label>
+        <input type="text" name="note" class="form-control" placeholder="Notes for this day">
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost"
+                onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i> Save</button>
+      </div>
+    </form>
+  </div>
+</div>

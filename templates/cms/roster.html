@@ -174,14 +174,17 @@
   {% for week in weeks %}
     {% for day in week %}
       {% if day %}
-        <div class="cal-day{% if day.date == today %} cal-today{% endif %}">
-          <div class="cal-day-header">
+        <div class="cal-day{% if day.date == today %} cal-today{% endif %}"
+             style="cursor:pointer;"
+             hx-get="{% url 'cms:cms-roster-day-edit' %}?date={{ day.date|date:'Y-m-d' }}"
+             hx-target="#dayEditorContainer" hx-swap="innerHTML">
+          <div class="cal-day-header" style="pointer-events:none;">
             <span class="cal-day-num {% if day.date == today %}text-primary{% endif %}" style="font-weight:800;">{{ day.day }}</span>
             {% if day.date == today %}
               <span class="badge bg-primary" style="font-size:9px;">Today</span>
             {% endif %}
           </div>
-          <div class="cal-day-entries">
+          <div class="cal-day-entries" style="pointer-events:none;">
             {% for r in day.rosters %}
               <div class="entry-chip shadow-sm" title="{{ r.employee.full_name }} ({{ r.shift.name }})">
                 <i class="bi bi-person-fill" style="font-size:9px;"></i> {{ r.employee.full_name }} – {{ r.shift.code }}
@@ -200,6 +203,8 @@
 {% endif %}
 
 {% endwith %}
+
+<div id="dayEditorContainer"></div>
 
 {% if user.is_admin %}
 <div class="modal-overlay hidden" id="rosterFormOverlay" onclick="if(event.target===this)this.classList.add('hidden')">

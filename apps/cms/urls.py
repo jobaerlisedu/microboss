@@ -91,7 +91,8 @@ urlpatterns = [
     path('reports/<hexuuid:pk>/pdf/', views.report_export_pdf, name='cms-report-pdf'),
     # ─── Duty Roster ───
     path('roster/', views.roster_tab, name='cms-roster'),
-    path('roster/save/', views.roster_save, name='cms-roster-save'),
+    path('roster/day/edit/', views.roster_day_edit, name='cms-roster-day-edit'),
+    path('roster/day/save/', views.roster_day_save, name='cms-roster-day-save'),
     path('roster/<hexuuid:pk>/delete/', views.roster_delete, name='cms-roster-delete'),
     path('roster/shifts/', views.shift_manage_tab, name='cms-shift-manage'),
     path('roster/shifts/save/', views.shift_save, name='cms-shift-save'),

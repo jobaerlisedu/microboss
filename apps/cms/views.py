@@ -2292,49 +2292,68 @@ def roster_tab(request):
 
 
 @login_required
-@require_POST
-def roster_save(request):
+def roster_day_edit(request):
     if not request.user.is_admin:
         return _toast_response('Not Allowed', '', 'error')
-    employee_ids = request.POST.getlist('employee_ids')
-    shift_ids = request.POST.getlist('shift_ids')
-    month = request.POST.get('month')
-    note = request.POST.get('note', '')
-    if not employee_ids:
-        return _toast_response('Please select employees.', '', 'error')
-    if not shift_ids:
-        return _toast_response('Please select at least one shift.', '', 'error')
-    if not month:
-        return _toast_response('Please select a month.', '', 'error')
+    day_param = request.GET.get('date')
+    if not day_param:
+        return _toast_response('No date provided.', '', 'error')
     try:
-        year, m = map(int, month.split('-'))
-        import calendar as cal_mod
-        _, last_day = cal_mod.monthrange(year, m)
-    except (ValueError, TypeError):
-        return _toast_response('Invalid month.', '', 'error')
-    shifts = Shift.objects.filter(id__in=shift_ids, is_active=True)
-    if not shifts.exists():
-        return _toast_response('No valid active shifts selected.', '', 'error')
-    from datetime import date as dt_date
-    roster_dates = []
-    for day in range(1, last_day + 1):
-        d = dt_date(year, m, day)
-        roster_dates.append(d)
-    created_count = 0
-    for emp_id in employee_ids:
-        for d in roster_dates:
-            for shift in shifts:
-                _, created = DutyRoster.objects.update_or_create(
+        day_date = datetime.strptime(day_param, '%Y-%m-%d').date()
+    except ValueError:
+        return _toast_response('Invalid date.', '', 'error')
+
+    shifts = Shift.objects.filter(is_active=True).order_by('start_time')
+    employees = User.objects.filter(is_active=True).order_by('full_name')
+
+    day_rosters = DutyRoster.objects.filter(date=day_date).select_related('employee', 'shift')
+    from collections import defaultdict
+    roster_by_shift = defaultdict(list)
+    for r in day_rosters:
+        roster_by_shift[str(r.shift_id)].append(str(r.employee_id))
+
+    return render(request, 'cms/roster_day_editor.html', {
+        'day_date': day_date,
+        'day_label': day_date.strftime('%A, %b %d, %Y'),
+        'shifts': shifts,
+        'employees': employees,
+        'roster_by_shift': dict(roster_by_shift),
+    })
+
+
+@login_required
+@require_POST
+def roster_day_save(request):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+    date_param = request.POST.get('date')
+    note = request.POST.get('note', '')
+    if not date_param:
+        return _toast_response('No date provided.', '', 'error')
+    try:
+        day_date = datetime.strptime(date_param, '%Y-%m-%d').date()
+    except ValueError:
+        return _toast_response('Invalid date.', '', 'error')
+
+    shifts = Shift.objects.filter(is_active=True)
+    total_created = 0
+    for shift in shifts:
+        emp_ids = request.POST.getlist(f'shift_{shift.id}')
+        if emp_ids:
+            DutyRoster.objects.filter(date=day_date, shift=shift).delete()
+            for emp_id in emp_ids:
+                DutyRoster.objects.create(
                     employee_id=emp_id,
-                    date=d,
+                    date=day_date,
                     shift=shift,
-                    defaults={'note': note, 'assigned_by': request.user},
+                    note=note,
+                    assigned_by=request.user,
                 )
-                if created:
-                    created_count += 1
+                total_created += 1
+
     return _toast_response(
-        f'Saved {created_count} roster entries for {len(employee_ids)} employee(s) across {len(roster_dates)} day(s) × {len(shifts)} shift(s).',
-        reverse('cms:cms-roster'),
+        f'Saved {total_created} roster entries for {day_date}.',
+        reverse('cms:cms-roster') + f'?view=month&year={day_date.year}&month={day_date.month}',
     )
 
 
