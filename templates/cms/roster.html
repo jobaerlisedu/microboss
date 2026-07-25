@@ -216,36 +216,27 @@
       </div>
       <div class="form-group">
         <label class="fw-bold">Weekdays</label>
-        <div class="weekday-checkboxes" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
-          <label class="wd-checkbox" style="width:100%;margin-bottom:2px;">
-            <input type="checkbox" id="allWeekdaysToggle" onchange="toggleAllWeekdays(this)">
-            <strong>All Weekdays</strong>
-          </label>
-          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="0" class="wd-input"> Mon</label>
-          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="1" class="wd-input"> Tue</label>
-          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="2" class="wd-input"> Wed</label>
-          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="3" class="wd-input"> Thu</label>
-          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="4" class="wd-input"> Fri</label>
-          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="5" class="wd-input"> Sat</label>
-          <label class="wd-checkbox"><input type="checkbox" name="weekdays" value="6" class="wd-input"> Sun</label>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:10px;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="badge bg-secondary">Mon</span>
+            <span class="badge bg-secondary">Tue</span>
+            <span class="badge bg-secondary">Wed</span>
+            <span class="badge bg-secondary">Thu</span>
+            <span class="badge bg-secondary">Fri</span>
+            <span class="badge bg-secondary">Sat</span>
+            <span class="badge bg-secondary">Sun</span>
+          </div>
+          <small class="text-muted mt-1" style="display:block;">All 7 days will be assigned automatically</small>
         </div>
-        <small class="text-muted">Select one or more days, or use "All Weekdays"</small>
       </div>
       <div class="form-group">
-        <label class="fw-bold">Shift</label>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;">
-          <label>
-            <input type="checkbox" name="all_shifts" value="1" id="allShiftsToggle" onchange="toggleAllShifts(this)">
-            <strong>All Shifts</strong>
-          </label>
-          <span class="text-muted small">(assign to every active shift)</span>
-        </div>
-        <select name="shift_id" class="form-select" id="shiftSelect">
-          <option value="">— Select Shift —</option>
+        <label class="fw-bold">Shifts <span class="small text-muted">(Multi-select)</span></label>
+        <select name="shift_ids" class="form-select" multiple required size="5">
           {% for s in shifts %}
             <option value="{{ s.id }}">{{ s.name }} ({{ s.code }}: {{ s.start_time|time:'H:i' }}–{{ s.end_time|time:'H:i' }})</option>
           {% endfor %}
         </select>
+        <small class="text-muted">Hold Ctrl (or Cmd) to select multiple shifts</small>
       </div>
       <div class="form-group">
         <label class="fw-bold">Employees <span class="small text-muted">(Multi-select)</span></label>
@@ -265,25 +256,6 @@
         <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i> Save Roster</button>
       </div>
     </form>
-    <script>
-    function toggleAllWeekdays(cb) {
-      document.querySelectorAll('.wd-input').forEach(function(el) {
-        el.checked = cb.checked;
-      });
-    }
-    function toggleAllShifts(cb) {
-      document.getElementById('shiftSelect').disabled = cb.checked;
-      if (cb.checked) document.getElementById('shiftSelect').value = '';
-    }
-    // Reset form when modal opens
-    document.getElementById('rosterFormOverlay').addEventListener('click', function(e) {
-      if (e.target === this) {
-        document.getElementById('allWeekdaysToggle').checked = false;
-        document.getElementById('allShiftsToggle').checked = false;
-        document.getElementById('shiftSelect').disabled = false;
-      }
-    });
-    </script>
   </div>
 </div>
 {% endif %}

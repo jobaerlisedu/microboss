@@ -2297,43 +2297,29 @@ def roster_save(request):
     if not request.user.is_admin:
         return _toast_response('Not Allowed', '', 'error')
     employee_ids = request.POST.getlist('employee_ids')
-    shift_id = request.POST.get('shift_id')
+    shift_ids = request.POST.getlist('shift_ids')
     month = request.POST.get('month')
-    weekdays = request.POST.getlist('weekdays')
-    all_weekdays = request.POST.get('all_weekdays') == '1'
-    all_shifts = request.POST.get('all_shifts') == '1'
     note = request.POST.get('note', '')
-    if not employee_ids or not month:
-        return _toast_response('Please select employees and month.', '', 'error')
-    if all_weekdays:
-        weekdays_int = list(range(7))
-    else:
-        if not weekdays:
-            return _toast_response('Please select at least one weekday or enable "All Weekdays".', '', 'error')
-        weekdays_int = [int(d) for d in weekdays]
+    if not employee_ids:
+        return _toast_response('Please select employees.', '', 'error')
+    if not shift_ids:
+        return _toast_response('Please select at least one shift.', '', 'error')
+    if not month:
+        return _toast_response('Please select a month.', '', 'error')
     try:
         year, m = map(int, month.split('-'))
         import calendar as cal_mod
         _, last_day = cal_mod.monthrange(year, m)
     except (ValueError, TypeError):
         return _toast_response('Invalid month.', '', 'error')
-    if all_shifts:
-        shifts = Shift.objects.filter(is_active=True)
-        if not shifts.exists():
-            return _toast_response('No active shifts available.', '', 'error')
-    else:
-        if not shift_id:
-            return _toast_response('Please select a shift or enable "All Shifts".', '', 'error')
-        try:
-            shifts = [Shift.objects.get(id=shift_id, is_active=True)]
-        except Shift.DoesNotExist:
-            return _toast_response('Invalid shift.', '', 'error')
+    shifts = Shift.objects.filter(id__in=shift_ids, is_active=True)
+    if not shifts.exists():
+        return _toast_response('No valid active shifts selected.', '', 'error')
     from datetime import date as dt_date
     roster_dates = []
     for day in range(1, last_day + 1):
         d = dt_date(year, m, day)
-        if d.weekday() in weekdays_int:
-            roster_dates.append(d)
+        roster_dates.append(d)
     created_count = 0
     for emp_id in employee_ids:
         for d in roster_dates:
@@ -2346,9 +2332,8 @@ def roster_save(request):
                 )
                 if created:
                     created_count += 1
-    shift_label = 'all shifts' if all_shifts else shifts[0].name
     return _toast_response(
-        f'Saved {created_count} roster entries for {len(employee_ids)} employee(s) across {len(roster_dates)} day(s) — {shift_label}.',
+        f'Saved {created_count} roster entries for {len(employee_ids)} employee(s) across {len(roster_dates)} day(s) × {len(shifts)} shift(s).',
         reverse('cms:cms-roster'),
     )
 
