@@ -3,6 +3,13 @@
 import os
 import sys
 
+# Use PyMySQL as MySQL driver (avoids native library issues on cPanel)
+try:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    pass
+
 
 def main():
     """Run administrative tasks."""
