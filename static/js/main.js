@@ -270,31 +270,6 @@
 
   });
 
-  // ─── Theme ───
-  (function() {
-    var saved = localStorage.getItem('phoenix-theme');
-    if (saved === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      var btn = document.getElementById('themeToggle');
-      if (btn) btn.querySelector('i').className = 'bi bi-sun-fill';
-    }
-  })();
-
-  window.toggleTheme = function() {
-    var html = document.documentElement;
-    var btn = document.getElementById('themeToggle');
-    var isDark = html.getAttribute('data-theme') === 'dark';
-    if (isDark) {
-      html.removeAttribute('data-theme');
-      localStorage.setItem('phoenix-theme', 'light');
-      if (btn) btn.querySelector('i').className = 'bi bi-moon-fill';
-    } else {
-      html.setAttribute('data-theme', 'dark');
-      localStorage.setItem('phoenix-theme', 'dark');
-      if (btn) btn.querySelector('i').className = 'bi bi-sun-fill';
-    }
-  };
-
   // ─── Confetti / Celebration ───
   window.closeCongrats = function() {
     var m = document.getElementById('congratsModal');

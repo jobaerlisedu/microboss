@@ -108,7 +108,7 @@ textarea {
   left: 0;
   z-index: 100;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
 }
 
 .app-layout:has(.sidebar.collapsed) {
@@ -597,6 +597,7 @@ textarea {
   padding: 24px 28px 80px;
   flex: 1;
   background: var(--bg);
+  transition: background 0.3s;
 }
 
 /* DASHBOARD HEADER & KPI PILLS */
@@ -698,6 +699,7 @@ textarea {
   border-radius: var(--radius-lg);
   padding: 20px;
   box-shadow: var(--shadow);
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 
 .card {
@@ -708,6 +710,7 @@ textarea {
   padding: 20px;
   overflow: hidden;
   margin-bottom: 20px;
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 
 .card-header {
@@ -1161,6 +1164,7 @@ textarea {
   border: 1px solid var(--border);
   padding: 14px 18px;
   border-radius: var(--radius-md);
+  transition: background 0.3s, border-color 0.3s;
 }
 
 .toolbar-grid input,
@@ -2086,18 +2090,6 @@ td .row-actions {
 
 .congrats-modal.hidden {
   display: none;
-}
-
-/* ─── THEME SYSTEM ─── */
-[data-theme="light"] {
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --surface-2: #f1f5f9;
-  --text: #0f172a;
-  --text-soft: #64748b;
-  --text-faint: #94a3b8;
-  --border: #e2e8f0;
-  --shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.08);
 }
 
 /* ─── EXECUTIVE DASHBOARD KPI GRID ─── */
