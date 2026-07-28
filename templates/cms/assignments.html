@@ -1,4 +1,3 @@
-{% if page == 1 %}
 <div class="kpi-pills-row">
   <div class="kpi-pill">
     <div class="kpi-icon" style="background:rgba(59, 130, 246, 0.15);color:#3b82f6;"><i class="bi bi-pin-angle-fill"></i></div>
@@ -47,7 +46,7 @@
     <div class="form-grid">
       <div class="field">
         <label for="assignDateInput">Assign Date *</label>
-        <input id="assignDateInput" type="date" name="assign_date" value="{% if edit_assignment %}{{ edit_assignment.assign_date|date:'Y-m-d' }}{% else %}{{ today }}{% endif %}" required>
+        <input id="assignDateInput" type="date" name="assign_date" value="{% if edit_assignment %}{{ edit_assignment.assign_date|date:'Y-m-d' }}{% else %}{{ day_date|date:'Y-m-d' }}{% endif %}" required>
       </div>
       <div class="field">
         <label>Assignment Creator</label>
@@ -88,10 +87,26 @@
 <div class="card phoenix-card">
   <div class="card-header-flex" style="margin-bottom: 18px;">
     <div>
-      <h3 class="phoenix-card-title"><i class="bi bi-list-task" style="color:#3b82f6;margin-right:6px;"></i> Assignments List</h3>
-      <p class="phoenix-card-sub">Track active and completed story assignments</p>
+      <h3 class="phoenix-card-title"><i class="bi bi-list-task" style="color:#3b82f6;margin-right:6px;"></i> Assignments — {{ day_date|date:'d M Y' }}</h3>
+      <p class="phoenix-card-sub">{{ assignments|length }} assignment{{ assignments|length|pluralize }} for this date</p>
     </div>
-    <a class="btn btn-ghost btn-sm" href="{% url 'cms:cms-assignments' %}?export=csv" target="_blank"><i class="bi bi-download"></i> CSV</a>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button class="btn btn-sm btn-ghost tab-btn" data-tab="assignment"
+        hx-get="{% url 'cms:cms-assignments' %}?day={{ prev_day }}"
+        hx-target="#tab-content" hx-swap="innerHTML"
+        {% if is_today %}disabled{% endif %}
+        title="Previous day">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <span style="font-size:12px;font-weight:600;color:var(--text-soft);min-width:60px;text-align:center;">{{ day_date|date:'d M' }}</span>
+      <button class="btn btn-sm btn-ghost tab-btn" data-tab="assignment"
+        hx-get="{% url 'cms:cms-assignments' %}?day={{ next_day }}"
+        hx-target="#tab-content" hx-swap="innerHTML"
+        title="Next day">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+      <a class="btn btn-ghost btn-sm" href="{% url 'cms:cms-assignments' %}?export=csv" target="_blank" style="margin-left:4px;"><i class="bi bi-download"></i> CSV</a>
+    </div>
   </div>
 
   <div class="table-responsive">
@@ -99,7 +114,6 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>DATE</th>
           <th>CAPTION</th>
           <th>DISTRICT</th>
           <th>SOCIAL MANAGER</th>
@@ -109,11 +123,9 @@
         </tr>
       </thead>
       <tbody id="assignmentsBody">
-{% endif %}
         {% for a in assignments %}
         <tr>
-          <td>{{ forloop.counter0|add:start_index }}</td>
-          <td>{{ a.assign_date|date:"Y-m-d" }}</td>
+          <td>{{ forloop.counter }}</td>
           <td><strong>{{ a.caption }}</strong></td>
           <td>{{ a.district|default:'—' }}</td>
           <td>{{ a.reporter_user.full_name|default:a.reporter_user.username|default:'—' }}</td>
@@ -150,18 +162,9 @@
           </div></td>
         </tr>
         {% empty %}
-        {% if page == 1 %}<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-faint);">No assignments found</td></tr>{% endif %}
+        <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-faint);">No assignments for this date</td></tr>
         {% endfor %}
-        {% if has_more %}
-        <tr id="asSentinel" hx-get="{% url 'cms:cms-assignments' %}?page={{ page|add:1 }}" hx-target="#assignmentsBody" hx-swap="beforeend" hx-trigger="intersect once" hx-on::before-request="var el=document.getElementById('asSentinel');if(el)el.remove()">
-          <td colspan="8" style="text-align:center;padding:12px;color:var(--text-faint);font-size:13px;">Loading more...</td>
-        </tr>
-        {% endif %}
-{% if page == 1 %}
       </tbody>
     </table>
   </div>
 </div>
-
-<div id="modalContainer"></div>
-{% endif %}

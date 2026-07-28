@@ -412,7 +412,15 @@ def content_list_tab(request):
 @login_required
 def assignments_tab(request):
     today = timezone.now().date()
-    qs = Assignment.objects.filter(deleted_at__isnull=True).select_related('member', 'reporter_user')
+    day_param = request.GET.get('day')
+    if day_param:
+        try:
+            day_date = datetime.strptime(day_param, '%Y-%m-%d').date()
+        except ValueError:
+            day_date = today
+    else:
+        day_date = today
+
     stats_qs = Assignment.objects.filter(deleted_at__isnull=True)
     now = timezone.now()
     active_users = User.objects.filter(is_active=True).order_by('full_name')
@@ -435,35 +443,29 @@ def assignments_tab(request):
             rows,
         )
 
-    try:
-        page = max(1, int(request.GET.get('page', 1)))
-    except (ValueError, TypeError):
-        page = 1
-    page_size = 20
-    offset = (page - 1) * page_size
-    assignments_list = list(qs.order_by('-assign_date', '-created_at')[offset:offset + page_size + 1])
-    has_more = len(assignments_list) > page_size
-    if has_more:
-        assignments_list = assignments_list[:page_size]
+    assignments_list = Assignment.objects.filter(
+        deleted_at__isnull=True, assign_date=day_date
+    ).select_related('member', 'reporter_user').order_by('-created_at')
+
+    prev_day = day_date - timedelta(days=1)
+    next_day = day_date + timedelta(days=1)
 
     ctx = {
         'assignments': assignments_list,
+        'day_date': day_date,
+        'prev_day': prev_day.isoformat(),
+        'next_day': next_day.isoformat(),
+        'is_today': day_date == today,
         'today': today,
         'user': request.user,
         'active_users': active_users,
-        'page': page,
-        'has_more': has_more,
-        'start_index': offset + 1,
-    }
-
-    if page == 1:
-        stats = {
+        'stats': {
             'total': stats_qs.count(),
             'today': stats_qs.filter(assign_date=today).count(),
             'this_month': stats_qs.filter(assign_date__year=now.year, assign_date__month=now.month).count(),
             'done': stats_qs.filter(status='Done').count(),
-        }
-        ctx['stats'] = stats
+        },
+    }
 
     return _tab_response(request, 'cms/assignments.html', ctx)
 
@@ -1221,16 +1223,21 @@ def edit_assignment(request, pk):
         'this_month': stats_qs.filter(assign_date__year=now.year, assign_date__month=now.month).count(),
         'done': stats_qs.filter(status='Done').count(),
     }
+    prev_day = today - timedelta(days=1)
+    next_day = today + timedelta(days=1)
     return _tab_response(request, 'cms/assignments.html', {
-        'assignments': qs.order_by('-assign_date', '-created_at')[:20],
+        'assignments': Assignment.objects.filter(
+            deleted_at__isnull=True, assign_date=today
+        ).select_related('member', 'reporter_user').order_by('-created_at'),
         'edit_assignment': assignment,
         'stats': stats,
+        'day_date': today,
+        'prev_day': prev_day.isoformat(),
+        'next_day': next_day.isoformat(),
+        'is_today': True,
         'today': today,
         'user': request.user,
         'active_users': active_users,
-        'page': 1,
-        'has_more': False,
-        'start_index': 1,
     })
 
 
