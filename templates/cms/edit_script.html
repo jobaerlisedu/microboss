@@ -6,7 +6,7 @@
     </div>
   </div>
 
-  <form method="post" action="{% url 'cms:cms-save-script' %}" hx-post="{% url 'cms:cms-save-script' %}" hx-target="#tab-content" hx-swap="innerHTML">
+  <form id="scriptForm" method="post" action="{% url 'cms:cms-save-script' %}" hx-post="{% url 'cms:cms-save-script' %}" hx-target="#tab-content" hx-swap="innerHTML">
     {% csrf_token %}
     <input type="hidden" name="script_id" value="{{ script.id }}">
     <div class="form-grid">
@@ -78,7 +78,19 @@
     <div class="form-grid" style="margin-top:14px;">
       <div class="field full">
         <label>Script Content</label>
-        <textarea name="body" rows="10" class="script-content" style="resize:vertical;">{{ script.body|default:'' }}</textarea>
+        <div class="editor-toolbar" id="editorToolbar">
+          <button type="button" data-cmd="bold" title="Bold"><i class="bi bi-type-bold"></i></button>
+          <button type="button" data-cmd="italic" title="Italic"><i class="bi bi-type-italic"></i></button>
+          <button type="button" data-cmd="underline" title="Underline"><i class="bi bi-type-underline"></i></button>
+          <span class="sep"></span>
+          <button type="button" data-cmd="formatBlock" data-val="h2" title="Heading 2"><i class="bi bi-heading"></i></button>
+          <button type="button" data-cmd="formatBlock" data-val="h3" title="Heading 3"><i class="bi bi-heading-h3"></i></button>
+          <span class="sep"></span>
+          <button type="button" data-cmd="insertUnorderedList" title="Bullet list"><i class="bi bi-list-ul"></i></button>
+          <button type="button" data-cmd="insertOrderedList" title="Numbered list"><i class="bi bi-list-ol"></i></button>
+        </div>
+        <div class="editor-content script-content" id="scriptEditor" contenteditable="true">{{ script.body|default:''|safe }}</div>
+        <input type="hidden" name="body" id="bodyInput" value="{{ script.body|default:'' }}">
       </div>
     </div>
 

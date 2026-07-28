@@ -6,7 +6,7 @@
     </div>
   </div>
 
-  <form method="post" action="{% url 'cms:cms-save-script' %}" hx-post="{% url 'cms:cms-save-script' %}" hx-target="#tab-content" hx-swap="innerHTML">
+  <form id="scriptForm" method="post" action="{% url 'cms:cms-save-script' %}" hx-post="{% url 'cms:cms-save-script' %}" hx-target="#tab-content" hx-swap="innerHTML">
     {% csrf_token %}
     <div class="form-grid">
       <div class="field full">
@@ -82,7 +82,19 @@
     <div class="form-grid" style="margin-top:14px;">
       <div class="field full">
         <label>Script Content</label>
-        <textarea name="body" rows="8" class="script-content" placeholder="Write script content here..."></textarea>
+        <div class="editor-toolbar" id="editorToolbar">
+          <button type="button" data-cmd="bold" title="Bold"><i class="bi bi-type-bold"></i></button>
+          <button type="button" data-cmd="italic" title="Italic"><i class="bi bi-type-italic"></i></button>
+          <button type="button" data-cmd="underline" title="Underline"><i class="bi bi-type-underline"></i></button>
+          <span class="sep"></span>
+          <button type="button" data-cmd="formatBlock" data-val="h2" title="Heading 2"><i class="bi bi-heading"></i></button>
+          <button type="button" data-cmd="formatBlock" data-val="h3" title="Heading 3"><i class="bi bi-heading-h3"></i></button>
+          <span class="sep"></span>
+          <button type="button" data-cmd="insertUnorderedList" title="Bullet list"><i class="bi bi-list-ul"></i></button>
+          <button type="button" data-cmd="insertOrderedList" title="Numbered list"><i class="bi bi-list-ol"></i></button>
+        </div>
+        <div class="editor-content script-content" id="scriptEditor" contenteditable="true"></div>
+        <input type="hidden" name="body" id="bodyInput" value="">
       </div>
     </div>
     <div class="form-actions" style="margin-top:20px;">
@@ -91,3 +103,29 @@
     </div>
   </form>
 </div>
+
+<script>
+(function(){
+  var editor = document.getElementById('scriptEditor');
+  var input = document.getElementById('bodyInput');
+  var toolbar = document.getElementById('editorToolbar');
+  var form = document.getElementById('scriptForm') || editor.closest('form');
+
+  toolbar.addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-cmd]');
+    if (!btn) return;
+    e.preventDefault();
+    var cmd = btn.getAttribute('data-cmd');
+    var val = btn.getAttribute('data-val') || null;
+    document.execCommand(cmd, false, val);
+    editor.focus();
+  });
+
+  form.addEventListener('htmx:configRequest', function() {
+    input.value = editor.innerHTML;
+  });
+  form.addEventListener('submit', function() {
+    input.value = editor.innerHTML;
+  });
+})();
+</script>
