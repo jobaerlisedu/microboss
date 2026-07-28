@@ -1,0 +1,231 @@
+{% load common_filters %}
+<div class="card phoenix-card" style="margin-bottom:20px;">
+  <div class="card-header-flex" style="margin-bottom:16px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-trash-fill" style="color:#ef4444;margin-right:6px;"></i> Deleted Data</h3>
+      <p class="phoenix-card-sub">Backup of content removed from social media &mdash; {{ count }} record{{ count|pluralize }} found in last {{ days }} days</p>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:6px;">
+      {% for d in days_options %}
+      <a class="btn btn-sm {% if days == d %}btn-primary{% else %}btn-ghost{% endif %}" href="#" hx-get="{% url 'cms:cms-deleted-data' %}?module={{ module }}&amp;days={{ d }}" hx-target="#tab-content" hx-swap="innerHTML">{{ d }} days</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:10px;">
+    {% for key, label, icon in module_map %}
+    <button class="btn btn-sm {% if module == key %}btn-primary{% else %}btn-ghost{% endif %}" hx-get="{% url 'cms:cms-deleted-data' %}?module={{ key }}&amp;days={{ days }}" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="{{ icon }}"></i> {{ label }} <span style="opacity:0.7;font-weight:400;">({{ totals|get_item:key }})</span>
+    </button>
+    {% endfor %}
+  </div>
+
+  {% if module == 'entries' %}
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">DELETED</th>
+          <th style="width:90px;">DATE</th>
+          <th>HEADLINE</th>
+          <th style="width:120px;">MEMBER</th>
+          <th style="width:60px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in items %}
+        <tr>
+          <td style="font-size:11px;color:var(--text-soft);">{{ e.deleted_at|date:"M d" }}</td>
+          <td>{{ e.entry_date|date:"Y-m-d" }}</td>
+          <td>
+            <strong style="color:var(--text);font-size:12.5px;">{{ e.headline|truncatechars:60 }}</strong>
+            <div style="font-size:11px;color:#ef4444;font-family:monospace;">{{ e.slug }}</div>
+          </td>
+          <td>{{ e.member.username }}</td>
+          <td>
+            <form method="post" action="{% url 'cms:cms-restore-deleted' %}" hx-post="{% url 'cms:cms-restore-deleted' %}" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="model" value="entry">
+              <input type="hidden" name="id" value="{{ e.id }}">
+              <button class="icon-mini" title="Restore"><i class="bi bi-arrow-counterclockwise" style="color:#22c55e;"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No deleted uploads found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif module == 'contentlist' %}
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">DELETED</th>
+          <th style="width:90px;">DATE</th>
+          <th>CONTENT</th>
+          <th style="width:120px;">MEMBER</th>
+          <th style="width:60px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td style="font-size:11px;color:var(--text-soft);">{{ item.deleted_at|date:"M d" }}</td>
+          <td>{{ item.list_date|date:"Y-m-d" }}</td>
+          <td><strong style="color:var(--text);font-size:12.5px;">{{ item.content|truncatechars:60 }}</strong></td>
+          <td>{{ item.member.username }}</td>
+          <td>
+            <form method="post" action="{% url 'cms:cms-restore-deleted' %}" hx-post="{% url 'cms:cms-restore-deleted' %}" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="model" value="contentlist">
+              <input type="hidden" name="id" value="{{ item.id }}">
+              <button class="icon-mini" title="Restore"><i class="bi bi-arrow-counterclockwise" style="color:#22c55e;"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No deleted content sources found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif module == 'scripts' %}
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">DELETED</th>
+          <th>HEADLINE</th>
+          <th style="width:120px;">WRITER</th>
+          <th style="width:60px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td style="font-size:11px;color:var(--text-soft);">{{ item.deleted_at|date:"M d" }}</td>
+          <td><strong style="color:var(--text);font-size:12.5px;">{{ item.headline|truncatechars:60 }}</strong></td>
+          <td>{{ item.writer.username }}</td>
+          <td>
+            <form method="post" action="{% url 'cms:cms-restore-deleted' %}" hx-post="{% url 'cms:cms-restore-deleted' %}" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="model" value="script">
+              <input type="hidden" name="id" value="{{ item.id }}">
+              <button class="icon-mini" title="Restore"><i class="bi bi-arrow-counterclockwise" style="color:#22c55e;"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-faint);">No deleted scripts found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif module == 'audio' %}
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">DELETED</th>
+          <th>FILE</th>
+          <th style="width:120px;">MEMBER</th>
+          <th style="width:60px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td style="font-size:11px;color:var(--text-soft);">{{ item.deleted_at|date:"M d" }}</td>
+          <td><strong style="color:var(--text);font-size:12.5px;">{{ item.file|default:item.id|truncatechars:60 }}</strong></td>
+          <td>{{ item.member.username }}</td>
+          <td>
+            <form method="post" action="{% url 'cms:cms-restore-deleted' %}" hx-post="{% url 'cms:cms-restore-deleted' %}" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="model" value="audio">
+              <input type="hidden" name="id" value="{{ item.id }}">
+              <button class="icon-mini" title="Restore"><i class="bi bi-arrow-counterclockwise" style="color:#22c55e;"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-faint);">No deleted media files found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif module == 'finalpackage' %}
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">DELETED</th>
+          <th>TITLE</th>
+          <th style="width:120px;">MEMBER</th>
+          <th style="width:60px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td style="font-size:11px;color:var(--text-soft);">{{ item.deleted_at|date:"M d" }}</td>
+          <td><strong style="color:var(--text);font-size:12.5px;">{{ item.title|default:item.id|truncatechars:60 }}</strong></td>
+          <td>{{ item.member.username }}</td>
+          <td>
+            <form method="post" action="{% url 'cms:cms-restore-deleted' %}" hx-post="{% url 'cms:cms-restore-deleted' %}" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="model" value="finalpackage">
+              <input type="hidden" name="id" value="{{ item.id }}">
+              <button class="icon-mini" title="Restore"><i class="bi bi-arrow-counterclockwise" style="color:#22c55e;"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-faint);">No deleted packages found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif module == 'assignments' %}
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">DELETED</th>
+          <th>CAPTION</th>
+          <th style="width:120px;">REPORTER</th>
+          <th style="width:60px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td style="font-size:11px;color:var(--text-soft);">{{ item.deleted_at|date:"M d" }}</td>
+          <td><strong style="color:var(--text);font-size:12.5px;">{{ item.caption|default:item.id|truncatechars:60 }}</strong></td>
+          <td>{{ item.reporter }}</td>
+          <td>
+            <form method="post" action="{% url 'cms:cms-restore-deleted' %}" hx-post="{% url 'cms:cms-restore-deleted' %}" hx-target="#tab-content" hx-swap="innerHTML" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="model" value="assignment">
+              <input type="hidden" name="id" value="{{ item.id }}">
+              <button class="icon-mini" title="Restore"><i class="bi bi-arrow-counterclockwise" style="color:#22c55e;"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-faint);">No deleted assignments found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>

@@ -247,10 +247,7 @@
 
     {% if registered %}
     <div class="success-box">Your registration has been submitted. You can log in after admin approval.</div>
-    <div style="text-align:center;margin-top:12px;">
-      <button class="btn-auth-submit" onclick="showLogin()">Back to Login</button>
-    </div>
-    {% else %}
+    {% endif %}
 
     <div class="auth-toggle">
       <button id="loginTabBtn" class="active" onclick="showLogin()">Login</button>
@@ -366,7 +363,6 @@
         <p style="text-align:center;font-size:11px;color:#94a3b8;margin:12px 0 0;">Please await admin approval after registering.</p>
       </form>
     </div>
-    {% endif %}
   </div>
 </div>
 
@@ -386,6 +382,10 @@ function showRegister(){
 const registerErrorStr = "{{ register_error|escapejs }}";
 if (registerErrorStr) {
   showRegister();
+}
+const justRegistered = {{ registered|yesno:"true,false" }};
+if (justRegistered) {
+  showLogin();
 }
 </script>
 </body>

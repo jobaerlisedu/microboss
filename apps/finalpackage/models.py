@@ -43,6 +43,7 @@ class FinalPackage(BaseModel):
     class Meta:
         verbose_name = 'The Final Package'
         verbose_name_plural = 'Final Packages'
+        ordering = ['-package_date', '-created_at']
         indexes = [
             models.Index(fields=['package_date']),
             models.Index(fields=['status']),

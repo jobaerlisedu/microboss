@@ -25,6 +25,17 @@
   --sidebar-w: 240px;
 }
 
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-2: #334155;
+  --text: #f1f5f9;
+  --text-soft: #94a3b8;
+  --text-faint: #64748b;
+  --border: #334155;
+  --shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.3);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -43,6 +54,7 @@ body {
   background: var(--bg);
   min-height: 100vh;
   position: relative;
+  transition: background 0.3s, color 0.3s;
 }
 
 h1,
@@ -694,6 +706,21 @@ textarea {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   padding: 20px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.card-header {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-body {
+  padding: 18px;
 }
 
 .grid-total-sells {
@@ -1362,11 +1389,6 @@ textarea {
   overflow-y: auto;
 }
 
-.btn-sm {
-  padding: 6px 14px;
-  font-size: 12px;
-}
-
 /* RESPONSIVE BREAKPOINTS */
 @media(max-width: 1100px) {
   .phoenix-dash-grid {
@@ -1914,17 +1936,6 @@ td .row-actions {
 .icon-mini:hover {
   background: var(--surface-2);
   color: var(--text);
-}
-
-/* ─── BUTTON DANGER ─── */
-.btn-danger {
-  background: #ef4444;
-  color: #ffffff;
-  border: none;
-}
-
-.btn-danger:hover {
-  background: #dc2626;
 }
 
 /* ─── STATUS PILL VARIANTS ─── */
@@ -2765,28 +2776,7 @@ td .row-actions {
   color: #ef4444 !important;
 }
 
-/* Card and Table utilities */
-.card {
-  background: var(--surface, #ffffff);
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 20px;
-}
-
-.card-header {
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border, #e5e7eb);
-  background: var(--surface-2, #f9fafb);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card-body {
-  padding: 18px;
-}
-
+/* Table and utility classes for roster/leave */
 .card-body.p-0 {
   padding: 0 !important;
 }
@@ -2798,22 +2788,22 @@ td .row-actions {
 }
 
 .table th {
-  background: var(--surface-2, #f9fafb);
-  color: var(--text-soft, #4b5563);
+  background: var(--surface-2);
+  color: var(--text-soft);
   font-weight: 700;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 10px 14px;
-  border-bottom: 1px solid var(--border, #e5e7eb);
+  border-bottom: 1px solid var(--border);
   text-align: left;
 }
 
 .table td {
   padding: 12px 14px;
-  border-bottom: 1px solid var(--border, #e5e7eb);
+  border-bottom: 1px solid var(--border);
   vertical-align: middle;
-  color: var(--text, #1f2937);
+  color: var(--text);
 }
 
 .table-hover tr:hover td {
@@ -2942,8 +2932,6 @@ td .row-actions {
 .border { border: 1px solid var(--border) !important; }
 .border-bottom { border-bottom: 1px solid var(--border) !important; }
 .shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,0.07) !important; }
-.table-responsive { overflow-x: auto; }
-
 /* Button size variants */
 .btn-sm {
   padding: 6px 14px;
@@ -3149,6 +3137,14 @@ td .row-actions {
   border-radius: 999px;
 }
 .btn-danger:hover { opacity: 0.88; }
+
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--text-soft);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.btn-secondary:hover { background: var(--border); }
 
 .btn-outline-success {
   background: transparent;

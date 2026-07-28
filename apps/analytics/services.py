@@ -14,7 +14,7 @@ from apps.audit.models import AuditLog
 
 
 ALIGNMENT_DAYS = 7
-PLATFORM_KEYS = ['fb', 'yt', 'ig', 'threads', 'tt', 'linkedin', 'bsky', 'dm', 'reddit']
+PLATFORM_KEYS = ['fb', 'yt', 'ig', 'tt', 'linkedin', 'threads', 'bsky', 'dm', 'reddit']
 PLATFORM_LABELS = {
     'fb': 'Facebook', 'yt': 'YouTube', 'ig': 'Instagram',
     'threads': 'Threads', 'tt': 'TikTok', 'linkedin': 'LinkedIn',

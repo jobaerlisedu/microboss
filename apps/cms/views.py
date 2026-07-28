@@ -16,7 +16,7 @@ from django.db.models import Count, Q, Sum
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from apps.accounts.models import User, UserSession
-from apps.content.models import ContentEntry
+from apps.content.models import ContentEntry, ContentDeletion
 from apps.sponsors.models import Sponsor
 from apps.contentlist.models import ContentListItem
 from apps.assignments.models import Assignment
@@ -34,9 +34,9 @@ PLATFORMS = [
     {'key': 'fb', 'label': 'Facebook', 'color': '#3B82F6'},
     {'key': 'yt', 'label': 'YouTube', 'color': '#EF4444'},
     {'key': 'ig', 'label': 'Instagram', 'color': 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)'},
-    {'key': 'threads', 'label': 'Threads', 'color': '#111827'},
     {'key': 'tt', 'label': 'TikTok', 'color': '#000000'},
     {'key': 'linkedin', 'label': 'LinkedIn', 'color': '#0A66C2'},
+    {'key': 'threads', 'label': 'Threads', 'color': '#111827'},
     {'key': 'bsky', 'label': 'Bluesky', 'color': '#1185FE'},
     {'key': 'dm', 'label': 'Dailymotion', 'color': '#00A0DE'},
     {'key': 'reddit', 'label': 'Reddit', 'color': '#FF4500'},
@@ -628,7 +628,7 @@ def contributors_widget(request):
 def save_entry(request):
     if request.method == 'POST':
         links = {}
-        for key in ['fb', 'yt', 'ig', 'threads', 'tt', 'linkedin', 'bsky', 'dm', 'reddit']:
+        for key in ['fb', 'yt', 'ig', 'tt', 'linkedin', 'threads', 'bsky', 'dm', 'reddit']:
             val = request.POST.get(f'links_{key}', '').strip()
             if val:
                 links[key] = val
@@ -1401,6 +1401,11 @@ def save_script(request):
             script.district = request.POST.get('district', '')
             script.district_reporter = request.POST.get('district_reporter', '')
             script.body = request.POST.get('body', '')
+            script.reporter_name = request.POST.get('reporter_name', '')
+            script.hashtags = request.POST.get('hashtags', '')
+            script.keywords = request.POST.get('keywords', '')
+            script.description = request.POST.get('description', '')
+            script.special_note = request.POST.get('special_note', '')
             script.assignment_id = assignment_id or None
             script.updated_by = request.user
             if was_approved:
@@ -1427,6 +1432,11 @@ def save_script(request):
             district=request.POST.get('district', ''),
             district_reporter=request.POST.get('district_reporter', ''),
             body=request.POST.get('body', ''),
+            reporter_name=request.POST.get('reporter_name', ''),
+            hashtags=request.POST.get('hashtags', ''),
+            keywords=request.POST.get('keywords', ''),
+            description=request.POST.get('description', ''),
+            special_note=request.POST.get('special_note', ''),
             assignment_id=assignment_id or None,
             created_by=request.user,
             updated_by=request.user,
@@ -1874,6 +1884,183 @@ MODULE_MAP = [
 
 MONTH_NAMES = ['', 'January', 'February', 'March', 'April', 'May', 'June',
                'July', 'August', 'September', 'October', 'November', 'December']
+
+
+@login_required
+def deleted_data_tab(request):
+    module = request.GET.get('module', 'entries')
+    section = request.GET.get('section', 'all')
+    days = int(request.GET.get('days', '30'))
+
+    since = timezone.now() - timedelta(days=days)
+
+    items = []
+    count = 0
+
+    if module == 'entries':
+        qs = ContentEntry.objects.filter(
+            deleted_at__isnull=False,
+            deleted_at__gte=since,
+        ).select_related('member', 'sponsor', 'updated_by').order_by('-deleted_at')
+        count = qs.count()
+        items = qs[:100]
+    elif module == 'contentlist':
+        qs = ContentListItem.objects.filter(
+            deleted_at__isnull=False,
+            deleted_at__gte=since,
+        ).select_related('member', 'assignment', 'updated_by').order_by('-deleted_at')
+        count = qs.count()
+        items = qs[:100]
+    elif module == 'scripts':
+        qs = Script.objects.filter(
+            deleted_at__isnull=False,
+            deleted_at__gte=since,
+        ).select_related('writer', 'updated_by').order_by('-deleted_at')
+        count = qs.count()
+        items = qs[:100]
+    elif module == 'audio':
+        qs = AudioItem.objects.filter(
+            deleted_at__isnull=False,
+            deleted_at__gte=since,
+        ).select_related('member', 'assignment', 'updated_by').order_by('-deleted_at')
+        count = qs.count()
+        items = qs[:100]
+    elif module == 'finalpackage':
+        qs = FinalPackage.objects.filter(
+            deleted_at__isnull=False,
+            deleted_at__gte=since,
+        ).select_related('member', 'assignment', 'updated_by').order_by('-deleted_at')
+        count = qs.count()
+        items = qs[:100]
+    elif module == 'assignments':
+        qs = Assignment.objects.filter(
+            deleted_at__isnull=False,
+            deleted_at__gte=since,
+        ).select_related('member', 'reporter_user', 'updated_by').order_by('-deleted_at')
+        count = qs.count()
+        items = qs[:100]
+
+    totals = {
+        'entries': ContentEntry.objects.filter(deleted_at__isnull=False).count(),
+        'contentlist': ContentListItem.objects.filter(deleted_at__isnull=False).count(),
+        'scripts': Script.objects.filter(deleted_at__isnull=False).count(),
+        'audio': AudioItem.objects.filter(deleted_at__isnull=False).count(),
+        'finalpackage': FinalPackage.objects.filter(deleted_at__isnull=False).count(),
+        'assignments': Assignment.objects.filter(deleted_at__isnull=False).count(),
+    }
+
+    module_map = [
+        ('entries', 'Uploads', 'bi bi-file-earmark-text-fill'),
+        ('contentlist', 'Content Sources', 'bi bi-card-checklist'),
+        ('scripts', 'Scripts', 'bi bi-file-earmark-code-fill'),
+        ('audio', 'Media Pool', 'bi bi-folder-fill'),
+        ('finalpackage', 'Final Packages', 'bi bi-box-seam-fill'),
+        ('assignments', 'Assignments', 'bi bi-pin-angle-fill'),
+    ]
+
+    days_options = [7, 14, 30, 90]
+
+    return _tab_response(request, 'cms/deleted_data.html', {
+        'module': module,
+        'module_map': module_map,
+        'items': items,
+        'count': count,
+        'totals': totals,
+        'days': days,
+        'days_options': days_options,
+        'since': since.date(),
+    })
+
+
+@login_required
+@require_POST
+def restore_deleted_item(request):
+    model_name = request.POST.get('model', '')
+    item_id = request.POST.get('id', '')
+    if not model_name or not item_id:
+        return _toast_response('Missing parameters.', '', 'error')
+    model_map = {
+        'entry': ContentEntry,
+        'contentlist': ContentListItem,
+        'script': Script,
+        'audio': AudioItem,
+        'finalpackage': FinalPackage,
+        'assignment': Assignment,
+    }
+    model_class = model_map.get(model_name)
+    if not model_class:
+        return _toast_response('Invalid model.', '', 'error')
+    try:
+        item = model_class.objects.get(id=item_id, deleted_at__isnull=False)
+        item.deleted_at = None
+        item.updated_by = request.user
+        item.save()
+        return _toast_response('Item restored successfully.', reverse('cms:cms-deleted-data'))
+    except model_class.DoesNotExist:
+        return _toast_response('Item not found.', '', 'error')
+
+
+@login_required
+def content_deletion_tab(request):
+    records = ContentDeletion.objects.select_related(
+        'content_entry', 'content_entry__member', 'recorded_by'
+    ).order_by('-created_at')[:100]
+    entries = ContentEntry.objects.filter(deleted_at__isnull=True).select_related(
+        'member', 'sponsor'
+    ).order_by('-entry_date', '-entry_time')[:200]
+    platform_list = [
+        {'key': 'fb', 'label': 'Facebook'},
+        {'key': 'yt', 'label': 'YouTube'},
+        {'key': 'ig', 'label': 'Instagram'},
+        {'key': 'tt', 'label': 'TikTok'},
+        {'key': 'linkedin', 'label': 'LinkedIn'},
+        {'key': 'threads', 'label': 'Threads'},
+        {'key': 'bsky', 'label': 'Bluesky'},
+        {'key': 'dm', 'label': 'Dailymotion'},
+        {'key': 'reddit', 'label': 'Reddit'},
+    ]
+    return _tab_response(request, 'cms/content_deletion.html', {
+        'records': records,
+        'entries': entries,
+        'platform_list': platform_list,
+        'user': request.user,
+    })
+
+
+@login_required
+def save_content_deletion(request):
+    if request.method == 'POST':
+        entry_id = request.POST.get('entry_id', '')
+        if not entry_id:
+            return _toast_response('Please select a content entry.', '', 'error')
+        platforms = ','.join(request.POST.getlist('platforms'))
+        if not platforms:
+            return _toast_response('Please select at least one platform.', '', 'error')
+        deleted_at_str = request.POST.get('deleted_at', '')
+        from datetime import datetime
+        try:
+            deleted_at = datetime.strptime(deleted_at_str, '%Y-%m-%d %H:%M') if deleted_at_str else timezone.now()
+        except (ValueError, TypeError):
+            deleted_at = timezone.now()
+        ContentDeletion.objects.create(
+            content_entry_id=entry_id,
+            platforms=platforms,
+            deleted_at=deleted_at,
+            instructed_by=request.POST.get('instructed_by', ''),
+            reason=request.POST.get('reason', ''),
+            notes=request.POST.get('notes', ''),
+            recorded_by=request.user,
+        )
+        return _toast_response('Deletion record saved.', reverse('cms:cms-content-deletion'))
+    return redirect('cms:cms-content-deletion')
+
+
+@login_required
+@require_POST
+def delete_content_deletion(request, pk):
+    record = get_object_or_404(ContentDeletion, id=pk)
+    record.delete()
+    return _toast_response('Deletion record removed.', reverse('cms:cms-content-deletion'))
 
 
 @login_required

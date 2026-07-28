@@ -48,7 +48,7 @@
             <input type="checkbox" name="is_active" class="form-check-input" id="newActive" checked>
             <label class="form-check-label small" for="newActive">Active</label>
           </div>
-          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check-circle me-1"></i> Create Leave Type</button>
+          <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-check-circle me-1"></i> Create Leave Type</button>
         </form>
       </div>
     </div>
@@ -58,7 +58,7 @@
     <div class="card" style="border:1px solid var(--border-color,#e5e7eb);border-radius:12px;">
       <div class="card-header bg-light px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fs-6 fw-bold"><i class="bi bi-list-ul me-1 text-primary"></i> All Leave Types</h5>
-        <span class="badge bg-secondary rounded-pill">{{ leave_types|length }}</span>
+        <span class="chip">{{ leave_types|length }}</span>
       </div>
       <div class="card-body p-0">
         <table class="table table-hover align-middle mb-0" style="font-size:14px;">
@@ -76,12 +76,12 @@
           <tbody>
             {% for lt in leave_types %}
               <tr>
-                <td class="ps-3"><span class="badge bg-dark">{{ lt.code }}</span></td>
+                <td class="ps-3"><span class="chip" style="background:var(--navy-900);color:#fff;border:none;">{{ lt.code }}</span></td>
                 <td><strong>{{ lt.name }}</strong></td>
                 <td>{{ lt.days_per_year }}</td>
                 <td>{% if lt.carry_forward %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-x-circle-fill text-muted"></i>{% endif %}</td>
                 <td>{% if lt.requires_approval %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-x-circle-fill text-muted"></i>{% endif %}</td>
-                <td>{% if lt.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+                <td>{% if lt.is_active %}<span class="status-pill status-success">Active</span>{% else %}<span class="chip">Inactive</span>{% endif %}</td>
                 <td class="pe-3">
                   <div class="d-flex gap-1">
                     <button class="btn btn-sm btn-outline-primary" title="Edit"
@@ -150,8 +150,8 @@
         <label class="form-check-label small" for="editLtActive">Active</label>
       </div>
       <div class="form-actions d-flex justify-content-end gap-2">
-        <button type="button" class="btn btn-ghost" onclick="document.getElementById('editLtOverlay').classList.add('hidden')">Cancel</button>
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i> Update</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('editLtOverlay').classList.add('hidden')">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-circle me-1"></i> Update</button>
       </div>
     </form>
   </div>

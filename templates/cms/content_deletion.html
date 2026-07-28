@@ -1,0 +1,112 @@
+{% load common_filters %}
+<div class="card phoenix-card" style="margin-bottom:20px;">
+  <div class="card-header-flex" style="margin-bottom:16px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-trash3-fill" style="color:#ef4444;margin-right:6px;"></i> Content Deletion</h3>
+      <p class="phoenix-card-sub">Record content removed from social media platforms per management instruction</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="document.getElementById('newDeletionForm').classList.toggle('hidden')">
+      <i class="bi bi-plus-lg"></i> New Record
+    </button>
+  </div>
+
+  <div id="newDeletionForm" class="hidden" style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:20px;margin-bottom:20px;">
+    <h4 style="font-size:14px;font-weight:700;color:var(--text);margin:0 0 14px;"><i class="bi bi-pencil-fill"></i> New Content Deletion Record</h4>
+    <form method="post" action="{% url 'cms:cms-save-content-deletion' %}" hx-post="{% url 'cms:cms-save-content-deletion' %}" hx-target="#tab-content" hx-swap="innerHTML">
+      {% csrf_token %}
+      <div class="form-grid grid-3" style="margin-bottom:12px;">
+        <div class="field">
+          <label>Content Entry *</label>
+          <select name="entry_id" required>
+            <option value="">— Select Content —</option>
+            {% for e in entries %}
+            <option value="{{ e.id }}">{{ e.entry_date|date:"Y-m-d" }} — {{ e.headline|truncatechars:40 }} — {{ e.member.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label>Deletion Date/Time</label>
+          <input type="datetime-local" name="deleted_at" value="{% now 'Y-m-d H:i' %}">
+        </div>
+        <div class="field">
+          <label>Instructed By</label>
+          <input type="text" name="instructed_by" placeholder="Management representative">
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="font-size:12.5px;font-weight:600;color:var(--text-soft);display:block;margin-bottom:6px;">Platform(s) Removed From *</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          {% for p in platform_list %}
+          <label style="display:flex;align-items:center;gap:4px;font-size:12.5px;color:var(--text);cursor:pointer;">
+            <input type="checkbox" name="platforms" value="{{ p.key }}"> {{ p.label }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-grid grid-2" style="margin-bottom:12px;">
+        <div class="field full">
+          <label>Reason</label>
+          <textarea name="reason" rows="2" placeholder="Why was this content removed?"></textarea>
+        </div>
+        <div class="field full">
+          <label>Notes</label>
+          <textarea name="notes" rows="2" placeholder="Additional notes..."></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions" style="margin-top:4px;">
+        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Save Record</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('newDeletionForm').classList.add('hidden')">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="phoenix-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">RECORDED</th>
+          <th style="width:100px;">DELETED</th>
+          <th>CONTENT</th>
+          <th>PLATFORMS</th>
+          <th>INSTRUCTED BY</th>
+          <th>REASON</th>
+          <th style="width:100px;">RECORDED BY</th>
+          <th style="width:40px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td style="font-size:11px;color:var(--text-soft);">{{ r.created_at|date:"M d" }}</td>
+          <td style="font-size:11px;color:var(--text-soft);">{{ r.deleted_at|date:"M d H:i" }}</td>
+          <td>
+            <strong style="color:var(--text);font-size:12.5px;">{{ r.content_entry.headline|truncatechars:45 }}</strong>
+            <div style="font-size:10.5px;color:var(--text-faint);">{{ r.content_entry.member.username }} — {{ r.content_entry.entry_date|date:"Y-m-d" }}</div>
+          </td>
+          <td>
+            <div style="display:flex;gap:3px;flex-wrap:wrap;">
+              {% for key in r.platforms|split:"," %}
+              <span class="link-pill" style="width:auto;height:auto;padding:2px 6px;font-size:10px;background:var(--border);color:var(--text);">{{ key }}</span>
+              {% endfor %}
+            </div>
+          </td>
+          <td>{{ r.instructed_by|default:'—' }}</td>
+          <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.reason|default:'—' }}</td>
+          <td>{{ r.recorded_by.username|default:'—' }}</td>
+          <td>
+            <form method="post" action="{% url 'cms:cms-delete-content-deletion' pk=r.id %}" hx-post="{% url 'cms:cms-delete-content-deletion' pk=r.id %}" hx-target="#tab-content" hx-swap="innerHTML" hx-confirm="Remove this deletion record?" style="display:inline;">
+              {% csrf_token %}
+              <button class="icon-mini" title="Delete record"><i class="bi bi-x-lg" style="color:var(--text-faint);font-size:10px;"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-faint);">No deletion records yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

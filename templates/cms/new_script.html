@@ -34,6 +34,9 @@
         <label>Thumbnail Text</label>
         <input type="text" name="district_reporter" placeholder="Thumbnail text">
       </div>
+    </div>
+
+    <div class="form-grid grid-3" style="margin-top:14px;">
       <div class="field">
         <label>Content Source *</label>
         <select name="source" required>
@@ -48,14 +51,43 @@
         <label>District Name</label>
         <input type="text" name="district" placeholder="District name">
       </div>
+      <div class="field">
+        <label><i class="bi bi-person-badge-fill"></i> Reporter Name <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
+        <input type="text" name="reporter_name" placeholder="Reporter name...">
+      </div>
+    </div>
+
+    <div class="form-grid grid-2" style="margin-top:12px;">
+      <div class="field">
+        <label><i class="bi bi-card-text"></i> Description <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
+        <textarea name="description" placeholder="Brief description..." rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label><i class="bi bi-exclamation-triangle-fill"></i> Special Note <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
+        <textarea name="special_note" placeholder="Any special note..." rows="2"></textarea>
+      </div>
+    </div>
+
+    <div class="form-grid grid-2" style="margin-top:12px;">
+      <div class="field">
+        <label><i class="bi bi-hash"></i> Hashtags <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
+        <input type="text" name="hashtags" placeholder="#tag1 #tag2">
+      </div>
+      <div class="field">
+        <label><i class="bi bi-tags-fill"></i> Keywords <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
+        <input type="text" name="keywords" placeholder="comma, separated, keywords">
+      </div>
+    </div>
+
+    <div class="form-grid" style="margin-top:14px;">
       <div class="field full">
         <label>Script Content</label>
         <textarea name="body" rows="8" placeholder="Write script content here..."></textarea>
       </div>
     </div>
     <div class="form-actions" style="margin-top:20px;">
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Script</button>
-      <button type="button" class="btn btn-ghost" hx-get="{% url 'cms:cms-scripts' %}" hx-target="#tab-content" hx-swap="innerHTML">Cancel</button>
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Save Script</button>
+      <button type="button" class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-scripts' %}" hx-target="#tab-content" hx-swap="innerHTML">Cancel</button>
     </div>
   </form>
 </div>

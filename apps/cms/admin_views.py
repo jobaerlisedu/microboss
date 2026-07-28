@@ -172,7 +172,7 @@ def admin_csv_import(request):
                 entry_date = row.get('entry_date', '').strip()
                 entry_time = row.get('entry_time', '').strip()
                 links = {}
-                for key in ['fb', 'yt', 'ig', 'threads', 'tt', 'linkedin', 'bsky', 'dm', 'reddit']:
+                for key in ['fb', 'yt', 'ig', 'tt', 'linkedin', 'threads', 'bsky', 'dm', 'reddit']:
                     val = row.get(key, '').strip()
                     if val:
                         links[key] = val

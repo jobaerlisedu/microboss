@@ -76,7 +76,7 @@
         <input type="text" name="district" placeholder="Enter district name" value="{{ edit_item.district|default:'' }}">
       </div>
       <div class="field">
-        <label>Footage Source *</label>
+        <label>Content Received By *</label>
         <select name="footage_source" required>
           <option value="">Select Footage Delivery</option>
           <option value="FTP" {% if edit_item and edit_item.footage_source == 'FTP' %}selected{% endif %}>FTP</option>
@@ -90,7 +90,7 @@
       </div>
     </div>
     <div class="form-actions" style="margin-top: 20px;">
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Item</button>
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Save Item</button>
     </div>
   </form>
 </div>

@@ -21,7 +21,7 @@ class ContentListItem(BaseModel):
     source = models.CharField('Source', max_length=20, choices=SOURCE_CHOICES, db_index=True)
     district = models.CharField('District', max_length=100, blank=True, default='')
     footage_source = models.CharField(
-        'Footage', max_length=50, choices=FOOTAGE_CHOICES,
+        'Content Received By', max_length=50, choices=FOOTAGE_CHOICES,
         blank=True, default='',
     )
     member = models.ForeignKey(
@@ -38,6 +38,7 @@ class ContentListItem(BaseModel):
     class Meta:
         verbose_name = 'Content Source'
         verbose_name_plural = 'Content Sources'
+        ordering = ['-list_date', '-created_at']
         indexes = [
             models.Index(fields=['list_date']),
             models.Index(fields=['source']),

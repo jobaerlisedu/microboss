@@ -132,6 +132,8 @@
       { prefix: '/cms/entries/', tab: 'all' },
       { prefix: '/cms/archive/', tab: 'archive' },
       { prefix: '/cms/sponsors/', tab: 'sponsors' },
+      { prefix: '/cms/content-deletion/', tab: 'content-deletion' },
+      { prefix: '/cms/deleted-data/', tab: 'deleted-data' },
       { prefix: '/cms/roster/', tab: 'duty-roster' },
       { prefix: '/cms/leave/', tab: 'leave' },
       { prefix: '/cms/leaderboard/', tab: 'leaderboard' },
@@ -267,6 +269,31 @@
     }
 
   });
+
+  // ─── Theme ───
+  (function() {
+    var saved = localStorage.getItem('phoenix-theme');
+    if (saved === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      var btn = document.getElementById('themeToggle');
+      if (btn) btn.querySelector('i').className = 'bi bi-sun-fill';
+    }
+  })();
+
+  window.toggleTheme = function() {
+    var html = document.documentElement;
+    var btn = document.getElementById('themeToggle');
+    var isDark = html.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      html.removeAttribute('data-theme');
+      localStorage.setItem('phoenix-theme', 'light');
+      if (btn) btn.querySelector('i').className = 'bi bi-moon-fill';
+    } else {
+      html.setAttribute('data-theme', 'dark');
+      localStorage.setItem('phoenix-theme', 'dark');
+      if (btn) btn.querySelector('i').className = 'bi bi-sun-fill';
+    }
+  };
 
   // ─── Confetti / Celebration ───
   window.closeCongrats = function() {

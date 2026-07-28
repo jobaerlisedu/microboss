@@ -19,6 +19,7 @@ class Sponsor(BaseModel):
     class Meta:
         verbose_name = 'Sponsor'
         verbose_name_plural = 'Sponsors'
+        ordering = ['name']
         indexes = [
             models.Index(fields=['start_date', 'end_date']),
         ]

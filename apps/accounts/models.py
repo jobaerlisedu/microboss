@@ -27,6 +27,7 @@ class User(AbstractUser):
     class Meta:
         verbose_name = 'The User'
         verbose_name_plural = 'Users'
+        ordering = ['full_name']
         indexes = [
             models.Index(fields=['office_id']),
             models.Index(fields=['phone']),
@@ -49,6 +50,7 @@ class UserSession(models.Model):
     class Meta:
         verbose_name = 'Session'
         verbose_name_plural = 'Sessions'
+        ordering = ['-login_at']
         indexes = [
             models.Index(fields=['user', 'is_active']),
             models.Index(fields=['-login_at']),
@@ -68,6 +70,7 @@ class SiteConfig(models.Model):
     class Meta:
         verbose_name = 'Site Configuration'
         verbose_name_plural = 'Site Configuration'
+        ordering = ['key']
 
     def __str__(self):
         return f'{self.key} = {self.value}'

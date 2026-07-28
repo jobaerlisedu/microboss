@@ -30,9 +30,11 @@
       <div class="notif-dropdown" id="notif-dropdown"><div id="notif-dropdown-content"></div></div>
     </div>
 
-    <button class="icon-btn" title="Apps grid">
-      <span><i class="bi bi-grid-3x3-gap-fill"></i></span>
+    <button class="icon-btn theme-toggle" id="themeToggle" title="Toggle theme" onclick="toggleTheme()">
+      <span><i class="bi bi-moon-fill"></i></span>
     </button>
+
+
 
     <div class="profile-chip">
       <span class="avatar">{{ user.username|first|upper }}</span>

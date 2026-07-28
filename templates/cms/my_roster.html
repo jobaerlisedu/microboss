@@ -16,7 +16,7 @@
     <h5 class="mb-0 fs-6 fw-bold text-secondary">
       <i class="bi bi-clock-history me-1"></i> Upcoming & Recent Shifts
     </h5>
-    <span class="badge bg-primary rounded-pill">{{ rosters|length }} Rosters Found</span>
+    <span class="chip" style="background:#3b82f6;color:#fff;border:none;">{{ rosters|length }} Rosters Found</span>
   </div>
   <div class="card-body p-0">
     <div class="table-responsive">
@@ -36,7 +36,7 @@
               <td class="ps-3">
                 <span class="d-block text-dark">{{ r.date|date:'d M, Y' }}</span>
                 {% if r.date == today %}
-                  <span class="badge bg-primary" style="font-size:10px;">Today</span>
+                  <span class="chip" style="background:#3b82f6;color:#fff;border:none;font-size:10px;">Today</span>
                 {% endif %}
               </td>
               <td>
@@ -44,7 +44,7 @@
               </td>
               <td>
                 <div class="d-flex align-items-center">
-                  <span class="badge bg-info text-dark me-2" style="font-size:11px;">{{ r.shift.code }}</span>
+                  <span class="chip me-2">{{ r.shift.code }}</span>
                   <div>
                     <strong class="text-dark d-block">{{ r.shift.name }}</strong>
                     <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ r.shift.start_time|time:'H:i' }} - {{ r.shift.end_time|time:'H:i' }}</small>
@@ -60,11 +60,11 @@
               </td>
               <td class="pe-3">
                 {% if r.date < today %}
-                  <span class="badge bg-secondary">Completed</span>
+                  <span class="status-pill" style="background:var(--surface-2);color:var(--text-soft);">Completed</span>
                 {% elif r.date == today %}
-                  <span class="badge bg-success">Current Shift</span>
+                  <span class="status-pill status-success">Current Shift</span>
                 {% else %}
-                  <span class="badge bg-primary">Upcoming</span>
+                  <span class="status-pill status-pending">Upcoming</span>
                 {% endif %}
               </td>
             </tr>

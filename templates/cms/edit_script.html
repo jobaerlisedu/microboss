@@ -31,6 +31,9 @@
         <label>Thumbnail Text</label>
         <input type="text" name="district_reporter" value="{{ script.district_reporter|default:'' }}">
       </div>
+    </div>
+
+    <div class="form-grid grid-3" style="margin-top:14px;">
       <div class="field">
         <label>Content Source *</label>
         <select name="source" required>
@@ -44,18 +47,50 @@
         <label>District Name</label>
         <input type="text" name="district" value="{{ script.district|default:'' }}">
       </div>
+      <div class="field">
+        <label><i class="bi bi-person-badge-fill"></i> Reporter Name <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
+        <input type="text" name="reporter_name" value="{{ script.reporter_name|default:'' }}" placeholder="Reporter name...">
+      </div>
+    </div>
+
+    <div class="form-grid grid-2" style="margin-top:12px;">
+      <div class="field">
+        <label><i class="bi bi-card-text"></i> Description <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
+        <textarea name="description" placeholder="Brief description..." rows="2">{{ script.description|default:'' }}</textarea>
+      </div>
+      <div class="field">
+        <label><i class="bi bi-exclamation-triangle-fill"></i> Special Note <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
+        <textarea name="special_note" placeholder="Any special note..." rows="2">{{ script.special_note|default:'' }}</textarea>
+      </div>
+    </div>
+
+    <div class="form-grid grid-2" style="margin-top:12px;">
+      <div class="field">
+        <label><i class="bi bi-hash"></i> Hashtags <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
+        <input type="text" name="hashtags" value="{{ script.hashtags|default:'' }}" placeholder="#tag1 #tag2">
+      </div>
+      <div class="field">
+        <label><i class="bi bi-tags-fill"></i> Keywords <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
+        <input type="text" name="keywords" value="{{ script.keywords|default:'' }}" placeholder="comma, separated, keywords">
+      </div>
+    </div>
+
+    <div class="form-grid" style="margin-top:14px;">
       <div class="field full">
         <label>Script Content</label>
         <textarea name="body" rows="10" style="resize:vertical;">{{ script.body|default:'' }}</textarea>
       </div>
+    </div>
+
+    <div class="form-grid" style="margin-top:12px;">
       <div class="field full">
         <label><i class="bi bi-journal-text"></i> Change Summary <span style="font-size:11px;color:var(--text-faint);">(Describe what changed)</span></label>
         <textarea name="change_summary" rows="2" placeholder="e.g. Updated headline, corrected district name" style="resize:vertical;"></textarea>
       </div>
     </div>
     <div class="form-actions" style="margin-top:20px;">
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Changes</button>
-      <button type="button" class="btn btn-ghost" hx-get="{% url 'cms:cms-script-detail' pk=script.id %}" hx-target="#tab-content" hx-swap="innerHTML">Cancel</button>
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Save Changes</button>
+      <button type="button" class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-script-detail' pk=script.id %}" hx-target="#tab-content" hx-swap="innerHTML">Cancel</button>
     </div>
   </form>
 </div>

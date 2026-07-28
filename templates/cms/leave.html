@@ -43,7 +43,7 @@
           <div class="leave-balance-card" style="flex:1;min-width:180px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
               <span class="lb-title">{{ b.leave_type.name }}</span>
-              <span class="badge bg-secondary" style="font-size:10px;">{{ b.year }}</span>
+              <span class="chip" style="font-size:10px;padding:1px 8px;">{{ b.year }}</span>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:flex-end;">
               <div>
@@ -92,7 +92,7 @@
               </td>
               <td>
                 <div style="font-size:13px;">{{ l.start_date|date:'d M, Y' }} — {{ l.end_date|date:'d M, Y' }}</div>
-                <span class="badge bg-secondary">{{ l.total_days }} days</span>
+                <span class="chip">{{ l.total_days }} days</span>
               </td>
               <td style="max-width:250px;">
                 <span class="text-truncate" style="display:inline-block;max-width:230px;" title="{{ l.reason }}">{{ l.reason }}</span>
@@ -102,16 +102,16 @@
               </td>
               <td>
                 {% if l.status == 'approved' %}
-                  <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                  <span class="status-pill status-success"><i class="bi bi-check-circle"></i> Approved</span>
                 {% elif l.status == 'pending' %}
-                  <span class="badge bg-warning" style="color:#1a1a1a;"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                  <span class="status-pill status-pending"><i class="bi bi-hourglass-split"></i> Pending</span>
                 {% elif l.status == 'rejected' %}
-                  <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                  <span class="status-pill status-cancel"><i class="bi bi-x-circle"></i> Rejected</span>
                   {% if l.rejection_reason %}
                     <small style="display:block;color:#ef4444;font-size:10px;">{{ l.rejection_reason }}</small>
                   {% endif %}
                 {% else %}
-                  <span class="badge bg-secondary">{{ l.get_status_display }}</span>
+                  <span class="status-pill" style="background:var(--surface-2);color:var(--text-soft);">{{ l.get_status_display }}</span>
                 {% endif %}
               </td>
               <td>
@@ -169,8 +169,8 @@
         <textarea name="reason" class="form-control" rows="3" placeholder="Provide specific reason for leave..." required></textarea>
       </div>
       <div class="form-actions">
-        <button type="button" class="btn btn-ghost" onclick="document.getElementById('leaveFormOverlay').classList.add('hidden')">Cancel</button>
-        <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i> Submit Application</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('leaveFormOverlay').classList.add('hidden')">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-send me-1"></i> Submit Application</button>
       </div>
     </form>
   </div>

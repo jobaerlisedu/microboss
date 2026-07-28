@@ -44,7 +44,7 @@
             <input type="checkbox" name="is_active" class="form-check-input" id="newShiftActive" checked>
             <label class="form-check-label" for="newShiftActive">Active</label>
           </div>
-          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check-circle me-1"></i> Create Shift</button>
+          <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-check-circle me-1"></i> Create Shift</button>
         </form>
       </div>
     </div>
@@ -55,7 +55,7 @@
     <div class="card" style="margin-bottom:0;">
       <div class="card-header">
         <h5><i class="bi bi-list-ul text-primary"></i> All Shifts</h5>
-        <span class="badge bg-secondary rounded-pill">{{ shifts|length }}</span>
+        <span class="chip">{{ shifts|length }}</span>
       </div>
       <div class="card-body p-0">
         <div class="table-responsive">
@@ -73,7 +73,7 @@
               {% for shift in shifts %}
                 <tr>
                   <td class="ps-3">
-                    <span class="badge bg-dark">{{ shift.code }}</span>
+                    <span class="chip" style="background:var(--navy-900);color:#fff;border:none;">{{ shift.code }}</span>
                   </td>
                   <td><strong>{{ shift.name }}</strong></td>
                   <td class="text-nowrap" style="color:var(--text-soft);font-size:13px;">
@@ -81,9 +81,9 @@
                   </td>
                   <td>
                     {% if shift.is_active %}
-                      <span class="badge bg-success">Active</span>
+                      <span class="status-pill status-success">Active</span>
                     {% else %}
-                      <span class="badge bg-secondary">Inactive</span>
+                      <span class="chip">Inactive</span>
                     {% endif %}
                   </td>
                   <td class="pe-3">
@@ -156,8 +156,8 @@
         <label class="form-check-label" for="editActive">Active</label>
       </div>
       <div class="form-actions">
-        <button type="button" class="btn btn-ghost" onclick="document.getElementById('editShiftOverlay').classList.add('hidden')">Cancel</button>
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i> Update Shift</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('editShiftOverlay').classList.add('hidden')">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-circle me-1"></i> Update Shift</button>
       </div>
     </form>
   </div>

@@ -70,10 +70,16 @@ class Script(BaseModel):
     approved_at = models.DateTimeField(
         'Approval Time', null=True, blank=True,
     )
+    reporter_name = models.CharField('Reporter Name', max_length=255, blank=True, default='')
+    hashtags = models.CharField('Hashtags', max_length=500, blank=True, default='')
+    keywords = models.TextField('Keywords', blank=True, default='')
+    description = models.TextField('Description', blank=True, default='')
+    special_note = models.TextField('Special Note', blank=True, default='')
 
     class Meta:
         verbose_name = 'Digital Script'
         verbose_name_plural = 'Digital Scripts'
+        ordering = ['-script_date', '-created_at']
         indexes = [
             models.Index(fields=['script_date']),
             models.Index(fields=['status']),

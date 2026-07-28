@@ -16,6 +16,7 @@ class DeviceToken(models.Model):
     class Meta:
         verbose_name = 'Device Token'
         verbose_name_plural = 'Device Token'
+        ordering = ['-created_at']
         indexes = [
             models.Index(fields=['user', 'is_active']),
         ]

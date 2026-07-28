@@ -72,6 +72,11 @@
       <span class="nav-text">Sponsors</span>
     </a>
 
+    <a class="nav-item tab-btn" data-tab="content-deletion" title="Content Deletion" hx-get="{% url 'cms:cms-content-deletion' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+      <span class="nav-icon"><i class="bi bi-trash3-fill"></i></span>
+      <span class="nav-text">Content Deletion</span>
+    </a>
+
     <div class="nav-section-label">TEAM MANAGEMENT</div>
 
     <a class="nav-item tab-btn" data-tab="attendance" title="Attendance" hx-get="{% url 'cms:cms-attendance' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
@@ -115,6 +120,10 @@
     <a class="nav-item tab-btn" data-tab="roles" title="Roles &amp; Permissions" hx-get="{% url 'cms:cms-roles' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
       <span class="nav-icon"><i class="bi bi-shield-lock-fill"></i></span>
       <span class="nav-text">Roles &amp; Perms</span>
+    </a>
+    <a class="nav-item tab-btn" data-tab="deleted" title="Deleted Data" hx-get="{% url 'cms:cms-deleted-data' %}" hx-target="#tab-content" hx-trigger="click" hx-swap="innerHTML" hx-push-url="true">
+      <span class="nav-icon"><i class="bi bi-trash-fill" style="color:#ef4444;"></i></span>
+      <span class="nav-text">Deleted Data</span>
     </a>
     {% endif %}
   </div>
