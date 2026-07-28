@@ -9,6 +9,7 @@ djangorestframework==3.17.1
 djangorestframework_simplejwt==5.5.1
 fonttools==4.63.0
 mysqlclient==2.2.8
+pymysql==1.1.1
 pillow==12.3.0
 polib==1.2.0
 pycparser==3.0

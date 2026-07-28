@@ -7,6 +7,13 @@ import sys
 # Point to the project root
 sys.path.insert(0, os.path.dirname(__file__))
 
+# Use PyMySQL as MySQL driver (avoids native library issues on cPanel)
+try:
+    import pymysql
+    pymysql.install_as_MySQLdb()
+except ImportError:
+    pass
+
 # Set production settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.prod')
 
