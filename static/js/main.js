@@ -1,6 +1,37 @@
 (function() {
   'use strict';
 
+  // ─── Script editor (rich text) ───
+  function initScriptEditor() {
+    var editor = document.getElementById('scriptEditor');
+    var input = document.getElementById('bodyInput');
+    var toolbar = document.getElementById('editorToolbar');
+    if (!editor || !input || !toolbar) return;
+    var form = document.getElementById('scriptForm') || editor.closest('form');
+    if (!form) return;
+
+    toolbar.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-cmd]');
+      if (!btn) return;
+      e.preventDefault();
+      var cmd = btn.getAttribute('data-cmd');
+      var val = btn.getAttribute('data-val') || null;
+      document.execCommand(cmd, false, val);
+      editor.focus();
+    });
+
+    function syncBody() { input.value = editor.innerHTML; }
+    form.addEventListener('htmx:configRequest', syncBody);
+    form.addEventListener('submit', syncBody);
+  }
+
+  document.addEventListener('htmx:afterSettle', function(e) {
+    if (e.detail && e.detail.target && e.detail.target.querySelector && e.detail.target.querySelector('#scriptEditor')) {
+      initScriptEditor();
+    }
+  });
+  if (document.getElementById('scriptEditor')) initScriptEditor();
+
   // ─── Sidebar ───
   window.toggleSidebarCollapse = function() {
     var sidebar = document.getElementById('appSidebar');
