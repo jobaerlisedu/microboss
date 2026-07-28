@@ -172,11 +172,11 @@
           <div class="small text-muted">Total Days</div>
         </div>
         <div class="stat-box" style="flex:1;min-width:100px;text-align:center;padding:12px;background:#dcfce7;border-radius:8px;">
-          <div style="font-size:1.8rem;font-weight:700;color:#16a34a;">{{ monthly|dictsort:'status'|slice:':100'|length }}</div>
+          <div style="font-size:1.8rem;font-weight:700;color:#16a34a;">{{ present_count }}</div>
           <div class="small text-muted">Present</div>
         </div>
         <div class="stat-box" style="flex:1;min-width:100px;text-align:center;padding:12px;background:#fef3c7;border-radius:8px;">
-          <div style="font-size:1.8rem;font-weight:700;color:#d97706;">{{ monthly|dictsortreversed:'status'|slice:':100'|length }}</div>
+          <div style="font-size:1.8rem;font-weight:700;color:#d97706;">{{ late_count }}</div>
           <div class="small text-muted">Late</div>
         </div>
       </div>

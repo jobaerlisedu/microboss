@@ -85,12 +85,12 @@
       if (sidebar) sidebar.classList.add('collapsed');
     }
 
-    // HTMX: refresh dashboard charts after any swap
+    // HTMX: refresh dashboard charts when dashboard is visible
     document.addEventListener('htmx:afterSwap', function() {
-      if (typeof window.refreshDashboardData === 'function') {
+      var dash = document.getElementById('dashboardContent');
+      if (dash && typeof window.refreshDashboardData === 'function') {
         setTimeout(window.refreshDashboardData, 50);
       }
-      // Re-bind newly loaded .tab-btn elements via delegation (noop, handled by delegation below)
     });
 
     // HTMX: inject CSRF token
@@ -232,11 +232,13 @@
       function openNotifDropdown() {
         positionDropdown();
         dropdown.classList.add('open');
+        bell.setAttribute('aria-expanded', 'true');
         htmx.ajax('GET', '/api/v1/notifications/', {target: '#notif-dropdown-content', swap: 'innerHTML'});
       }
 
       function closeNotifDropdown() {
         dropdown.classList.remove('open');
+        bell.setAttribute('aria-expanded', 'false');
         var content = document.getElementById('notif-dropdown-content');
         if (content) content.innerHTML = '';
       }

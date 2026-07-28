@@ -2643,6 +2643,9 @@ def attendance_tab(request):
         date__lte=month_end,
     ).order_by('date')
 
+    present_count = monthly.filter(status='present').count()
+    late_count = monthly.filter(status='late').count()
+
     return _tab_response(request, 'cms/attendance.html', {
         'day_date': day_date,
         'day_label': day_date.strftime('%A, %b %d, %Y'),
@@ -2653,6 +2656,8 @@ def attendance_tab(request):
         'my_attendance': my_attendance,
         'employees': employees,
         'monthly': monthly,
+        'present_count': present_count,
+        'late_count': late_count,
         'today': today,
         'STATUS_CHOICES': Attendance.Status.choices,
     })

@@ -23,6 +23,8 @@
   --font-display: 'Inter', 'Manrope', sans-serif;
   --font-body: 'Inter', 'Hind Siliguri', sans-serif;
   --sidebar-w: 240px;
+  --bg-card: #ffffff;
+  --bg-soft: #f8fafc;
 }
 
 [data-theme="dark"] {
@@ -34,6 +36,28 @@
   --text-faint: #64748b;
   --border: #334155;
   --shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.3);
+  --bg-card: #1e293b;
+  --bg-soft: #0f172a;
+}
+
+/* Skip to main content link (accessibility) */
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: 50%;
+  z-index: 999999;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  padding: 10px 20px;
+  border-radius: 0 0 8px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 0;
 }
 
 * {
@@ -108,7 +132,7 @@ textarea {
   left: 0;
   z-index: 100;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
 }
 
 .app-layout:has(.sidebar.collapsed) {
@@ -478,41 +502,6 @@ textarea {
   gap: 16px;
 }
 
-.topbar-search {
-  position: relative;
-  width: 280px;
-}
-
-.topbar-search .search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 13px;
-  color: #94a3b8;
-  pointer-events: none;
-}
-
-.topbar-search input {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 20px;
-  padding: 7px 14px 7px 34px;
-  color: #ffffff;
-  outline: none;
-  transition: border-color 0.2s, background 0.2s;
-}
-
-.topbar-search input::placeholder {
-  color: #94a3b8;
-}
-
-.topbar-search input:focus {
-  border-color: #3b82f6;
-  background: rgba(255, 255, 255, 0.12);
-}
-
 .topbar-right {
   display: flex;
   align-items: center;
@@ -731,30 +720,6 @@ textarea {
   grid-row: 1 / 3;
 }
 
-.grid-total-orders {
-  grid-column: 3;
-}
-
-.grid-new-customers {
-  grid-column: 3;
-}
-
-.grid-top-coupons {
-  grid-column: 1;
-}
-
-.grid-paying-vs {
-  grid-column: 2;
-}
-
-.grid-latest-reviews {
-  grid-column: 1 / -1;
-}
-
-.grid-notice-widget {
-  grid-column: 1 / -1;
-}
-
 .card-header-flex {
   display: flex;
   justify-content: space-between;
@@ -959,11 +924,6 @@ textarea {
 
 .phoenix-table tr:hover td {
   background: rgba(59, 130, 246, 0.03);
-}
-
-.stars-gold {
-  color: #f59e0b;
-  letter-spacing: 2px;
 }
 
 .status-pill {
@@ -1453,17 +1413,6 @@ textarea {
     grid-template-columns: 1fr;
   }
 
-  .grid-total-orders,
-  .grid-new-customers,
-  .grid-top-coupons,
-  .grid-paying-vs {
-    grid-column: 1;
-  }
-
-  .topbar-search {
-    width: 160px;
-  }
-
   .link-grid {
     grid-template-columns: 1fr;
   }
@@ -1478,13 +1427,18 @@ textarea {
 /* MODAL OVERLAY */
 .modal-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(15, 23, 42, 0.6);
-  z-index: 1000;
+  backdrop-filter: blur(4px);
+  z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(2px);
   transition: opacity 0.2s;
 }
 
@@ -1492,7 +1446,8 @@ textarea {
   display: none;
 }
 
-.modal-content {
+.modal-content,
+.modal-box {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -1505,12 +1460,22 @@ textarea {
   position: relative;
 }
 
-.modal-content h3 {
+.modal-content h3,
+.modal-header h3 {
   font-size: 18px;
   font-weight: 700;
   margin: 0 0 6px;
   color: var(--text);
   padding-right: 30px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
 }
 
 .modal-content .meta {
@@ -1943,6 +1908,26 @@ td .row-actions {
 }
 
 /* ─── STATUS PILL VARIANTS ─── */
+.alert {
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.alert-success {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  border-color: rgba(34, 197, 94, 0.25);
+}
+
+[data-theme="dark"] .alert-success {
+  background: rgba(34, 197, 94, 0.1);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
 .status-done {
   background: rgba(34, 197, 94, 0.15);
   color: #22c55e;
@@ -2708,66 +2693,6 @@ td .row-actions {
   color: #3b82f6;
 }
 
-/* Modal Overlay & Box */
-.modal-overlay {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background: rgba(15, 23, 42, 0.6) !important;
-  backdrop-filter: blur(4px) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  z-index: 99999 !important;
-}
-
-.modal-overlay.hidden {
-  display: none !important;
-}
-
-.modal-box {
-  background: var(--surface, #ffffff) !important;
-  border: 1px solid var(--border, #e5e7eb) !important;
-  border-radius: 14px !important;
-  padding: 24px !important;
-  width: 90% !important;
-  max-width: 550px !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
-}
-
-.modal-header {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  margin-bottom: 16px !important;
-  border-bottom: 1px solid var(--border, #e5e7eb) !important;
-  padding-bottom: 12px !important;
-}
-
-.modal-header h3 {
-  font-size: 18px !important;
-  font-weight: 700 !important;
-  color: var(--text, #111827) !important;
-  margin: 0 !important;
-}
-
-.modal-close {
-  background: none !important;
-  border: none !important;
-  font-size: 24px !important;
-  line-height: 1 !important;
-  cursor: pointer !important;
-  color: var(--text-soft, #6b7280) !important;
-}
-
-.modal-close:hover {
-  color: #ef4444 !important;
-}
-
 /* Table and utility classes for roster/leave */
 .card-body.p-0 {
   padding: 0 !important;
@@ -2928,6 +2853,12 @@ td .row-actions {
 .btn-sm {
   padding: 6px 14px;
   font-size: 12.5px;
+  border-radius: 999px;
+}
+
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 15px;
   border-radius: 999px;
 }
 
