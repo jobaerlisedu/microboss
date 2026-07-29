@@ -2778,7 +2778,8 @@ td .row-actions {
   margin-top: 18px;
 }
 
-.script-content {
+.script-content,
+.archive-content {
   font-family: 'Noto Serif Bengali', 'Hind Siliguri', serif;
   font-size: 15px;
   line-height: 1.9;

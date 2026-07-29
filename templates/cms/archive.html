@@ -1,4 +1,4 @@
-<div class="card phoenix-card" style="margin-bottom:20px;">
+<div class="card phoenix-card archive-card" style="margin-bottom:20px;">
   <div class="card-header-flex" style="margin-bottom:16px;">
     <div>
       <h3 class="phoenix-card-title"><i class="bi bi-archive-fill" style="color:#3b82f6;margin-right:6px;"></i> Archive Browser</h3>
@@ -47,7 +47,7 @@
         <tr>
           <td>{{ e.entry_date|date:"Y-m-d" }} <span style="color:var(--text-faint);font-size:11px;">{{ e.entry_time|time:"H:i" }}</span></td>
           <td>
-            <strong style="color:var(--text);font-size:12.5px;">{{ e.headline|truncatechars:60 }}</strong>
+            <strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ e.headline|truncatechars:60 }}</strong>
             <div style="font-size:11px;color:#3b82f6;font-family:monospace;">{{ e.slug }}</div>
           </td>
           <td>{{ e.member.username }}</td>
@@ -79,7 +79,7 @@
         {% for a in items %}
         <tr>
           <td>{{ a.assign_date|date:"Y-m-d" }}</td>
-          <td><strong style="color:var(--text);font-size:12.5px;">{{ a.caption|truncatechars:60 }}</strong></td>
+          <td><strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ a.caption|truncatechars:60 }}</strong></td>
           <td>{{ a.district|default:'—' }}</td>
           <td>{{ a.reporter }}</td>
           <td><span class="status-pill status-{{ a.status|lower }}">{{ a.get_status_display }}</span></td>
@@ -107,7 +107,7 @@
         {% for cl in items %}
         <tr>
           <td>{{ cl.list_date|date:"Y-m-d" }}</td>
-          <td><strong style="color:var(--text);font-size:12.5px;">{{ cl.content|truncatechars:60 }}</strong></td>
+          <td><strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ cl.content|truncatechars:60 }}</strong></td>
           <td><span class="status-pill status-pending" style="font-size:10px;">{{ cl.get_source_display }}</span></td>
           <td>{{ cl.district|default:'—' }}</td>
           <td>{{ cl.footage_source|default:'—' }}</td>
@@ -134,7 +134,7 @@
         {% for a in items %}
         <tr>
           <td>{{ a.created_at|date:"Y-m-d" }}</td>
-          <td><strong style="color:var(--text);font-size:12.5px;">{{ a.assignment.caption|default:'—'|truncatechars:60 }}</strong></td>
+          <td><strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ a.assignment.caption|default:'—'|truncatechars:60 }}</strong></td>
           <td>{{ a.media_entries|length|default:'0' }}</td>
           <td>{{ a.member.username }}</td>
         </tr>
@@ -161,7 +161,7 @@
         {% for s in items %}
         <tr>
           <td>{{ s.script_date|date:"Y-m-d" }}</td>
-          <td><a href="#" hx-get="{% url 'cms:cms-script-detail' pk=s.id %}" hx-target="#tab-content" style="color:var(--accent);text-decoration:none;font-weight:600;font-size:12.5px;">{{ s.headline|truncatechars:60 }}</a></td>
+          <td><a href="#" class="archive-content" hx-get="{% url 'cms:cms-script-detail' pk=s.id %}" hx-target="#tab-content" style="color:var(--accent);text-decoration:none;font-weight:600;font-size:12.5px;">{{ s.headline|truncatechars:60 }}</a></td>
           <td>{{ s.writer.username }}</td>
           <td><span class="status-pill status-pending" style="font-size:10px;">{{ s.get_source_display }}</span></td>
           <td><span class="status-pill status-{{ s.status }}">{{ s.get_status_display }}</span></td>
@@ -189,7 +189,7 @@
         {% for p in items %}
         <tr>
           <td>{{ p.package_date|date:"Y-m-d" }}</td>
-          <td><strong style="color:var(--text);font-size:12.5px;">{{ p.title|truncatechars:60 }}</strong></td>
+          <td><strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ p.title|truncatechars:60 }}</strong></td>
           <td>{{ p.producer|default:'—' }}</td>
           <td>{{ p.runtime|default:'—' }}</td>
           <td><span class="status-pill status-{{ p.status }}">{{ p.get_status_display }}</span></td>
