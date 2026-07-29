@@ -32,6 +32,11 @@
   <a class="btn {% if view_mode == 'month' %}btn-primary{% else %}btn-ghost{% endif %}" hx-get="{% url 'cms:cms-roster' %}?view=month" hx-target="#tab-content" hx-swap="innerHTML">
     <i class="bi bi-calendar3 me-1"></i>Monthly
   </a>
+  {% if user.is_admin %}
+  <a class="btn btn-accent btn-sm" hx-get="{% url 'cms:cms-roster-weekly-builder' %}" hx-target="#tab-content" hx-swap="innerHTML">
+    <i class="bi bi-pencil-square me-1"></i>Weekly Builder
+  </a>
+  {% endif %}
 </div>
 
 {% if view_mode == 'day' %}
