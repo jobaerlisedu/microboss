@@ -2782,17 +2782,12 @@ def roster_weekly_builder_save(request):
 
             # Create new entries
             for emp_id in (new_emp_ids - existing_emp_ids):
-                try:
-                    DutyRoster.objects.create(
-                        employee_id=emp_id,
-                        date=day,
-                        shift=shift,
-                        note=note,
-                        assigned_by=request.user,
-                    )
+                _, created = DutyRoster.objects.get_or_create(
+                    employee_id=emp_id, date=day, shift=shift,
+                    defaults={'note': note, 'assigned_by': request.user},
+                )
+                if created:
                     total_created += 1
-                except Exception:
-                    pass  # skip duplicates silently
 
     return _toast_response(
         f'Roster saved! {total_created} added, {total_deleted} removed.',
