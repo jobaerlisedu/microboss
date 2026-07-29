@@ -187,8 +187,8 @@
           <div class="cal-day-entries" style="pointer-events:none;">
             {% for r in day.rosters %}
               {% with shift_color=shift_colors|get_item:r.shift.id %}
-              <div class="entry-chip shadow-sm" style="{% if shift_color %}border-left: 3px solid {{ shift_color }};{% endif %}" title="{{ r.employee.full_name }} ({{ r.shift.name }})">
-                <i class="bi bi-person-fill" style="font-size:9px;{% if shift_color %}color: {{ shift_color }};{% endif %}"></i> {{ r.employee.full_name }} – {{ r.shift.code }}
+              <div class="entry-chip shadow-sm" style="{% if shift_color %}background-color: {{ shift_color }};{% endif %}" title="{{ r.employee.full_name }} ({{ r.shift.name }})">
+                <i class="bi bi-person-fill" style="font-size:9px;"></i> {{ r.employee.full_name }} – {{ r.shift.code }}
               </div>
               {% endwith %}
             {% empty %}
