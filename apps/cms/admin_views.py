@@ -176,9 +176,6 @@ def admin_csv_import(request):
                     val = row.get(key, '').strip()
                     if val:
                         links[key] = val
-                if not links:
-                    errors.append(f'Row {i}: At least 1 link required')
-                    continue
                 sponsor_name = row.get('sponsor', '').strip()
                 sponsor_id = None
                 if sponsor_name:

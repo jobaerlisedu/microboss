@@ -23,7 +23,8 @@ def bn_number(num):
 
 @register.filter
 def get_item(d, key):
-    return d.get(key) if isinstance(d, dict) else ''
+    val = d.get(key) if isinstance(d, dict) else None
+    return val if val is not None else ''
 
 @register.filter
 def split(value, delimiter):

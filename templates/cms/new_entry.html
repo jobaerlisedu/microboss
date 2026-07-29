@@ -6,7 +6,7 @@
         <i class="bi bi-plus-circle-fill" style="color:#3b82f6;margin-right:8px;"></i>
         {% if duplicating %}Duplicate Content Upload{% elif editing %}Edit Content Upload{% else %}Create New Content Upload{% endif %}
       </h3>
-      <p class="phoenix-card-sub">Please fill in upload metadata and provide at least 1 social platform URL.</p>
+      <p class="phoenix-card-sub">Fill in upload metadata and add social platform URLs (optional).</p>
     </div>
   </div>
 
@@ -64,10 +64,10 @@
     <script>document.querySelector('[name="assignment_id"]')?.addEventListener('change',function(){var n=document.getElementById('assignmentCloseNote');if(n)n.style.display=this.value?'block':'none'});(function(){var s=document.querySelector('[name="assignment_id"]');var n=document.getElementById('assignmentCloseNote');if(s&&n)n.style.display=s.value?'block':'none'})();</script>
 
     <!-- PLATFORM LINKS SUB-CARD -->
-    <div class="link-card-box">
+      <div class="link-card-box">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
         <label style="font-size: 13.5px; font-weight: 700; color: var(--text); display:flex; align-items:center; gap:8px;">
-          <i class="bi bi-link-45deg" style="color:#3b82f6;font-size:16px;"></i> Social Platform URLs <span style="font-size:11.5px;font-weight:600;color:var(--text-soft);">(At least 1 required)</span>
+          <i class="bi bi-link-45deg" style="color:#3b82f6;font-size:16px;"></i> Social Platform URLs <span style="font-size:11.5px;font-weight:600;color:var(--text-soft);">(Optional)</span>
         </label>
       </div>
 
@@ -101,11 +101,4 @@
   </form>
 </div>
 
-<script>
-document.getElementById('entryForm')?.addEventListener('submit', function(e) {
-  const links = this.querySelectorAll('.linkInput');
-  let hasLink = false;
-  links.forEach(l => { if (l.value.trim()) hasLink = true; });
-  if (!hasLink) { e.preventDefault(); alert('Please provide at least 1 social platform URL'); return; }
-});
-</script>
+

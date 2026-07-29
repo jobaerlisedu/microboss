@@ -21,11 +21,6 @@ class ContentEntrySerializer(serializers.ModelSerializer):
             'created_by', 'updated_by', 'deleted_at',
         )
 
-    def validate_links(self, value):
-        if not value or not any(v for v in value.values() if v):
-            raise serializers.ValidationError('At least 1 link is required')
-        return value
-
     def validate(self, attrs):
         headline = attrs.get('headline', '')
         if headline:

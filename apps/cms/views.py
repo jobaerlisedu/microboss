@@ -643,13 +643,6 @@ def save_entry(request):
             assignment_id = None
 
         entry_id = request.POST.get('entry_id', '')
-        if not links:
-            if entry_id:
-                existing = ContentEntry.objects.filter(id=entry_id, deleted_at__isnull=True).values_list('links', flat=True).first()
-                links = existing or {}
-            if not links:
-                return _toast_response('Please provide at least 1 social platform URL.', '', 'error')
-
         data = {
             'entry_date': request.POST.get('entry_date'),
             'entry_time': request.POST.get('entry_time'),
