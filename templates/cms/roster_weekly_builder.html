@@ -2,8 +2,8 @@
   <div class="card-header-flex" style="margin-bottom:14px;">
     <div>
       <h3 class="phoenix-card-title">
-        <a class="btn btn-ghost btn-sm me-2" hx-get="{% url 'cms:cms-roster' %}?view=week" hx-target="#tab-content" hx-swap="innerHTML" title="Back to Roster">
-          <i class="bi bi-arrow-left"></i>
+        <a class="btn btn-sm me-3" style="border:1px solid var(--border); border-radius:20px; font-weight:600; color:var(--text-soft); padding: 4px 14px; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s ease;" hx-get="{% url 'cms:cms-roster' %}?view=week" hx-target="#tab-content" hx-swap="innerHTML">
+          <i class="bi bi-arrow-left" style="font-size:15px; margin-top:1px;"></i> Back
         </a>
         <i class="bi bi-calendar-week-fill" style="color:#3b82f6;margin-right:8px;"></i> Weekly Roster Builder
       </h3>
