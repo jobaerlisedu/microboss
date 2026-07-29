@@ -2666,6 +2666,140 @@ def roster_delete(request, pk):
         return _toast_response('Not found.', '', 'error')
 
 
+# ─── Weekly Roster Builder ────────────────────────────────────────
+
+@login_required
+def roster_weekly_builder(request):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+
+    today = timezone.now().date()
+
+    # Determine week start
+    week_start_param = request.GET.get('week_start')
+    if week_start_param:
+        try:
+            week_start = datetime.strptime(week_start_param, '%Y-%m-%d').date()
+        except ValueError:
+            week_start = today
+    else:
+        week_start = today
+    # Always start from Monday
+    week_start = week_start - timedelta(days=week_start.weekday())
+    week_end = week_start + timedelta(days=6)
+
+    shifts = Shift.objects.filter(is_active=True).order_by('start_time')
+    employees = User.objects.filter(is_active=True).order_by('full_name')
+
+    # Build the 7-day list
+    days = []
+    for i in range(7):
+        d = week_start + timedelta(days=i)
+        days.append({
+            'date': d,
+            'date_str': d.isoformat(),
+            'label': d.strftime('%a'),
+            'day_num': d.day,
+            'month_label': d.strftime('%b'),
+            'is_today': d == today,
+            'is_past': d < today,
+        })
+
+    # Load existing rosters for this week
+    week_rosters = DutyRoster.objects.filter(
+        date__gte=week_start, date__lte=week_end,
+    ).select_related('employee', 'shift').order_by('shift__start_time', 'employee__full_name')
+
+    # Build nested dict: {shift_id: {date_str: [employee_ids]}}
+    # Also keep employee objects for display
+    roster_grid = {}           # shift_uuid_str -> date_str -> [emp_uuid_str]
+    roster_names = {}          # shift_uuid_str -> date_str -> [emp_name]
+    for r in week_rosters:
+        sid = str(r.shift_id)
+        dkey = r.date.isoformat()
+        roster_grid.setdefault(sid, {}).setdefault(dkey, []).append(str(r.employee_id))
+        roster_names.setdefault(sid, {}).setdefault(dkey, []).append(r.employee.full_name)
+
+    prev_week = week_start - timedelta(days=7)
+    next_week = week_start + timedelta(days=7)
+    week_label = f"{week_start.strftime('%d %b')} — {week_end.strftime('%d %b, %Y')}"
+
+    return _tab_response(request, 'cms/roster_weekly_builder.html', {
+        'days': days,
+        'shifts': shifts,
+        'employees': employees,
+        'roster_grid_json': json.dumps(roster_grid),
+        'roster_names_json': json.dumps(roster_names),
+        'week_start': week_start.isoformat(),
+        'prev_week': prev_week.isoformat(),
+        'next_week': next_week.isoformat(),
+        'week_label': week_label,
+        'today': today,
+    })
+
+
+@login_required
+@require_POST
+def roster_weekly_builder_save(request):
+    if not request.user.is_admin:
+        return _toast_response('Not Allowed', '', 'error')
+
+    week_start_param = request.POST.get('week_start')
+    if not week_start_param:
+        return _toast_response('No week provided.', '', 'error')
+    try:
+        week_start = datetime.strptime(week_start_param, '%Y-%m-%d').date()
+    except ValueError:
+        return _toast_response('Invalid week date.', '', 'error')
+
+    week_start = week_start - timedelta(days=week_start.weekday())
+    week_end = week_start + timedelta(days=6)
+    note = request.POST.get('note', '')
+
+    shifts = Shift.objects.filter(is_active=True)
+    days = [week_start + timedelta(days=i) for i in range(7)]
+
+    total_created = 0
+    total_deleted = 0
+
+    for shift in shifts:
+        for day in days:
+            field_name = f'cell_{shift.id}_{day.isoformat()}'
+            emp_ids = request.POST.getlist(field_name)
+
+            # Get existing entries for this (shift, day)
+            existing_qs = DutyRoster.objects.filter(date=day, shift=shift)
+            existing_emp_ids = set(str(r.employee_id) for r in existing_qs)
+            new_emp_ids = set(str(e) for e in emp_ids)
+
+            # Delete entries no longer selected
+            to_delete = existing_emp_ids - new_emp_ids
+            if to_delete:
+                deleted_count, _ = DutyRoster.objects.filter(
+                    date=day, shift=shift, employee_id__in=to_delete
+                ).delete()
+                total_deleted += deleted_count
+
+            # Create new entries
+            for emp_id in (new_emp_ids - existing_emp_ids):
+                try:
+                    DutyRoster.objects.create(
+                        employee_id=emp_id,
+                        date=day,
+                        shift=shift,
+                        note=note,
+                        assigned_by=request.user,
+                    )
+                    total_created += 1
+                except Exception:
+                    pass  # skip duplicates silently
+
+    return _toast_response(
+        f'Roster saved! {total_created} added, {total_deleted} removed.',
+        reverse('cms:cms-roster-weekly-builder') + f'?week_start={week_start.isoformat()}',
+    )
+
+
 @login_required
 def my_roster_tab(request):
     today = timezone.now().date()

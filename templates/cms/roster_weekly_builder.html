@@ -1,0 +1,107 @@
+﻿<div class="card phoenix-card">
+  <div class="card-header-flex" style="margin-bottom:14px;">
+    <div>
+      <h3 class="phoenix-card-title"><i class="bi bi-calendar-week-fill" style="color:#3b82f6;margin-right:8px;"></i> Weekly Roster Builder</h3>
+      <p class="phoenix-card-sub">Assign employees to shifts for each day of the week.</p>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding:10px 16px;background:var(--surface-2);border-radius:var(--radius);">
+    <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-roster-weekly-builder' %}?week_start={{ prev_week }}" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="bi bi-chevron-left"></i> Prev Week
+    </button>
+    <strong style="font-size:15px;">{{ week_label }}</strong>
+    <button class="btn btn-ghost btn-sm" hx-get="{% url 'cms:cms-roster-weekly-builder' %}?week_start={{ next_week }}" hx-target="#tab-content" hx-swap="innerHTML">
+      Next Week <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+
+  <form id="weeklyRosterForm" hx-post="{% url 'cms:cms-roster-weekly-builder-save' %}" hx-target="#tab-content" hx-swap="innerHTML">
+    <input type="hidden" name="week_start" value="{{ week_start }}">
+
+    <div style="overflow-x:auto;">
+      <table class="phoenix-table roster-weekly-table">
+        <thead>
+          <tr>
+            <th style="min-width:140px;position:sticky;left:0;background:var(--surface);z-index:2;">Shift</th>
+            {% for day in days %}
+            <th style="min-width:140px;{% if day.is_today %}background:rgba(59,130,246,0.08);{% endif %}">
+              <div style="font-size:11px;color:var(--text-soft);">{{ day.month_label }} {{ day.day_num }}</div>
+              <div style="font-size:13px;{% if day.is_today %}color:#3b82f6;{% endif %}">{{ day.label }}</div>
+            </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for shift in shifts %}
+          <tr>
+            <td style="position:sticky;left:0;background:var(--surface);z-index:1;">
+              <strong style="font-size:12.5px;">{{ shift.name }}</strong>
+              <div style="font-size:10.5px;color:var(--text-faint);">{{ shift.start_time|time:"H:i" }}–{{ shift.end_time|time:"H:i" }}</div>
+            </td>
+            {% for day in days %}
+            <td class="roster-cell" data-shift="{{ shift.id }}" data-date="{{ day.date_str }}" style="{% if day.is_today %}background:rgba(59,130,246,0.04);{% endif %}vertical-align:top;padding:4px 6px;">
+              <div class="cell-employees" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:1px;"></div>
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <label style="font-size:12px;font-weight:600;color:var(--text-soft);">Note (applied to all entries)</label>
+        <input type="text" name="note" placeholder="Optional note for this week..." style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;background:var(--surface-2);color:var(--text);">
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm" style="margin-top:18px;">
+        <i class="bi bi-floppy-fill"></i> Save Roster
+      </button>
+    </div>
+  </form>
+</div>
+
+<style>
+.roster-weekly-table td, .roster-weekly-table th {
+  border: 1px solid var(--border);
+}
+.roster-weekly-table .cell-employees label {
+  display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;padding:1px 4px;border-radius:3px;white-space:nowrap;
+}
+.roster-weekly-table .cell-employees label:hover {
+  background:rgba(59,130,246,0.08);
+}
+.roster-weekly-table .cell-employees input[type="checkbox"] {
+  margin:0;width:13px;height:13px;accent-color:#3b82f6;cursor:pointer;flex-shrink:0;
+}
+</style>
+
+<script>
+(function() {
+  var rosterGrid = {{ roster_grid_json|safe }};
+  var employees = [
+    {% for emp in employees %}
+    { id: '{{ emp.id }}', name: '{{ emp.full_name|escapejs }}' },
+    {% endfor %}
+  ];
+
+  document.querySelectorAll('.roster-cell').forEach(function(cell) {
+    var shiftId = cell.dataset.shift;
+    var dateStr = cell.dataset.date;
+    var container = cell.querySelector('.cell-employees');
+    if (!container) return;
+
+    var assignedIds = (rosterGrid[shiftId] && rosterGrid[shiftId][dateStr]) || [];
+    var assignedSet = {};
+    assignedIds.forEach(function(id) { assignedSet[id] = true; });
+
+    employees.forEach(function(emp) {
+      var checked = assignedSet[emp.id] ? ' checked' : '';
+      var label = document.createElement('label');
+      label.innerHTML = '<input type="checkbox" name="cell_' + shiftId + '_' + dateStr + '" value="' + emp.id + '"' + checked + '> ' + emp.name;
+      container.appendChild(label);
+    });
+  });
+})();
+</script>
