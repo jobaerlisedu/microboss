@@ -2449,6 +2449,11 @@ def roster_tab(request):
             weeks.append(week)
         prev = month_start - timedelta(days=1)
         next_d = month_end + timedelta(days=1)
+        shifts = list(Shift.objects.filter(is_active=True).order_by('start_time'))
+        palette = ['#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#db2777']
+        shift_colors = {s.id: palette[i % len(palette)] for i, s in enumerate(shifts)}
+
+        
         return _tab_response(request, 'cms/roster.html', {
             'view_mode': 'month',
             'weeks': weeks,
@@ -2459,8 +2464,9 @@ def roster_tab(request):
             'prev_month': prev.month,
             'next_year': next_d.year,
             'next_month': next_d.month,
-            'shifts': Shift.objects.filter(is_active=True),
+            'shifts': shifts,
             'employees': User.objects.filter(is_active=True).order_by('full_name'),
+            'shift_colors': shift_colors,
         })
 
     if view_mode == 'day':
