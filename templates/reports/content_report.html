@@ -36,9 +36,9 @@
       <td>{{ entry.headline }}</td>
       <td>{{ entry.sponsor.name|default:"—" }}</td>
       <td>
-        {% for k, v in entry.links.items %}
+        {% if entry.links %}{% for k, v in entry.links.items %}
           {% if v %}{{ k }}{% if not forloop.last %}, {% endif %}{% endif %}
-        {% endfor %}
+        {% endfor %}{% endif %}
       </td>
       <td>{{ entry.comment|default:"—" }}</td>
     </tr>

@@ -46,9 +46,9 @@
         {% if item.comment %}<div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Comment</span><span>{{ item.comment }}</span></div>{% endif %}
         <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">URLs</span>
           <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
-            {% for key, url in item.links.items %}
+            {% if item.links %}{% for key, url in item.links.items %}
             <a href="{% if url|slice:':8' != 'https://' and url|slice:':7' != 'http://' and url|slice:':2' != '//' %}https://{% endif %}{{ url }}" target="_blank" style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--border);color:var(--accent);text-decoration:none;">{{ key }}</a>
-            {% endfor %}
+            {% endfor %}{% endif %}
           </div>
         </div>
       </div>

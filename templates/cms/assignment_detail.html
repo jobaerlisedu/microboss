@@ -132,9 +132,9 @@
               <td>{{ e.headline|truncatechars:40 }}</td>
               <td>
                 <div style="display:flex;gap:3px;flex-wrap:wrap;">
-                {% for key, url in e.links.items %}
+                {% if e.links %}{% for key, url in e.links.items %}
                   <a href="{% if url|slice:':8' != 'https://' and url|slice:':7' != 'http://' and url|slice:':2' != '//' %}https://{% endif %}{{ url }}" target="_blank" title="{{ key }}"><span class="platform-tag" style="font-size:9px;padding:1px 5px;border-radius:3px;background:var(--border);">{{ key }}</span></a>
-                {% endfor %}
+                {% endfor %}{% endif %}
                 </div>
               </td>
             </tr>

@@ -45,6 +45,11 @@ class ContentEntry(BaseModel):
             models.Index(fields=['language']),
         ]
 
+    def save(self, *args, **kwargs):
+        if self.links is None:
+            self.links = {}
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f'{self.entry_date} - {self.headline[:60]}'
 
