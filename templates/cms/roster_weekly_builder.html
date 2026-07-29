@@ -1,7 +1,12 @@
 ﻿<div class="card phoenix-card">
   <div class="card-header-flex" style="margin-bottom:14px;">
     <div>
-      <h3 class="phoenix-card-title"><i class="bi bi-calendar-week-fill" style="color:#3b82f6;margin-right:8px;"></i> Weekly Roster Builder</h3>
+      <h3 class="phoenix-card-title">
+        <a class="btn btn-ghost btn-sm me-2" hx-get="{% url 'cms:cms-roster' %}?view=week" hx-target="#tab-content" hx-swap="innerHTML" title="Back to Roster">
+          <i class="bi bi-arrow-left"></i>
+        </a>
+        <i class="bi bi-calendar-week-fill" style="color:#3b82f6;margin-right:8px;"></i> Weekly Roster Builder
+      </h3>
       <p class="phoenix-card-sub">Click any cell to assign employees to a shift for that day.</p>
     </div>
   </div>
