@@ -75,7 +75,7 @@
         {% for p in platforms %}
         <div class="field link-field">
           <label><span class="dot" style="background:{{ p.color }}"></span> {{ p.label }}</label>
-          <input type="url" class="linkInput" name="links_{{ p.key }}" placeholder="https://..." value="{% if entry %}{{ links|get_item:p.key }}{% elif initial.links %}{{ initial.links|get_item:p.key }}{% endif %}" />
+          <input type="url" class="linkInput" name="links_{{ p.key }}" placeholder="https://..." value="{% if entry %}{% with v=links|get_item:p.key %}{% if v is not None %}{{ v }}{% endif %}{% endwith %}{% elif initial.links %}{% with v=initial.links|get_item:p.key %}{% if v is not None %}{{ v }}{% endif %}{% endwith %}{% endif %}" />
         </div>
         {% endfor %}
       </div>
