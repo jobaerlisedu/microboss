@@ -92,6 +92,12 @@
         <div class="detail-info-item"><span class="detail-label">District</span><span>{{ item.district|default:'—' }}</span></div>
         {% if item.description %}<div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Description</span><span>{{ item.description }}</span></div>{% endif %}
       </div>
+      {% if item.body %}
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
+        <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;display:flex;align-items:center;gap:6px;"><i class="bi bi-file-text-fill" style="color:#3b82f6;"></i> Script Content</h4>
+        <div class="archive-content" style="padding:14px;background:var(--surface-2);border-radius:8px;font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:400px;overflow-y:auto;">{{ item.body }}</div>
+      </div>
+      {% endif %}
 
       {% elif module == 'finalpackage' %}
       <div class="detail-info-grid">
