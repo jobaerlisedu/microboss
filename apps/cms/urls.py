@@ -82,6 +82,7 @@ urlpatterns = [
     path('admin-panel/roles/<int:pk>/edit/', views.edit_role, name='cms-edit-role'),
     path('admin-panel/roles/<int:pk>/delete/', views.delete_role, name='cms-delete-role'),
     path('archive/', views.archive_tab, name='cms-archive'),
+    path('archive/<slug:module>/<hexuuid:pk>/', views.archive_view_item, name='cms-archive-view'),
     path('deleted-data/', views.deleted_data_tab, name='cms-deleted-data'),
     path('deleted-data/restore/', views.restore_deleted_item, name='cms-restore-deleted'),
     # ─── Content Deletion ───

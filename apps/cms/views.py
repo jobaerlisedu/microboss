@@ -2086,10 +2086,11 @@ def archive_tab(request):
 
     items = []
     count = 0
+    deleted_ids = set()
+    management_deleted_ids = set()
 
     if module == 'entries':
         qs = ContentEntry.objects.filter(
-            deleted_at__isnull=True,
             entry_date__gte=start_date,
             entry_date__lt=end_date,
         ).select_related('member', 'sponsor').order_by('-entry_date', '-entry_time')
@@ -2097,10 +2098,18 @@ def archive_tab(request):
             qs = qs.filter(Q(headline__icontains=search_q) | Q(slug__icontains=search_q) | Q(member__username__icontains=search_q))
         count = qs.count()
         items = qs[:200]
+        # Check which entries have management-requested deletion records
+        from apps.content.models import ContentDeletion
+        del_ids = ContentDeletion.objects.filter(
+            content_entry_id__in=[i.id for i in items]
+        ).values_list('content_entry_id', flat=True)
+        management_deleted_ids = set(str(i) for i in del_ids)
+        for i in items:
+            if i.deleted_at:
+                deleted_ids.add(str(i.id))
 
     elif module == 'assignments':
         qs = Assignment.objects.filter(
-            deleted_at__isnull=True,
             assign_date__gte=start_date,
             assign_date__lt=end_date,
         ).select_related('member', 'reporter_user').order_by('-assign_date', '-created_at')
@@ -2108,10 +2117,12 @@ def archive_tab(request):
             qs = qs.filter(Q(caption__icontains=search_q) | Q(reporter__icontains=search_q) | Q(district__icontains=search_q))
         count = qs.count()
         items = qs[:200]
+        for i in items:
+            if i.deleted_at:
+                deleted_ids.add(str(i.id))
 
     elif module == 'contentlist':
         qs = ContentListItem.objects.filter(
-            deleted_at__isnull=True,
             list_date__gte=start_date,
             list_date__lt=end_date,
         ).select_related('member', 'assignment').order_by('-list_date', '-created_at')
@@ -2119,10 +2130,12 @@ def archive_tab(request):
             qs = qs.filter(Q(content__icontains=search_q) | Q(district__icontains=search_q) | Q(member__username__icontains=search_q))
         count = qs.count()
         items = qs[:200]
+        for i in items:
+            if i.deleted_at:
+                deleted_ids.add(str(i.id))
 
     elif module == 'audio':
         qs = AudioItem.objects.filter(
-            deleted_at__isnull=True,
             created_at__date__gte=start_date,
             created_at__date__lt=end_date,
         ).select_related('member', 'assignment').order_by('-created_at')
@@ -2130,10 +2143,12 @@ def archive_tab(request):
             qs = qs.filter(Q(member__username__icontains=search_q))
         count = qs.count()
         items = qs[:200]
+        for i in items:
+            if i.deleted_at:
+                deleted_ids.add(str(i.id))
 
     elif module == 'scripts':
         qs = Script.objects.filter(
-            deleted_at__isnull=True,
             script_date__gte=start_date,
             script_date__lt=end_date,
         ).select_related('writer', 'assignment').order_by('-script_date', '-created_at')
@@ -2141,10 +2156,12 @@ def archive_tab(request):
             qs = qs.filter(Q(headline__icontains=search_q) | Q(district__icontains=search_q) | Q(writer__username__icontains=search_q))
         count = qs.count()
         items = qs[:200]
+        for i in items:
+            if i.deleted_at:
+                deleted_ids.add(str(i.id))
 
     elif module == 'finalpackage':
         qs = FinalPackage.objects.filter(
-            deleted_at__isnull=True,
             package_date__gte=start_date,
             package_date__lt=end_date,
         ).select_related('member', 'assignment').order_by('-package_date', '-created_at')
@@ -2152,6 +2169,9 @@ def archive_tab(request):
             qs = qs.filter(Q(title__icontains=search_q) | Q(producer__icontains=search_q) | Q(member__username__icontains=search_q))
         count = qs.count()
         items = qs[:200]
+        for i in items:
+            if i.deleted_at:
+                deleted_ids.add(str(i.id))
 
     prev_month = month - 1 if month > 1 else 12
     prev_year = year if month > 1 else year - 1
@@ -2173,6 +2193,54 @@ def archive_tab(request):
         'search': search_q,
         'today': now.date(),
         'user': request.user,
+        'deleted_ids': deleted_ids,
+        'management_deleted_ids': management_deleted_ids,
+    })
+
+
+@login_required
+def archive_view_item(request, module, pk):
+    deletion_info = None
+    if module == 'entries':
+        item = get_object_or_404(ContentEntry.objects.select_related('member', 'sponsor'), id=pk)
+        del_rec = ContentDeletion.objects.filter(content_entry=item).order_by('-created_at').first()
+        if del_rec:
+            deletion_info = {
+                'instructed_by': del_rec.instructed_by,
+                'reason': del_rec.reason,
+                'platforms': del_rec.platforms,
+                'deleted_at': del_rec.deleted_at,
+                'notes': del_rec.notes,
+                'recorded_by': del_rec.recorded_by,
+            }
+    elif module == 'assignments':
+        item = get_object_or_404(Assignment.objects.select_related('member', 'reporter_user'), id=pk)
+    elif module == 'contentlist':
+        item = get_object_or_404(ContentListItem.objects.select_related('member', 'assignment'), id=pk)
+    elif module == 'audio':
+        item = get_object_or_404(AudioItem.objects.select_related('member', 'assignment'), id=pk)
+    elif module == 'scripts':
+        item = get_object_or_404(Script.objects.select_related('writer', 'assignment'), id=pk)
+    elif module == 'finalpackage':
+        item = get_object_or_404(FinalPackage.objects.select_related('member', 'assignment'), id=pk)
+    else:
+        return HttpResponse('Invalid module', status=400)
+
+    # Load related entries if available
+    related = {}
+    if module == 'assignments':
+        related['content_items'] = ContentListItem.objects.filter(assignment=item, deleted_at__isnull=True)[:20]
+        related['scripts'] = Script.objects.filter(assignment=item, deleted_at__isnull=True)[:20]
+        related['audio_items'] = AudioItem.objects.filter(assignment=item, deleted_at__isnull=True)[:20]
+        from itertools import chain
+        content_entry_ids = ContentListItem.objects.filter(assignment=item, deleted_at__isnull=True).values_list('contententry_id', flat=True)
+        related['entries'] = ContentEntry.objects.filter(id__in=list(content_entry_ids), deleted_at__isnull=True)[:20]
+
+    return render(request, 'cms/archive_item_detail.html', {
+        'module': module,
+        'item': item,
+        'deletion_info': deletion_info,
+        'related': related,
     })
 
 

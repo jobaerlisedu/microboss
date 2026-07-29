@@ -1,0 +1,159 @@
+<div class="detail-overlay" onclick="closeDetail()">
+  <div class="detail-modal" onclick="event.stopPropagation()">
+    <div class="detail-header">
+      <div>
+        <h3 style="margin:0;font-size:17px;display:flex;align-items:center;gap:8px;">
+          <i class="bi bi-eye-fill" style="color:#3b82f6;"></i>
+          {% if module == 'entries' %}Upload Details
+          {% elif module == 'assignments' %}Assignment Details
+          {% elif module == 'contentlist' %}Content Source Details
+          {% elif module == 'audio' %}Media Pool Details
+          {% elif module == 'scripts' %}Script Details
+          {% elif module == 'finalpackage' %}Final Package Details
+          {% endif %}
+        </h3>
+      </div>
+      <button class="icon-mini" onclick="closeDetail()" title="Close"><i class="bi bi-x-lg"></i></button>
+    </div>
+
+    <div class="detail-body">
+      {% if deletion_info %}
+      <div style="margin-bottom:16px;padding:12px 14px;border-radius:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-size:13px;color:#ef4444;"><i class="bi bi-exclamation-triangle-fill"></i></span>
+          <strong style="font-size:13px;color:#ef4444;">Management-Requested Deletion</strong>
+        </div>
+        {% if deletion_info.instructed_by %}<div style="font-size:12px;color:var(--text-soft);">Instructed by: <strong>{{ deletion_info.instructed_by }}</strong></div>{% endif %}
+        {% if deletion_info.reason %}<div style="font-size:12px;color:var(--text-soft);">Reason: {{ deletion_info.reason }}</div>{% endif %}
+        {% if deletion_info.deleted_at %}<div style="font-size:12px;color:var(--text-soft);">Deleted on: {{ deletion_info.deleted_at|date:"Y-m-d H:i" }}</div>{% endif %}
+        {% if deletion_info.platforms %}<div style="font-size:12px;color:var(--text-soft);">Platforms: {{ deletion_info.platforms }}</div>{% endif %}
+      </div>
+      {% elif item.deleted_at %}
+      <div style="margin-bottom:16px;padding:10px 14px;border-radius:8px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;color:#ef4444;"><i class="bi bi-trash-fill"></i></span>
+        <span style="font-size:12px;color:#ef4444;font-weight:600;">Deleted</span>
+        <span style="font-size:11px;color:var(--text-faint);">{{ item.deleted_at|date:"Y-m-d H:i" }}</span>
+      </div>
+      {% endif %}
+
+      {% if module == 'entries' %}
+      <div class="detail-info-grid">
+        <div class="detail-info-item"><span class="detail-label">Headline</span><span style="font-weight:600;">{{ item.headline }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Date</span><span>{{ item.entry_date|date:"Y-m-d" }} {{ item.entry_time|time:"H:i" }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Member</span><span>{{ item.member.username }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Sponsor</span><span>{{ item.sponsor.name|default:'—' }}</span></div>
+        <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Slug</span><span style="font-family:monospace;font-size:12px;color:#3b82f6;">{{ item.slug }}</span></div>
+        {% if item.description %}<div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Description</span><span>{{ item.description }}</span></div>{% endif %}
+        <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">URLs</span>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+            {% for key, url in item.links.items %}
+            <a href="{% if url|slice:':8' != 'https://' and url|slice:':7' != 'http://' and url|slice:':2' != '//' %}https://{% endif %}{{ url }}" target="_blank" style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--border);color:var(--accent);text-decoration:none;">{{ key }}</a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      {% elif module == 'assignments' %}
+      <div class="detail-info-grid">
+        <div class="detail-info-item"><span class="detail-label">Caption</span><span style="font-weight:600;">{{ item.caption }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Date</span><span>{{ item.assign_date|date:"Y-m-d" }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Status</span><span class="status-pill status-{{ item.status|lower }}">{{ item.get_status_display }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Reporter</span><span>{{ item.reporter }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Assigned By</span><span>{{ item.member.username }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">District</span><span>{{ item.district|default:'—' }}</span></div>
+        {% if item.source_link %}<div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Source Link</span><span><a href="{{ item.source_link }}" target="_blank" style="font-size:12px;">{{ item.source_link }}</a></span></div>{% endif %}
+      </div>
+
+      {% elif module == 'contentlist' %}
+      <div class="detail-info-grid">
+        <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Content</span><span style="font-weight:600;">{{ item.content }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Date</span><span>{{ item.list_date|date:"Y-m-d" }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Source</span><span class="status-pill status-pending" style="font-size:10px;">{{ item.get_source_display }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">District</span><span>{{ item.district|default:'—' }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Added By</span><span>{{ item.member.username }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Received By</span><span>{{ item.footage_source|default:'—' }}</span></div>
+      </div>
+
+      {% elif module == 'audio' %}
+      <div class="detail-info-grid">
+        <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Assignment</span><span style="font-weight:600;">{{ item.assignment.caption|default:'—' }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Created</span><span>{{ item.created_at|date:"Y-m-d H:i" }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Added By</span><span>{{ item.member.username }}</span></div>
+        <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Media Files</span><span>{{ item.media_entries|length|default:'0' }} file(s)</span></div>
+      </div>
+
+      {% elif module == 'scripts' %}
+      <div class="detail-info-grid">
+        <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Headline</span><span style="font-weight:600;" class="archive-content">{{ item.headline }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Date</span><span>{{ item.script_date|date:"Y-m-d" }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Writer</span><span>{{ item.writer.username }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Source</span><span class="status-pill status-pending" style="font-size:10px;">{{ item.get_source_display }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Status</span><span class="status-pill status-{{ item.status }}">{{ item.get_status_display }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">District</span><span>{{ item.district|default:'—' }}</span></div>
+        {% if item.description %}<div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Description</span><span>{{ item.description }}</span></div>{% endif %}
+      </div>
+
+      {% elif module == 'finalpackage' %}
+      <div class="detail-info-grid">
+        <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Title</span><span style="font-weight:600;">{{ item.title }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Date</span><span>{{ item.package_date|date:"Y-m-d" }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Producer</span><span>{{ item.producer|default:'—' }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Runtime</span><span>{{ item.runtime|default:'—' }}</span></div>
+        <div class="detail-info-item"><span class="detail-label">Status</span><span class="status-pill status-{{ item.status }}">{{ item.get_status_display }}</span></div>
+        {% if item.notes %}<div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Notes</span><span>{{ item.notes }}</span></div>{% endif %}
+      </div>
+      {% endif %}
+
+      {% if related.entries or related.content_items or related.scripts or related.audio_items %}
+      <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px;">
+        <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;">Related Items</h4>
+        {% if related.content_items %}
+        <div style="margin-bottom:12px;">
+          <strong style="font-size:11px;color:var(--text-soft);">Content Sources ({{ related.content_items|length }})</strong>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">
+            {% for ci in related.content_items %}{{ ci.content|truncatechars:30 }}{% if not forloop.last %}, {% endif %}{% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if related.scripts %}
+        <div style="margin-bottom:12px;">
+          <strong style="font-size:11px;color:var(--text-soft);">Scripts ({{ related.scripts|length }})</strong>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">
+            {% for s in related.scripts %}{{ s.headline|truncatechars:30 }}{% if not forloop.last %}, {% endif %}{% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if related.audio_items %}
+        <div style="margin-bottom:12px;">
+          <strong style="font-size:11px;color:var(--text-soft);">Media Pool ({{ related.audio_items|length }})</strong>
+        </div>
+        {% endif %}
+        {% if related.entries %}
+        <div style="margin-bottom:12px;">
+          <strong style="font-size:11px;color:var(--text-soft);">Published Uploads ({{ related.entries|length }})</strong>
+          <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">
+            {% for e in related.entries %}{{ e.headline|truncatechars:30 }}{% if not forloop.last %}, {% endif %}{% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="detail-footer">
+      <button class="btn btn-ghost" onclick="closeDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.detail-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px);}
+.detail-modal{background:var(--surface);border-radius:var(--radius-lg);width:650px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.detail-header{display:flex;align-items:flex-start;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);}
+.detail-body{flex:1;overflow-y:auto;padding:18px 22px;}
+.detail-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;}
+.detail-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.detail-info-item{display:flex;flex-direction:column;gap:3px;}
+.detail-label{font-size:10.5px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.3px;}
+</style>
+<script>function closeDetail(){var el=document.querySelector('.detail-overlay');if(el)el.remove();}</script>

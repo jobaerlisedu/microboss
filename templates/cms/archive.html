@@ -44,16 +44,17 @@
       </thead>
       <tbody>
         {% for e in items %}
-        <tr>
+        <tr{% if e.id|stringformat:'s' in deleted_ids %} style="opacity:0.6;"{% endif %}>
           <td>{{ e.entry_date|date:"Y-m-d" }} <span style="color:var(--text-faint);font-size:11px;">{{ e.entry_time|time:"H:i" }}</span></td>
           <td>
             <strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ e.headline|truncatechars:60 }}</strong>
+            {% if e.id|stringformat:'s' in management_deleted_ids %}<span class="status-pill" style="font-size:9px;background:rgba(239,68,68,0.15);color:#ef4444;margin-left:4px;">Management Del.</span>{% elif e.id|stringformat:'s' in deleted_ids %}<span class="status-pill" style="font-size:9px;background:rgba(239,68,68,0.1);color:#ef4444;margin-left:4px;">Deleted</span>{% endif %}
             <div style="font-size:11px;color:#3b82f6;font-family:monospace;">{{ e.slug }}</div>
           </td>
           <td>{{ e.member.username }}</td>
           <td>{% if e.sponsor %}<span class="status-pill status-success" style="font-size:10px;">{{ e.sponsor.name }}</span>{% else %}<span style="color:var(--text-faint);">—</span>{% endif %}</td>
           <td>
-            <button class="icon-mini" title="Edit" hx-get="/cms/entries/{{ e.id }}/edit/" hx-target="#tab-content" hx-swap="innerHTML"><i class="bi bi-pencil-fill"></i></button>
+            <button class="icon-mini" title="View" hx-get="{% url 'cms:cms-archive-view' module='entries' pk=e.id %}" hx-target="#modalContainer" hx-swap="innerHTML"><i class="bi bi-eye-fill"></i></button>
           </td>
         </tr>
         {% empty %}
@@ -73,19 +74,24 @@
           <th style="width:100px;">DISTRICT</th>
           <th style="width:120px;">REPORTER</th>
           <th style="width:80px;">STATUS</th>
+          <th style="width:40px;" class="actions-col"></th>
         </tr>
       </thead>
       <tbody>
         {% for a in items %}
-        <tr>
+        <tr{% if a.id|stringformat:'s' in deleted_ids %} style="opacity:0.6;"{% endif %}>
           <td>{{ a.assign_date|date:"Y-m-d" }}</td>
-          <td><strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ a.caption|truncatechars:60 }}</strong></td>
+          <td>
+            <strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ a.caption|truncatechars:60 }}</strong>
+            {% if a.id|stringformat:'s' in deleted_ids %}<span class="status-pill" style="font-size:9px;background:rgba(239,68,68,0.1);color:#ef4444;margin-left:4px;">Deleted</span>{% endif %}
+          </td>
           <td>{{ a.district|default:'—' }}</td>
           <td>{{ a.reporter }}</td>
           <td><span class="status-pill status-{{ a.status|lower }}">{{ a.get_status_display }}</span></td>
+          <td><button class="icon-mini" title="View" hx-get="{% url 'cms:cms-archive-view' module='assignments' pk=a.id %}" hx-target="#modalContainer" hx-swap="innerHTML"><i class="bi bi-eye-fill"></i></button></td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No assignments found for {{ month_name }} {{ year }}</td></tr>
+        <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-faint);">No assignments found for {{ month_name }} {{ year }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -101,19 +107,24 @@
           <th style="width:80px;">SOURCE</th>
           <th style="width:100px;">DISTRICT</th>
           <th style="width:80px;">CONTENT RECEIVED BY</th>
+          <th style="width:40px;" class="actions-col"></th>
         </tr>
       </thead>
       <tbody>
         {% for cl in items %}
-        <tr>
+        <tr{% if cl.id|stringformat:'s' in deleted_ids %} style="opacity:0.6;"{% endif %}>
           <td>{{ cl.list_date|date:"Y-m-d" }}</td>
-          <td><strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ cl.content|truncatechars:60 }}</strong></td>
+          <td>
+            <strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ cl.content|truncatechars:60 }}</strong>
+            {% if cl.id|stringformat:'s' in deleted_ids %}<span class="status-pill" style="font-size:9px;background:rgba(239,68,68,0.1);color:#ef4444;margin-left:4px;">Deleted</span>{% endif %}
+          </td>
           <td><span class="status-pill status-pending" style="font-size:10px;">{{ cl.get_source_display }}</span></td>
           <td>{{ cl.district|default:'—' }}</td>
           <td>{{ cl.footage_source|default:'—' }}</td>
+          <td><button class="icon-mini" title="View" hx-get="{% url 'cms:cms-archive-view' module='contentlist' pk=cl.id %}" hx-target="#modalContainer" hx-swap="innerHTML"><i class="bi bi-eye-fill"></i></button></td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No content sources found for {{ month_name }} {{ year }}</td></tr>
+        <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-faint);">No content sources found for {{ month_name }} {{ year }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -128,18 +139,23 @@
           <th>ASSIGNMENT</th>
           <th style="width:80px;">FILES</th>
           <th style="width:100px;">ADDED BY</th>
+          <th style="width:40px;" class="actions-col"></th>
         </tr>
       </thead>
       <tbody>
         {% for a in items %}
-        <tr>
+        <tr{% if a.id|stringformat:'s' in deleted_ids %} style="opacity:0.6;"{% endif %}>
           <td>{{ a.created_at|date:"Y-m-d" }}</td>
-          <td><strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ a.assignment.caption|default:'—'|truncatechars:60 }}</strong></td>
+          <td>
+            <strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ a.assignment.caption|default:'—'|truncatechars:60 }}</strong>
+            {% if a.id|stringformat:'s' in deleted_ids %}<span class="status-pill" style="font-size:9px;background:rgba(239,68,68,0.1);color:#ef4444;margin-left:4px;">Deleted</span>{% endif %}
+          </td>
           <td>{{ a.media_entries|length|default:'0' }}</td>
           <td>{{ a.member.username }}</td>
+          <td><button class="icon-mini" title="View" hx-get="{% url 'cms:cms-archive-view' module='audio' pk=a.id %}" hx-target="#modalContainer" hx-swap="innerHTML"><i class="bi bi-eye-fill"></i></button></td>
         </tr>
         {% empty %}
-        <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-faint);">No media pools found for {{ month_name }} {{ year }}</td></tr>
+        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No media pools found for {{ month_name }} {{ year }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -155,19 +171,24 @@
           <th style="width:100px;">WRITER</th>
           <th style="width:80px;">SOURCE</th>
           <th style="width:70px;">STATUS</th>
+          <th style="width:40px;" class="actions-col"></th>
         </tr>
       </thead>
       <tbody>
         {% for s in items %}
-        <tr>
+        <tr{% if s.id|stringformat:'s' in deleted_ids %} style="opacity:0.6;"{% endif %}>
           <td>{{ s.script_date|date:"Y-m-d" }}</td>
-          <td><a href="#" class="archive-content" hx-get="{% url 'cms:cms-script-detail' pk=s.id %}" hx-target="#tab-content" style="color:var(--accent);text-decoration:none;font-weight:600;font-size:12.5px;">{{ s.headline|truncatechars:60 }}</a></td>
+          <td>
+            <span class="archive-content" style="color:var(--text);font-weight:600;font-size:12.5px;">{{ s.headline|truncatechars:60 }}</span>
+            {% if s.id|stringformat:'s' in deleted_ids %}<span class="status-pill" style="font-size:9px;background:rgba(239,68,68,0.1);color:#ef4444;margin-left:4px;">Deleted</span>{% endif %}
+          </td>
           <td>{{ s.writer.username }}</td>
           <td><span class="status-pill status-pending" style="font-size:10px;">{{ s.get_source_display }}</span></td>
           <td><span class="status-pill status-{{ s.status }}">{{ s.get_status_display }}</span></td>
+          <td><button class="icon-mini" title="View" hx-get="{% url 'cms:cms-archive-view' module='scripts' pk=s.id %}" hx-target="#modalContainer" hx-swap="innerHTML"><i class="bi bi-eye-fill"></i></button></td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No scripts found for {{ month_name }} {{ year }}</td></tr>
+        <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-faint);">No scripts found for {{ month_name }} {{ year }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -183,19 +204,24 @@
           <th style="width:100px;">PRODUCER</th>
           <th style="width:60px;">RUNTIME</th>
           <th style="width:70px;">STATUS</th>
+          <th style="width:40px;" class="actions-col"></th>
         </tr>
       </thead>
       <tbody>
         {% for p in items %}
-        <tr>
+        <tr{% if p.id|stringformat:'s' in deleted_ids %} style="opacity:0.6;"{% endif %}>
           <td>{{ p.package_date|date:"Y-m-d" }}</td>
-          <td><strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ p.title|truncatechars:60 }}</strong></td>
+          <td>
+            <strong class="archive-content" style="color:var(--text);font-size:12.5px;">{{ p.title|truncatechars:60 }}</strong>
+            {% if p.id|stringformat:'s' in deleted_ids %}<span class="status-pill" style="font-size:9px;background:rgba(239,68,68,0.1);color:#ef4444;margin-left:4px;">Deleted</span>{% endif %}
+          </td>
           <td>{{ p.producer|default:'—' }}</td>
           <td>{{ p.runtime|default:'—' }}</td>
           <td><span class="status-pill status-{{ p.status }}">{{ p.get_status_display }}</span></td>
+          <td><button class="icon-mini" title="View" hx-get="{% url 'cms:cms-archive-view' module='finalpackage' pk=p.id %}" hx-target="#modalContainer" hx-swap="innerHTML"><i class="bi bi-eye-fill"></i></button></td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-faint);">No final packages found for {{ month_name }} {{ year }}</td></tr>
+        <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-faint);">No final packages found for {{ month_name }} {{ year }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
