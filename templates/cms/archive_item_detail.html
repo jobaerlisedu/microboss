@@ -43,7 +43,7 @@
         <div class="detail-info-item"><span class="detail-label">Member</span><span>{{ item.member.username }}</span></div>
         <div class="detail-info-item"><span class="detail-label">Sponsor</span><span>{{ item.sponsor.name|default:'—' }}</span></div>
         <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Slug</span><span style="font-family:monospace;font-size:12px;color:#3b82f6;">{{ item.slug }}</span></div>
-        {% if item.description %}<div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Description</span><span>{{ item.description }}</span></div>{% endif %}
+        {% if item.comment %}<div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Comment</span><span>{{ item.comment }}</span></div>{% endif %}
         <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">URLs</span>
           <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
             {% for key, url in item.links.items %}

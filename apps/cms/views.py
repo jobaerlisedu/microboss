@@ -2232,9 +2232,7 @@ def archive_view_item(request, module, pk):
         related['content_items'] = ContentListItem.objects.filter(assignment=item, deleted_at__isnull=True)[:20]
         related['scripts'] = Script.objects.filter(assignment=item, deleted_at__isnull=True)[:20]
         related['audio_items'] = AudioItem.objects.filter(assignment=item, deleted_at__isnull=True)[:20]
-        from itertools import chain
-        content_entry_ids = ContentListItem.objects.filter(assignment=item, deleted_at__isnull=True).values_list('contententry_id', flat=True)
-        related['entries'] = ContentEntry.objects.filter(id__in=list(content_entry_ids), deleted_at__isnull=True)[:20]
+        related['entries'] = ContentEntry.objects.filter(assignment=item, deleted_at__isnull=True)[:20]
 
     return render(request, 'cms/archive_item_detail.html', {
         'module': module,
