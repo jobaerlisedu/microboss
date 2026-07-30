@@ -1,14 +1,14 @@
 <div class="card phoenix-card">
-  <div class="card-header-flex" style="margin-bottom:14px;">
+  <div class="card-header-flex" style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
     <div>
       <h3 class="phoenix-card-title" style="display:flex; align-items:center; gap:8px; margin-bottom:0;">
-        <a class="btn btn-sm" style="border:1px solid var(--border); border-radius:24px; font-weight:600; color:var(--text-soft); padding: 6px 16px; display:inline-flex; align-items:center; gap:8px; transition:all 0.2s ease; font-size:13px; margin-right:6px;" hx-get="{% url 'cms:cms-roster' %}?view=week" hx-target="#tab-content" hx-swap="innerHTML">
-          <i class="bi bi-arrow-left" style="font-size:15px;"></i> Back
-        </a>
         <i class="bi bi-calendar-week-fill" style="color:#3b82f6;"></i> Weekly Roster Builder
       </h3>
-      <p class="phoenix-card-sub">Click any cell to assign employees to a shift for that day.</p>
+      <p class="phoenix-card-sub" style="margin-top:4px;">Click any cell to assign employees to a shift for that day.</p>
     </div>
+    <a class="btn btn-sm" style="border:1px solid var(--border); border-radius:24px; font-weight:600; color:var(--text-soft); padding: 6px 16px; display:inline-flex; align-items:center; gap:8px; transition:all 0.2s ease; font-size:13px;" hx-get="{% url 'cms:cms-roster' %}?view=week" hx-target="#tab-content" hx-swap="innerHTML">
+      <i class="bi bi-arrow-left" style="font-size:15px;"></i> Back
+    </a>
   </div>
 
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding:10px 16px;background:var(--surface-2);border-radius:var(--radius);">
