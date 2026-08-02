@@ -38,18 +38,8 @@
       </div>
     </div>
 
-    <!-- ASSIGNMENT & SPONSOR (2-col grid) -->
+    <!-- SPONSOR -->
     <div class="form-grid grid-2" style="margin-top:16px;">
-      <div class="field">
-        <label><i class="bi bi-pin-angle-fill" style="color:#f59e0b;"></i> Linked Assignment <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
-        <select name="assignment_id">
-          <option value="">— No Assignment —</option>
-          {% for a in today_assignments %}
-          <option value="{{ a.id }}" {% if entry and entry.assignment_id|stringformat:'s' == a.id|stringformat:'s' %}selected{% elif duplicating and initial.assignment_id == a.id|stringformat:'s' %}selected{% endif %}>{{ a.caption|truncatechars:40 }} — {{ a.reporter }}</option>
-          {% endfor %}
-        </select>
-        <div id="assignmentCloseNote" style="font-size:10.5px;color:var(--text-faint);margin-top:3px;display:none;">Saving this upload will close the assignment as published.</div>
-      </div>
       <div class="field">
         <label><i class="bi bi-star-fill" style="color:#f59e0b;"></i> Sponsor <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
         <select name="sponsor_id">
@@ -60,8 +50,6 @@
         </select>
       </div>
     </div>
-
-    <script>document.querySelector('[name="assignment_id"]')?.addEventListener('change',function(){var n=document.getElementById('assignmentCloseNote');if(n)n.style.display=this.value?'block':'none'});(function(){var s=document.querySelector('[name="assignment_id"]');var n=document.getElementById('assignmentCloseNote');if(s&&n)n.style.display=s.value?'block':'none'})();</script>
 
     <!-- PLATFORM LINKS SUB-CARD -->
       <div class="link-card-box">
