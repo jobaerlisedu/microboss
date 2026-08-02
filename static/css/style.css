@@ -1058,6 +1058,35 @@ textarea {
   opacity: 0.92;
 }
 
+.pager-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-soft);
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pager-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.pager-btn.active {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+}
+
 .btn-primary {
   background: #3b82f6;
   color: #ffffff;

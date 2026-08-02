@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 from django.core.cache import cache
 from django.utils import timezone
 from django.db.models import Count, Q, Sum
@@ -340,8 +341,15 @@ def all_entries_tab(request):
         'sponsor_count': sponsors.count(),
     }
 
+    page_number = request.GET.get('page', '1')
+    paginator = Paginator(qs.order_by('-entry_date', '-entry_time'), 25)
+    try:
+        entries_page = paginator.get_page(page_number)
+    except Exception:
+        entries_page = paginator.get_page(1)
+
     months_dict = {}
-    for e in qs.order_by('-entry_date', '-entry_time'):
+    for e in entries_page.object_list:
         key = e.entry_date.strftime('%Y-%m')
         if key not in months_dict:
             months_dict[key] = []
@@ -369,6 +377,7 @@ def all_entries_tab(request):
         'selected_member': member_id,
         'date_from': date_from,
         'date_to': date_to,
+        'page_obj': entries_page,
         'user': request.user,
     })
 
