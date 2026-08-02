@@ -64,24 +64,13 @@
 
   <div class="kpi-card kpi-card-purple">
     <div class="kpi-card-top">
-      <div class="kpi-icon-box"><i class="bi bi-journal-text"></i></div>
-      <div class="kpi-trend" id="kpiAssignTrend"><span class="trend-neutral"><i class="bi bi-dot"></i>{{ stats.total_assignments }}</span></div>
+      <div class="kpi-icon-box"><i class="bi bi-star-fill"></i></div>
+      <div class="kpi-trend"><span class="trend-neutral"><i class="bi bi-dot"></i>{{ stats.sponsored_entries }}</span></div>
     </div>
-    <div class="kpi-value" id="kpiTotalAssignments">{{ stats.total_assignments }}</div>
-    <div class="kpi-label">Total Assignments</div>
-    <div class="kpi-footer"><span id="kpiActiveAssignments">{{ stats.active_assignments }}</span> active &middot; <span id="kpiDoneAssignments">0</span> completed</div>
+    <div class="kpi-value" id="kpiSponsoredEntries">{{ stats.sponsored_entries }}</div>
+    <div class="kpi-label">Sponsored Content</div>
+    <div class="kpi-footer"><span id="kpiOrganicEntries">{{ stats.organic_entries }}</span> organic &middot; <span id="kpiActiveSponsors">{{ stats.active_sponsors }}</span> active sponsors</div>
   </div>
-
-  <div class="kpi-card kpi-card-rose">
-    <div class="kpi-card-top">
-      <div class="kpi-icon-box"><i class="bi bi-clock-history"></i></div>
-      <div class="kpi-trend" id="kpiScriptTrend"><span class="trend-neutral"><i class="bi bi-dot"></i>{{ stats.total_scripts }}</span></div>
-    </div>
-    <div class="kpi-value" id="kpiTotalScripts">{{ stats.total_scripts }}</div>
-    <div class="kpi-label">Total Scripts</div>
-    <div class="kpi-footer"><span id="kpiPendingScripts">{{ stats.pending_scripts }}</span> pending &middot; <span id="kpiApprovedScripts">0</span> approved</div>
-  </div>
-
   <div class="kpi-card kpi-card-emerald">
     <div class="kpi-card-top">
       <div class="kpi-icon-box"><i class="bi bi-people-fill"></i></div>
@@ -170,42 +159,6 @@
     </div>
   </div>
 
-  <div class="card phoenix-card">
-    <div class="card-header-flex">
-      <div>
-        <h3 class="phoenix-card-title"><i class="bi bi-pin-angle-fill" style="color:#f59e0b;"></i> Assignment Pipeline</h3>
-        <p class="phoenix-card-sub">Status breakdown this period</p>
-      </div>
-    </div>
-    <div class="chart-container" style="height:200px;">
-      <canvas id="chartAssignmentPipeline"></canvas>
-    </div>
-  </div>
-
-  <div class="card phoenix-card">
-    <div class="card-header-flex">
-      <div>
-        <h3 class="phoenix-card-title"><i class="bi bi-file-earmark-code-fill" style="color:#6366f1;"></i> Script Pipeline</h3>
-        <p class="phoenix-card-sub">Script status distribution</p>
-      </div>
-    </div>
-    <div class="chart-container" style="height:200px;">
-      <canvas id="chartScriptPipeline"></canvas>
-    </div>
-  </div>
-
-  <div class="card phoenix-card">
-    <div class="card-header-flex">
-      <div>
-        <h3 class="phoenix-card-title"><i class="bi bi-card-checklist" style="color:#22c55e;"></i> Sources Breakdown</h3>
-        <p class="phoenix-card-sub">By source type this period</p>
-      </div>
-    </div>
-    <div class="chart-container" style="height:200px;">
-      <canvas id="chartSourceMetrics"></canvas>
-    </div>
-  </div>
-
   <div class="card phoenix-card dash-span-2">
     <div class="card-header-flex">
       <div>
@@ -250,18 +203,6 @@
         <span style="color:var(--text-soft);">Change</span>
         <strong id="periodChange" class="badge-pos">-</strong>
       </div>
-    </div>
-  </div>
-
-  <div class="card phoenix-card">
-    <div class="card-header-flex">
-      <div>
-        <h3 class="phoenix-card-title"><i class="bi bi-activity" style="color:#22c55e;"></i> Assignment Trend</h3>
-        <p class="phoenix-card-sub">Created vs Completed</p>
-      </div>
-    </div>
-    <div class="chart-container" style="height:200px;">
-      <canvas id="chartAssignmentTrend"></canvas>
     </div>
   </div>
 

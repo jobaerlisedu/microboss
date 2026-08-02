@@ -13,13 +13,9 @@ function refreshDashboardData() {
       if (data.platform_breakdown) renderPlatformBreakdown(data.platform_breakdown);
       if (data.sponsored_vs_organic) renderContentRatio(data.sponsored_vs_organic);
       if (data.member_performance) renderTopContributors(data.member_performance);
-      if (data.assignment_metrics) renderAssignmentPipeline(data.assignment_metrics);
-      if (data.script_metrics) renderScriptPipeline(data.script_metrics);
-      if (data.content_list_sources) renderSourceMetrics(data.content_list_sources);
       if (data.day_of_week) renderDayOfWeek(data.day_of_week);
       if (data.hourly) renderHourlyChart(data.hourly);
       if (data.monthly_comparison) renderPeriodComparison(data.monthly_comparison);
-      if (data.assignment_trend) renderAssignmentTrend(data.assignment_trend);
     })
     .catch(function(err) { console.warn('Dashboard fetch failed:', err); });
 }
@@ -30,13 +26,9 @@ function updateKPIs(kpi) {
   setText('kpiMonthEntries', kpi.month_entries);
   setText('kpiActiveSponsors', kpi.active_sponsors);
   setText('kpiTotalSponsors', kpi.total_sponsors);
-  setText('kpiPendingScripts', kpi.pending_scripts);
-  setText('kpiActiveAssignments', kpi.active_assignments);
   setText('kpiPeriodEntries', kpi.period_entries);
-  setText('kpiTotalAssignments', kpi.total_assignments);
-  setText('kpiTotalScripts', kpi.total_scripts);
-  setText('kpiDoneAssignments', kpi.completed_assignments || 0);
-  setText('kpiApprovedScripts', kpi.approved_scripts || 0);
+  setText('kpiSponsoredEntries', kpi.sponsored_entries);
+  setText('kpiOrganicEntries', kpi.organic_entries);
   var gb = document.getElementById('kpiGrowthBadge');
   if (gb) {
     var pct = kpi.growth_pct || 0;
@@ -256,93 +248,6 @@ function renderContentRatio(data) {
   });
 }
 
-function renderAssignmentPipeline(data) {
-  destroyChart('assignmentPipeline');
-  var ctx = createCtx('chartAssignmentPipeline');
-  if (!ctx) return;
-  chartInstances.assignmentPipeline = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Completed', 'Processing', 'Assigned', 'Cancelled'],
-      datasets: [{
-        data: [data.done, data.processing, data.assigned, data.cancelled],
-        backgroundColor: ['#22c55e', '#f59e0b', '#3b82f6', '#ef4444'],
-        borderWidth: 2,
-        borderColor: 'transparent',
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '55%',
-      plugins: {
-        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 }, padding: 8 } },
-        tooltip: { callbacks: { label: function(c){
-          var map = {done:'done_pct',processing:'processing_pct',assigned:'assigned_pct',cancelled:'cancelled_pct'};
-          var key = map[c.label.toLowerCase()] || c.label.toLowerCase()+'_pct';
-          var pct = data[key];
-          return c.label + ': ' + c.raw + (pct != null ? ' (' + pct + '%)' : '');
-        } } }
-      }
-    }
-  });
-}
-
-function renderScriptPipeline(data) {
-  destroyChart('scriptPipeline');
-  var ctx = createCtx('chartScriptPipeline');
-  if (!ctx) return;
-  chartInstances.scriptPipeline = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Approved', 'Pending', 'Draft'],
-      datasets: [{
-        data: [data.approved, data.pending, data.draft],
-        backgroundColor: ['#22c55e', '#f59e0b', '#94a3b8'],
-        borderWidth: 2,
-        borderColor: 'transparent',
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '55%',
-      plugins: {
-        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 }, padding: 8 } },
-        tooltip: { callbacks: { label: function(c){ return c.label + ': ' + c.raw + ' (' + data[c.label.toLowerCase()+'_pct'] + '%)'; } } }
-      }
-    }
-  });
-}
-
-function renderSourceMetrics(data) {
-  destroyChart('sourceMetrics');
-  var ctx = createCtx('chartSourceMetrics');
-  if (!ctx || !data.sources) return;
-  var srcColors = {district:'#3b82f6', reuters:'#ef4444', social:'#22c55e', studio:'#f59e0b'};
-  var colors = data.sources.map(function(s){ return srcColors[s.source] || '#94a3b8'; });
-  chartInstances.sourceMetrics = new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: data.sources.map(function(s){ return s.source; }),
-      datasets: [{
-        data: data.sources.map(function(s){ return s.total; }),
-        backgroundColor: colors,
-        borderWidth: 2,
-        borderColor: 'transparent',
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 }, padding: 8 } },
-        tooltip: { callbacks: { label: function(c){ return c.label + ': ' + c.raw + ' (' + data.sources[c.dataIndex].pct + '%)'; } } }
-      }
-    }
-  });
-}
-
 function renderDayOfWeek(data) {
   destroyChart('dayOfWeek');
   var ctx = createCtx('chartDayOfWeek');
@@ -414,32 +319,6 @@ function renderPeriodComparison(data) {
     el.textContent = (pct >= 0 ? '+' : '') + pct + '%';
     el.className = pct >= 0 ? 'badge-pill badge-pos' : 'badge-pill badge-neg';
   }
-}
-
-function renderAssignmentTrend(data) {
-  destroyChart('assignmentTrend');
-  var ctx = createCtx('chartAssignmentTrend');
-  if (!ctx || !data.labels) return;
-  chartInstances.assignmentTrend = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: data.labels,
-      datasets: [
-        { label: 'Created', data: data.created, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3, pointRadius: 2, borderWidth: 2 },
-        { label: 'Completed', data: data.done, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)', fill: true, tension: 0.3, pointRadius: 2, borderWidth: 2 }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 10 } } } },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 9 }, maxTicksLimit: 10 } },
-        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 9 }, stepSize: 1 } }
-      },
-      interaction: { mode: 'index', intersect: false }
-    }
-  });
 }
 
 function setText(id, val) {
