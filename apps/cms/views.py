@@ -643,10 +643,13 @@ def save_entry(request):
             assignment_id = None
 
         entry_id = request.POST.get('entry_id', '')
+        slug = request.POST.get('slug', '').strip()
+        if not slug:
+            return _toast_response('Content Slug is required.', reverse('cms:cms-new-entry'), type='error')
         data = {
             'entry_date': request.POST.get('entry_date'),
             'entry_time': request.POST.get('entry_time'),
-            'slug': request.POST.get('slug', ''),
+            'slug': slug,
             'headline': request.POST.get('headline', ''),
             'links': links,
             'assignment_id': assignment_id or None,

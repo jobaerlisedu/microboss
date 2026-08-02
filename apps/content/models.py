@@ -6,7 +6,7 @@ from apps.common.models import BaseModel
 class ContentEntry(BaseModel):
     entry_date = models.DateField('The Date', db_index=True)
     entry_time = models.TimeField('Time')
-    slug = models.CharField('Content Slug Name', max_length=255, db_index=True, blank=True, default='')
+    slug = models.CharField('Content Slug Name', max_length=255, db_index=True)
     headline = models.TextField('The Headline')
     member = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
@@ -30,14 +30,10 @@ class ContentEntry(BaseModel):
         default='bn', db_index=True,
     )
 
-
     class Meta:
         verbose_name = 'Content Entry'
         verbose_name_plural = 'Content Entries'
         ordering = ['-entry_date', '-entry_time']
-        constraints = [
-            models.UniqueConstraint(fields=['slug', 'entry_date'], name='uq_content_slug_date'),
-        ]
         indexes = [
             models.Index(fields=['entry_date']),
             models.Index(fields=['member', 'entry_date']),

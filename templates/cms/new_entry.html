@@ -25,8 +25,8 @@
         <input type="time" name="entry_time" value="{% if entry %}{{ entry.entry_time|time:'H:i' }}{% else %}{{ initial.time|default:'' }}{% endif %}" required>
       </div>
       <div class="field">
-        <label><i class="bi bi-tag-fill"></i> Content Slug <span class="opt" style="font-size:11px;color:var(--text-faint);">(Optional)</span></label>
-        <input type="text" name="slug" value="{% if entry %}{{ entry.slug }}{% elif initial.slug %}{{ initial.slug }}{% endif %}" placeholder="e.g. eid-vlog-01">
+        <label><i class="bi bi-tag-fill"></i> Content Slug *</label>
+        <input type="text" name="slug" value="{% if entry %}{{ entry.slug }}{% elif initial.slug %}{{ initial.slug }}{% endif %}" placeholder="e.g. eid-vlog-01" required>
       </div>
       <div class="field">
         <label><i class="bi bi-person-circle"></i> Uploader</label>

@@ -54,7 +54,7 @@ class CMSSaveEntryTest(TestCase):
         self.assertEqual(trigger['cms-toast']['type'], 'error')
         self.assertEqual(ContentEntry.objects.count(), 0)
 
-    def test_save_entry_duplicate_slug_date_fails(self):
+    def test_save_entry_duplicate_slug_date_allowed(self):
         ContentEntry.objects.create(
             entry_date=self.today, entry_time='10:00',
             slug='dup-slug', headline='First',
@@ -69,9 +69,7 @@ class CMSSaveEntryTest(TestCase):
             'links_fb': 'https://facebook.com/dup',
         })
         self.assertEqual(resp.status_code, 200)
-        trigger = json.loads(resp['HX-Trigger'])
-        self.assertEqual(trigger['cms-toast']['type'], 'error')
-        self.assertIn('duplicate', trigger['cms-toast']['message'].lower())
+        self.assertEqual(ContentEntry.objects.filter(slug='dup-slug').count(), 2)
 
     def test_save_entry_updates_assignment_status(self):
         assignment = Assignment.objects.create(
