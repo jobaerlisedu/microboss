@@ -7,7 +7,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('assignments', '0004_alter_assignment_options'),
         ('content', '0006_remove_contententry_content_con_slug_b237de_idx_and_more'),
         ('sponsors', '0004_add_language_field'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

@@ -124,108 +124,6 @@ msgstr "জিপিআই x1"
 msgid "স্পন্সরগণ"
 msgstr "স্পন্সরগণ"
 
-#: apps/contentlist/models.py
-msgid "জেলা"
-msgstr "জেলা"
-
-msgid "রয়টার্স"
-msgstr "রয়টার্স"
-
-msgid "সোশ্যাল মিডিয়া"
-msgstr "সোশ্যাল মিডিয়া"
-
-msgid "স্টুডিও শুটিং"
-msgstr "স্টুডিও শুটিং"
-
-msgid "সোর্স"
-msgstr "সোর্স"
-
-msgid "ফুটেজ"
-msgstr "ফুটেজ"
-
-msgid "যোগকারী"
-msgstr "যোগকারী"
-
-msgid "কন্টেন্ট তালিকা"
-msgstr "কন্টেন্ট তালিকা"
-
-msgid "কন্টেন্ট তালিকাসমূহ"
-msgstr "কন্টেন্ট তালিকাসমূহ"
-
-#: apps/assignments/models.py
-msgid "Assigned"
-msgstr "Assigned"
-
-msgid "Processing"
-msgstr "Processing"
-
-msgid "Done"
-msgstr "Done"
-
-msgid "Cancel"
-msgstr "Cancel"
-
-msgid "কন্টেন্ট ক্যাপশন"
-msgstr "কন্টেন্ট ক্যাপশন"
-
-msgid "সোর্স লিংক"
-msgstr "সোর্স লিংক"
-
-msgid "রিপোর্টারের নাম"
-msgstr "রিপোর্টারের নাম"
-
-msgid "স্ট্যাটাস"
-msgstr "স্ট্যাটাস"
-
-msgid "এসাইনকারী"
-msgstr "এসাইনকারী"
-
-msgid "এসাইনমেন্ট"
-msgstr "এসাইনমেন্ট"
-
-msgid "এসাইনমেন্টসমূহ"
-msgstr "এসাইনমেন্টসমূহ"
-
-#: apps/scripts/models.py
-msgid "খসড়া"
-msgstr "খসড়া"
-
-msgid "অনুমোদনের অপেক্ষায়"
-msgstr "অনুমোদনের অপেক্ষায়"
-
-msgid "অনুমোদিত"
-msgstr "অনুমোদিত"
-
-msgid "সম্ভাব্য হেডলাইন"
-msgstr "সম্ভাব্য হেডলাইন"
-
-msgid "কন্টেন্ট সোর্স"
-msgstr "কন্টেন্ট সোর্স"
-
-msgid "স্ক্রিপ্ট রাইটার"
-msgstr "স্ক্রিপ্ট রাইটার"
-
-msgid "জেলার নাম"
-msgstr "জেলার নাম"
-
-msgid "জেলার রিপোর্টার"
-msgstr "জেলার রিপোর্টার"
-
-msgid "স্ক্রিপ্ট"
-msgstr "স্ক্রিপ্ট"
-
-msgid "অনুমোদনকারী"
-msgstr "অনুমোদনকারী"
-
-msgid "অনুমোদনের সময়"
-msgstr "অনুমোদনের সময়"
-
-msgid "ডিজিটাল স্ক্রিপ্ট"
-msgstr "ডিজিটাল স্ক্রিপ্ট"
-
-msgid "ডিজিটাল স্ক্রিপ্টসমূহ"
-msgstr "ডিজিটাল স্ক্রিপ্টসমূহ"
-
 #: apps/accounts/serializers.py
 msgid "পাসওয়ার্ড দুটি মিলছে না"
 msgstr "পাসওয়ার্ড দুটি মিলছে না"
@@ -275,24 +173,6 @@ msgstr "অন্তত ১টি লিংক আবশ্যক"
 msgid "এই হেডলাইনটি আগেই তালিকায় আছে"
 msgstr "এই হেডলাইনটি আগেই তালিকায় আছে"
 
-#: apps/scripts/views.py
-msgid "শুধু খসড়া স্ক্রিপ্ট জমা দেওয়া যাবে"
-msgstr "শুধু খসড়া স্ক্রিপ্ট জমা দেওয়া যাবে"
-
-msgid "শুধু অ্যাডমিন অনুমোদন দিতে পারেন"
-msgstr "শুধু অ্যাডমিন অনুমোদন দিতে পারেন"
-
-msgid "শুধু অপেক্ষমাণ স্ক্রিপ্ট অনুমোদন করা যাবে"
-msgstr "শুধু অপেক্ষমাণ স্ক্রিপ্ট অনুমোদন করা যাবে"
-
-#: apps/assignments/views.py
-msgid "Invalid status"
-msgstr "ভুল স্ট্যাটাস"
-
-#: apps/leaders/views.py
-msgid "ব্যবহারকারী পাওয়া যায়নি"
-msgstr "ব্যবহারকারী পাওয়া যায়নি"
-
 #: apps/reports/pdf_utils.py
 msgid "কন্টেন্ট রিপোর্ট"
 msgstr "কন্টেন্ট রিপোর্ট"
@@ -322,11 +202,5 @@ msgstr "পিডিএফ ডাউনলোড"
 msgid "কোনো এন্ট্রি পাওয়া যায়নি"
 msgstr "কোনো এন্ট্রি পাওয়া যায়নি"
 
-msgid "কন্টেন্ট রিপোর্ট"
-msgstr "কন্টেন্ট রিপোর্ট"
-
 msgid "চ্যানেল ওয়ান ডিজিটাল — কন্টেন্ট লগ"
 msgstr "চ্যানেল ওয়ান ডিজিটাল — কন্টেন্ট লগ"
-
-msgid "চ্যানেল ওয়ান ডিজিটাল — ডিজিটাল স্ক্রিপ্ট"
-msgstr "চ্যানেল ওয়ান ডিজিটাল — ডিজিটাল স্ক্রিপ্ট"

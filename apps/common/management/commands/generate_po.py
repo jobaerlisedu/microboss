@@ -127,108 +127,6 @@ msgstr "Gpi X1"
 msgid "Sponsors"
 msgstr "Sponsors"
 
-#: apps/contentlist/models.py
-msgid "District"
-msgstr "District"
-
-msgid "Reuters"
-msgstr "Reuters"
-
-msgid "Social Media"
-msgstr "Social Media"
-
-msgid "Studio Shooting"
-msgstr "Studio Shooting"
-
-msgid "Source"
-msgstr "Source"
-
-msgid "Footage"
-msgstr "Footage"
-
-msgid "Adder"
-msgstr "Adder"
-
-msgid "Table Of Contents"
-msgstr "Table Of Contents"
-
-msgid "Content Lists"
-msgstr "Content Lists"
-
-#: apps/assignments/models.py
-msgid "Assigned"
-msgstr "Assigned"
-
-msgid "Processing"
-msgstr "Processing"
-
-msgid "Done"
-msgstr "Done"
-
-msgid "Cancel"
-msgstr "Cancel"
-
-msgid "Content Caption"
-msgstr "Content Caption"
-
-msgid "Source Link"
-msgstr "Source Link"
-
-msgid "Reporterের নাম"
-msgstr "Reporterের নাম"
-
-msgid "Status"
-msgstr "Status"
-
-msgid "Assignee"
-msgstr "Assignee"
-
-msgid "Assignment"
-msgstr "Assignment"
-
-msgid "Assignments"
-msgstr "Assignments"
-
-#: apps/scripts/models.py
-msgid "The Draft"
-msgstr "The Draft"
-
-msgid "Awaiting Approval"
-msgstr "Awaiting Approval"
-
-msgid "Allowed"
-msgstr "Allowed"
-
-msgid "Possible Headlines"
-msgstr "Possible Headlines"
-
-msgid "Content Source"
-msgstr "Content Source"
-
-msgid "Script Writer"
-msgstr "Script Writer"
-
-msgid "District Name"
-msgstr "District Name"
-
-msgid "District Reporter"
-msgstr "District Reporter"
-
-msgid "Script"
-msgstr "Script"
-
-msgid "Approver"
-msgstr "Approver"
-
-msgid "Approval Time"
-msgstr "Approval Time"
-
-msgid "Digital Script"
-msgstr "Digital Script"
-
-msgid "Digital Scripts"
-msgstr "Digital Scripts"
-
 #: apps/accounts/serializers.py
 msgid "The two passwords do not match"
 msgstr "The two passwords do not match"
@@ -278,24 +176,6 @@ msgstr "At least 1 link is required"
 msgid "This headline is already listed"
 msgstr "This headline is already listed"
 
-#: apps/scripts/views.py
-msgid "Only draft scripts can be submitted"
-msgstr "Only draft scripts can be submitted"
-
-msgid "Only admin can give approval"
-msgstr "Only admin can give approval"
-
-msgid "Only pending scripts can be approved"
-msgstr "Only pending scripts can be approved"
-
-#: apps/assignments/views.py
-msgid "Invalid status"
-msgstr "Incorrect Status"
-
-#: apps/leaders/views.py
-msgid "User Not Found"
-msgstr "User Not Found"
-
 #: apps/reports/pdf_utils.py
 msgid "Content Report"
 msgstr "Content Report"
@@ -325,14 +205,8 @@ msgstr "Pdf Download"
 msgid "No Entries Found"
 msgstr "No Entries Found"
 
-msgid "Content Report"
-msgstr "Content Report"
-
 msgid "Channel One Digital — Content Log"
 msgstr "Channel One Digital — Content Log"
-
-msgid "Channel One Digital — Digital Script"
-msgstr "Channel One Digital — Digital Script"
 '''
 
 

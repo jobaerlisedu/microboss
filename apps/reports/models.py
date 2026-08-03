@@ -6,11 +6,6 @@ from django.conf import settings
 class ReportConfig(models.Model):
     MODULE_CHOICES = [
         ('entries', 'Content Entries'),
-        ('assignments', 'Assignments'),
-        ('scripts', 'Digital Scripts'),
-        ('audio', 'Media Pool'),
-        ('contentlist', 'Content Sources'),
-        ('finalpackage', 'Final Packages'),
         ('sponsors', 'Sponsors'),
         ('users', 'Users'),
     ]

@@ -19,17 +19,12 @@ from django.views.decorators.http import require_POST
 from apps.accounts.models import User, UserSession
 from apps.content.models import ContentEntry, ContentDeletion
 from apps.sponsors.models import Sponsor
-from apps.contentlist.models import ContentListItem
-from apps.assignments.models import Assignment
-from apps.scripts.models import Script, ScriptEditHistory
 from apps.notices.models import Notice
 from apps.analytics.services import get_dashboard_data
-from apps.audio.models import AudioItem
-from apps.finalpackage.models import FinalPackage
 from apps.reports.models import ReportConfig
 from apps.reports.report_engine import ReportEngine
 from apps.reports.pdf_utils import render_to_pdf_response
-from apps.hr.models import Shift, DutyRoster, Attendance, LeaveType, LeaveRequest, LeaveBalance
+from apps.hr.models import Shift, DutyRoster, LeaveType, LeaveRequest, LeaveBalance
 
 PLATFORMS = [
     {'key': 'fb', 'label': 'Facebook', 'color': '#3B82F6'},
@@ -254,10 +249,6 @@ def dashboard_tab(request):
 @login_required
 def new_entry_tab(request):
     sponsors = Sponsor.objects.filter(deleted_at__isnull=True)
-    today_assignments = Assignment.objects.filter(
-        assign_date=timezone.now().date(),
-        deleted_at__isnull=True,
-    ).select_related('reporter_user', 'member').order_by('created_at')
     initial = {
         'date': _today_str(),
         'time': timezone.now().strftime('%H:%M'),
@@ -265,7 +256,6 @@ def new_entry_tab(request):
     return _tab_response(request, 'cms/new_entry.html', {
         'platforms': PLATFORMS,
         'sponsors': sponsors,
-        'today_assignments': today_assignments,
         'initial': initial,
         'user': request.user,
     })
@@ -393,152 +383,6 @@ def sponsors_tab(request):
 
 
 @login_required
-def content_list_tab(request):
-    now = timezone.now()
-    today = now.date()
-    qs = ContentListItem.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment')
-    today_assignments = Assignment.objects.filter(
-        assign_date=today,
-        deleted_at__isnull=True,
-    ).select_related('reporter_user', 'member').order_by('created_at')
-
-    stats = {
-        'total': qs.count(),
-        'today': qs.filter(list_date=today).count(),
-        'this_month': qs.filter(list_date__year=now.year, list_date__month=now.month).count(),
-        'district': qs.filter(source__iexact='district').count(),
-    }
-
-    return _tab_response(request, 'cms/content_list.html', {
-        'items': qs.order_by('-list_date', '-created_at'),
-        'today_assignments': today_assignments,
-        'stats': stats,
-        'today': today,
-        'user': request.user,
-    })
-
-
-@login_required
-def assignments_tab(request):
-    today = timezone.now().date()
-    day_param = request.GET.get('day')
-    if day_param:
-        try:
-            day_date = datetime.strptime(day_param, '%Y-%m-%d').date()
-        except ValueError:
-            day_date = today
-    else:
-        day_date = today
-
-    stats_qs = Assignment.objects.filter(deleted_at__isnull=True)
-    now = timezone.now()
-    active_users = User.objects.filter(is_active=True).order_by('full_name')
-
-    if request.GET.get('export') == 'csv':
-        csv_qs = Assignment.objects.filter(deleted_at__isnull=True).select_related('member', 'reporter_user')
-        rows = []
-        for a in csv_qs.order_by('-assign_date', '-created_at'):
-            rows.append([
-                a.assign_date.strftime('%Y-%m-%d'),
-                a.caption,
-                a.district or '',
-                a.reporter,
-                a.get_status_display(),
-                a.source_link or '',
-            ])
-        return _csv_response(
-            'assignments.csv',
-            ['The Date', 'Caption', 'District', 'Reporter', 'Status', 'Source Link'],
-            rows,
-        )
-
-    assignments_list = Assignment.objects.filter(
-        deleted_at__isnull=True, assign_date=day_date
-    ).select_related('member', 'reporter_user').order_by('-created_at')
-
-    prev_day = day_date - timedelta(days=1)
-    next_day = day_date + timedelta(days=1)
-
-    ctx = {
-        'assignments': assignments_list,
-        'day_date': day_date,
-        'prev_day': prev_day.isoformat(),
-        'next_day': next_day.isoformat(),
-        'is_today': day_date == today,
-        'today': today,
-        'user': request.user,
-        'active_users': active_users,
-        'stats': {
-            'total': stats_qs.count(),
-            'today': stats_qs.filter(assign_date=today).count(),
-            'this_month': stats_qs.filter(assign_date__year=now.year, assign_date__month=now.month).count(),
-            'done': stats_qs.filter(status='Done').count(),
-        },
-    }
-
-    return _tab_response(request, 'cms/assignments.html', ctx)
-
-
-@login_required
-def scripts_tab(request):
-    now = timezone.now()
-    qs = Script.objects.filter(deleted_at__isnull=True).select_related('writer', 'approved_by', 'assignment')
-    my_qs = qs.filter(writer=request.user)
-    today_assignments = Assignment.objects.filter(
-        assign_date=timezone.now().date(),
-        deleted_at__isnull=True,
-    ).select_related('reporter_user', 'member').order_by('created_at')
-
-    if request.GET.get('export') == 'csv':
-        rows = []
-        for sc in qs.order_by('-script_date', '-created_at'):
-            rows.append([
-                sc.script_date.strftime('%Y-%m-%d'),
-                sc.writer.username,
-                sc.headline or '',
-                sc.get_source_display(),
-                sc.district or '',
-                sc.get_status_display(),
-            ])
-        return _csv_response(
-            'scripts.csv',
-            ['The Date', 'The Writer', 'The Headline', 'The Source', 'District', 'Status'],
-            rows,
-        )
-
-    try:
-        page = max(1, int(request.GET.get('page', 1)))
-    except (ValueError, TypeError):
-        page = 1
-    page_size = 20
-    offset = (page - 1) * page_size
-    scripts_list = list(qs.order_by('-script_date', '-created_at')[offset:offset + page_size + 1])
-    has_more = len(scripts_list) > page_size
-    if has_more:
-        scripts_list = scripts_list[:page_size]
-
-    ctx = {
-        'scripts': scripts_list,
-        'today_assignments': today_assignments,
-        'user': request.user,
-        'page': page,
-        'has_more': has_more,
-    }
-
-    if page == 1:
-        stats = {
-            'total': qs.count(),
-            'my_total': my_qs.count(),
-            'my_today': my_qs.filter(script_date=now.date()).count(),
-            'my_month': my_qs.filter(script_date__year=now.year, script_date__month=now.month).count(),
-            'pending': qs.filter(status='pending').count(),
-        }
-        ctx['stats'] = stats
-
-    return _tab_response(request, 'cms/scripts.html', ctx)
-
-
-@login_required
 def leaderboard_tab(request):
     top_users = User.objects.filter(
         is_active=True,
@@ -615,14 +459,9 @@ def sponsor_track_widget(request):
 def _contributors_data():
     top = list(User.objects.filter(is_active=True).annotate(
         entry_count=Count('content_entries', filter=Q(content_entries__deleted_at__isnull=True)),
-        assignment_count=Count('assignments', filter=Q(assignments__deleted_at__isnull=True)),
-        script_count=Count('scripts', filter=Q(scripts__deleted_at__isnull=True)),
-        audio_count=Count('audio_items', filter=Q(audio_items__deleted_at__isnull=True)),
-        clist_count=Count('content_list_items', filter=Q(content_list_items__deleted_at__isnull=True)),
-        fp_count=Count('final_packages', filter=Q(final_packages__deleted_at__isnull=True)),
     ).order_by('-entry_count')[:15])
     for u in top:
-        u.total_count = u.entry_count + u.assignment_count + u.script_count + u.audio_count + u.clist_count + u.fp_count
+        u.total_count = u.entry_count
     top = sorted(top, key=lambda u: u.total_count, reverse=True)[:5]
     return top
 
@@ -647,10 +486,6 @@ def save_entry(request):
         if sponsor_id and not Sponsor.objects.filter(id=sponsor_id, deleted_at__isnull=True).exists():
             sponsor_id = None
 
-        assignment_id = request.POST.get('assignment_id', '')
-        if assignment_id and not Assignment.objects.filter(id=assignment_id, deleted_at__isnull=True).exists():
-            assignment_id = None
-
         entry_id = request.POST.get('entry_id', '')
         slug = request.POST.get('slug', '').strip()
         if not slug:
@@ -661,7 +496,6 @@ def save_entry(request):
             'slug': slug,
             'headline': request.POST.get('headline', ''),
             'links': links,
-            'assignment_id': assignment_id or None,
             'sponsor_id': sponsor_id or None,
             'comment': request.POST.get('comment', ''),
             'language': request.POST.get('language', 'bn'),
@@ -679,15 +513,6 @@ def save_entry(request):
             entry = ContentEntry.objects.create(**data)
         except Exception as e:
             return _toast_response(f'Error saving entry: {str(e)[:100]}', reverse('cms:cms-new-entry'), type='error')
-        if assignment_id:
-            try:
-                assignment = get_object_or_404(Assignment, id=assignment_id)
-                assignment.status = 'Done'
-                assignment.updated_by = request.user
-                assignment.save(update_fields=['status', 'updated_by'])
-            except Exception:
-                entry.delete()
-                return _toast_response('Failed to update assignment status.', reverse('cms:cms-new-entry'), type='error')
         return _toast_response('Entry saved successfully.', reverse('cms:cms-all-entries'))
     return redirect('cms:cms-new-entry')
 
@@ -696,15 +521,10 @@ def save_entry(request):
 def edit_entry(request, pk):
     entry = get_object_or_404(ContentEntry, id=pk, deleted_at__isnull=True)
     sponsors = Sponsor.objects.filter(deleted_at__isnull=True)
-    today_assignments = Assignment.objects.filter(
-        assign_date=timezone.now().date(),
-        deleted_at__isnull=True,
-    ).select_related('reporter_user', 'member').order_by('created_at')
     links = entry.links or {}
     return render(request, 'cms/new_entry.html', {
         'platforms': PLATFORMS,
         'sponsors': sponsors,
-        'today_assignments': today_assignments,
         'entry': entry,
         'links': links,
         'user': request.user,
@@ -716,10 +536,6 @@ def edit_entry(request, pk):
 def duplicate_entry(request, pk):
     original = get_object_or_404(ContentEntry, id=pk, deleted_at__isnull=True)
     sponsors = Sponsor.objects.filter(deleted_at__isnull=True)
-    today_assignments = Assignment.objects.filter(
-        assign_date=timezone.now().date(),
-        deleted_at__isnull=True,
-    ).select_related('reporter_user', 'member').order_by('created_at')
     initial = {
         'date': timezone.now().strftime('%Y-%m-%d'),
         'time': timezone.now().strftime('%H:%M'),
@@ -728,12 +544,10 @@ def duplicate_entry(request, pk):
         'links': original.links or {},
         'comment': original.comment,
         'sponsor_id': str(original.sponsor_id or ''),
-        'assignment_id': str(original.assignment_id or ''),
     }
     return render(request, 'cms/new_entry.html', {
         'platforms': PLATFORMS,
         'sponsors': sponsors,
-        'today_assignments': today_assignments,
         'initial': initial,
         'links': original.links or {},
         'user': request.user,
@@ -806,530 +620,6 @@ def delete_sponsor(request, pk):
 
 
 @login_required
-def save_content_list(request):
-    if request.method == 'POST':
-        item_id = request.POST.get('item_id', '')
-        assignment_id = request.POST.get('assignment_id', '')
-        if assignment_id and not Assignment.objects.filter(id=assignment_id, deleted_at__isnull=True).exists():
-            return _toast_response('Referenced assignment not found.', '', 'error')
-        source = request.POST.get('source', '').capitalize()
-        district = request.POST.get('district', '').strip()
-        if source.lower() == 'district' and not district:
-            return _toast_response('District name is required when source is District.', '', 'error')
-        data = {
-            'list_date': request.POST.get('list_date'),
-            'content': request.POST.get('content'),
-            'source': source,
-            'district': district,
-            'footage_source': request.POST.get('footage_source'),
-            'assignment_id': assignment_id or None,
-            'member': request.user,
-        }
-        if item_id:
-            item = get_object_or_404(ContentListItem, id=item_id, deleted_at__isnull=True)
-            if not _is_owner_or_admin(request.user, item):
-                return _toast_response('You do not have permission to edit this item.', '', 'error')
-            for k, v in data.items():
-                setattr(item, k, v)
-            item.updated_by = request.user
-            item.save()
-            return _toast_response('Content source updated.', reverse('cms:cms-content-list'))
-        data['created_by'] = request.user
-        data['updated_by'] = request.user
-        ContentListItem.objects.create(**data)
-        return _toast_response('Content source saved.', reverse('cms:cms-content-list'))
-    return redirect('cms:cms-content-list')
-
-
-@login_required
-def edit_content_list(request, pk):
-    item = get_object_or_404(ContentListItem, id=pk, deleted_at__isnull=True)
-    if not _is_owner_or_admin(request.user, item):
-        return _toast_response('You do not have permission to edit this item.', '', 'error')
-    now = timezone.now()
-    today = now.date()
-    qs = ContentListItem.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment')
-    today_assignments = Assignment.objects.filter(
-        assign_date=today,
-        deleted_at__isnull=True,
-    ).select_related('reporter_user', 'member').order_by('created_at')
-    stats = {
-        'total': qs.count(),
-        'today': qs.filter(list_date=today).count(),
-        'this_month': qs.filter(list_date__year=now.year, list_date__month=now.month).count(),
-        'district': qs.filter(source__iexact='district').count(),
-    }
-    return render(request, 'cms/content_list.html', {
-        'items': qs.order_by('-list_date', '-created_at'),
-        'today_assignments': today_assignments,
-        'edit_item': item,
-        'stats': stats,
-        'today': today,
-        'user': request.user,
-    })
-
-
-@login_required
-@require_POST
-def delete_content_list(request, pk):
-    item = get_object_or_404(ContentListItem, id=pk, deleted_at__isnull=True)
-    if not _is_owner_or_admin(request.user, item):
-        return _toast_response('You do not have permission to delete this item.', '', 'error')
-    item.soft_delete(user=request.user)
-    return _toast_response('Content source deleted.', reverse('cms:cms-content-list'))
-
-
-# ─── Audio Tab ────────────────────────────────────────────
-
-
-@login_required
-def audio_tab(request):
-    qs = AudioItem.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment')
-    today_assignments = Assignment.objects.filter(
-        assign_date=timezone.now().date(),
-        deleted_at__isnull=True,
-    ).select_related('reporter_user', 'member').order_by('created_at')
-    total_media = sum(len(item.media_entries or []) for item in qs)
-    stats = {
-        'total': qs.count(),
-        'total_media': total_media,
-    }
-    return _tab_response(request, 'cms/audio_list.html', {
-        'items': qs.order_by('-created_at'),
-        'today_assignments': today_assignments,
-        'stats': stats,
-        'user': request.user,
-    })
-
-
-@login_required
-def save_audio(request):
-    if request.method == 'POST':
-        item_id = request.POST.get('item_id', '')
-        assignment_id = request.POST.get('assignment_id', '')
-        if assignment_id and not Assignment.objects.filter(id=assignment_id, deleted_at__isnull=True).exists():
-            assignment_id = None
-
-        media_entries = []
-        types = request.POST.getlist('media_type[]')
-        names = request.POST.getlist('file_name[]')
-        locations = request.POST.getlist('file_location[]')
-        for t, n, loc in zip(types, names, locations):
-            if t or n or loc:
-                media_entries.append({
-                    'type': t,
-                    'file_name': n,
-                    'file_location': loc,
-                })
-
-        if item_id:
-            item = get_object_or_404(AudioItem, id=item_id, deleted_at__isnull=True)
-            item.assignment_id = assignment_id or None
-            item.media_entries = media_entries
-            item.updated_by = request.user
-            item.save()
-            return _toast_response('Media Pool updated.', reverse('cms:cms-audio'))
-
-        AudioItem.objects.create(
-            assignment_id=assignment_id or None,
-            media_entries=media_entries,
-            member=request.user,
-            created_by=request.user,
-        )
-        return _toast_response('Media Pool saved.', reverse('cms:cms-audio'))
-    return redirect('cms:cms-audio')
-
-
-@login_required
-def edit_audio(request, pk):
-    item = get_object_or_404(AudioItem, id=pk, deleted_at__isnull=True)
-    qs = AudioItem.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment')
-    today_assignments = Assignment.objects.filter(
-        assign_date=timezone.now().date(),
-        deleted_at__isnull=True,
-    ).select_related('reporter_user', 'member').order_by('created_at')
-    return render(request, 'cms/audio_list.html', {
-        'items': qs.order_by('-created_at'),
-        'today_assignments': today_assignments,
-        'edit_item': item,
-        'user': request.user,
-    })
-
-
-@login_required
-@require_POST
-def delete_audio(request, pk):
-    item = get_object_or_404(AudioItem, id=pk, deleted_at__isnull=True)
-    item.deleted_at = timezone.now()
-    item.updated_by = request.user
-    item.save()
-    return _toast_response('Media Pool deleted.', reverse('cms:cms-audio'))
-
-
-@login_required
-def view_audio(request, pk):
-    item = get_object_or_404(
-        AudioItem.objects.select_related('member', 'assignment'),
-        id=pk, deleted_at__isnull=True,
-    )
-    return render(request, 'cms/audio_detail.html', {
-        'item': item,
-        'user': request.user,
-    })
-
-
-# ─── Final Package Tab ────────────────────────────────────
-
-
-@login_required
-def final_package_tab(request):
-    today = _today_str()
-    today_date = timezone.now().date()
-    qs = FinalPackage.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment', 'editor_user')
-    now = timezone.now()
-    today_assignments = Assignment.objects.filter(
-        assign_date=today_date,
-        deleted_at__isnull=True,
-    ).select_related('reporter_user', 'member').order_by('created_at')
-    active_users = User.objects.filter(is_active=True).order_by('full_name')
-    stats = {
-        'total': qs.count(),
-        'today': qs.filter(package_date=today).count(),
-        'this_month': qs.filter(package_date__year=now.year, package_date__month=now.month).count(),
-        'draft': qs.filter(status='draft').count(),
-        'complete': qs.filter(status='complete').count(),
-        'approved': qs.filter(status='approved').count(),
-    }
-    return _tab_response(request, 'cms/final_package_list.html', {
-        'items': qs.order_by('-package_date', '-created_at'),
-        'today_assignments': today_assignments,
-        'active_users': active_users,
-        'stats': stats,
-        'today': today,
-        'user': request.user,
-    })
-
-
-@login_required
-def save_final_package(request):
-    if request.method == 'POST':
-        item_id = request.POST.get('item_id', '')
-        assignment_id = request.POST.get('assignment_id', '')
-        if assignment_id and not Assignment.objects.filter(id=assignment_id, deleted_at__isnull=True).exists():
-            assignment_id = None
-        editor_user_id = request.POST.get('editor_user', '')
-        editor_user = None
-        if editor_user_id:
-            try:
-                editor_user = User.objects.get(id=editor_user_id, is_active=True)
-            except User.DoesNotExist:
-                pass
-        package_date = request.POST.get('package_date')
-        try:
-            parsed_date = datetime.strptime(package_date, '%Y-%m-%d').date() if package_date else None
-        except (ValueError, TypeError):
-            return _toast_response('Invalid date format.', '', 'error')
-        if not parsed_date:
-            return _toast_response('Date is required.', '', 'error')
-        title = request.POST.get('title', '').strip()
-        if not title:
-            return _toast_response('Title is required.', '', 'error')
-        if item_id:
-            item = FinalPackage.objects.filter(id=item_id, deleted_at__isnull=True).first()
-            if not item:
-                return _toast_response('Package not found.', '', 'error')
-            if not _is_owner_or_admin(request.user, item):
-                return _toast_response('Permission denied.', '', 'error')
-            item.package_date = parsed_date
-            item.title = title
-            item.producer = request.POST.get('producer', '')
-            item.editor_user = editor_user
-            item.runtime = request.POST.get('runtime', '')
-            item.notes = request.POST.get('notes', '')
-            item.status = request.POST.get('status', 'draft')
-            item.assignment_id = assignment_id or None
-            item.updated_by = request.user
-            item.save()
-            return _toast_response('Final package updated.', reverse('cms:cms-final-packages'))
-        FinalPackage.objects.create(
-            package_date=parsed_date,
-            title=title,
-            producer=request.POST.get('producer', ''),
-            editor=request.POST.get('editor', ''),
-            editor_user=editor_user,
-            runtime=request.POST.get('runtime', ''),
-            notes=request.POST.get('notes', ''),
-            status=request.POST.get('status', 'draft'),
-            assignment_id=assignment_id or None,
-            member=request.user,
-            created_by=request.user,
-        )
-        return _toast_response('Final package saved.', reverse('cms:cms-final-packages'))
-    return redirect('cms:cms-final-packages')
-
-
-@login_required
-def edit_final_package(request, pk):
-    item = get_object_or_404(FinalPackage, id=pk, deleted_at__isnull=True)
-    if not _is_owner_or_admin(request.user, item):
-        return _toast_response('You do not have permission to edit this package.', '', 'error')
-    today = _today_str()
-    now = timezone.now()
-    qs = FinalPackage.objects.filter(deleted_at__isnull=True).select_related('member', 'assignment', 'editor_user')
-    stats = {
-        'total': qs.count(),
-        'today': qs.filter(package_date=today).count(),
-        'this_month': qs.filter(package_date__year=now.year, package_date__month=now.month).count(),
-        'draft': qs.filter(status='draft').count(),
-        'complete': qs.filter(status='complete').count(),
-        'approved': qs.filter(status='approved').count(),
-    }
-    today_assignments = list(Assignment.objects.filter(
-        assign_date=timezone.now().date(),
-        deleted_at__isnull=True,
-    ).select_related('reporter_user', 'member').order_by('created_at'))
-    if item.assignment_id and not any(a.id == item.assignment_id for a in today_assignments):
-        linked = Assignment.objects.filter(id=item.assignment_id, deleted_at__isnull=True).first()
-        if linked:
-            today_assignments.append(linked)
-    active_users = User.objects.filter(is_active=True).order_by('full_name')
-    return _tab_response(request, 'cms/final_package_list.html', {
-        'items': qs.order_by('-package_date', '-created_at'),
-        'today_assignments': today_assignments,
-        'active_users': active_users,
-        'edit_item': item,
-        'stats': stats,
-        'today': today,
-        'user': request.user,
-    })
-
-
-@login_required
-@require_POST
-def delete_final_package(request, pk):
-    item = get_object_or_404(FinalPackage, id=pk, deleted_at__isnull=True)
-    if not _is_owner_or_admin(request.user, item):
-        return _toast_response('You do not have permission to delete this package.', '', 'error')
-    item.deleted_at = timezone.now()
-    item.updated_by = request.user
-    item.save()
-    return _toast_response('Final package deleted.', reverse('cms:cms-final-packages'))
-
-
-@login_required
-def final_package_detail(request, pk):
-    item = get_object_or_404(
-        FinalPackage.objects.select_related('member', 'assignment', 'editor_user'),
-        id=pk, deleted_at__isnull=True,
-    )
-    media_pool_items = []
-    if item.assignment:
-        audio_qs = item.assignment.audio_items.filter(deleted_at__isnull=True).select_related('member')
-        for audio_item in audio_qs:
-            entries = audio_item.media_entries or []
-            media_pool_items.append({
-                'item': audio_item,
-                'entries': entries,
-                'video_count': sum(1 for e in entries if str(e.get('type', '')).lower() == 'video'),
-                'audio_count': sum(1 for e in entries if str(e.get('type', '')).lower() == 'audio'),
-            })
-
-    return render(request, 'cms/final_package_detail.html', {
-        'item': item,
-        'media_pool_items': media_pool_items,
-        'user': request.user,
-    })
-
-
-def _set_assignment_reporter(assignment, reporter_user_id, reporter_name):
-    if reporter_user_id:
-        try:
-            ru = User.objects.get(id=reporter_user_id, is_active=True)
-            assignment.reporter_user = ru
-            assignment.reporter = reporter_name or ''
-            return
-        except User.DoesNotExist:
-            pass
-    assignment.reporter_user = None
-    assignment.reporter = reporter_name or ''
-
-
-@login_required
-def save_assignment(request):
-    if request.method == 'POST':
-        assignment_id = request.POST.get('assignment_id', '')
-        reporter_user_id = request.POST.get('reporter_user', '')
-        reporter_name = request.POST.get('reporter', '').strip()
-
-        assign_date = request.POST.get('assign_date')
-        caption = request.POST.get('caption')
-        source_link = request.POST.get('source_link', '')
-        district = request.POST.get('district', '')
-
-        try:
-            parsed_date = datetime.strptime(assign_date, '%Y-%m-%d').date() if assign_date else None
-            if parsed_date and parsed_date > timezone.now().date():
-                return _toast_response('Assign date cannot be in the future.', '', 'error')
-        except (ValueError, TypeError):
-            return _toast_response('Invalid date format.', '', 'error')
-
-        if not caption:
-            return _toast_response('Caption is required.', '', 'error')
-        if not parsed_date:
-            return _toast_response('Assign date is required.', '', 'error')
-
-        if assignment_id:
-            assignment = get_object_or_404(Assignment, id=assignment_id, deleted_at__isnull=True)
-            if not _is_owner_or_admin(request.user, assignment):
-                return _toast_response('You do not have permission to edit this assignment.', '', 'error')
-            assignment.assign_date = parsed_date
-            assignment.caption = caption
-            assignment.source_link = source_link
-            assignment.district = district
-            _set_assignment_reporter(assignment, reporter_user_id, reporter_name)
-            assignment.updated_by = request.user
-            assignment.save()
-            return _toast_response('Assignment updated successfully.', reverse('cms:cms-assignments'))
-        data = {
-            'assign_date': parsed_date,
-            'caption': caption,
-            'source_link': source_link,
-            'district': district,
-            'member': request.user,
-            'created_by': request.user,
-            'updated_by': request.user,
-        }
-        if reporter_user_id:
-            try:
-                ru = User.objects.get(id=reporter_user_id, is_active=True)
-                data['reporter_user'] = ru
-                data['reporter'] = reporter_name or ''
-            except User.DoesNotExist:
-                data['reporter'] = reporter_name or ''
-        else:
-            data['reporter'] = reporter_name or ''
-        try:
-            Assignment.objects.create(**data)
-        except Exception as e:
-            return _toast_response(f'Error saving assignment: {str(e)[:100]}', reverse('cms:cms-assignments'), type='error')
-        return _toast_response('Assignment saved successfully.', reverse('cms:cms-assignments'))
-    return redirect(reverse('cms:cms-assignments'))
-
-
-@login_required
-def edit_assignment(request, pk):
-    assignment = get_object_or_404(Assignment, id=pk, deleted_at__isnull=True)
-    if not _is_owner_or_admin(request.user, assignment):
-        return _toast_response('You do not have permission to edit this assignment.', '', 'error')
-    now = timezone.now()
-    today = now.date()
-    qs = Assignment.objects.filter(deleted_at__isnull=True).select_related('member', 'reporter_user')
-    active_users = User.objects.filter(is_active=True).order_by('full_name')
-    stats_qs = Assignment.objects.filter(deleted_at__isnull=True)
-    stats = {
-        'total': stats_qs.count(),
-        'today': stats_qs.filter(assign_date=today).count(),
-        'this_month': stats_qs.filter(assign_date__year=now.year, assign_date__month=now.month).count(),
-        'done': stats_qs.filter(status='Done').count(),
-    }
-    prev_day = today - timedelta(days=1)
-    next_day = today + timedelta(days=1)
-    return _tab_response(request, 'cms/assignments.html', {
-        'assignments': Assignment.objects.filter(
-            deleted_at__isnull=True, assign_date=today
-        ).select_related('member', 'reporter_user').order_by('-created_at'),
-        'edit_assignment': assignment,
-        'stats': stats,
-        'day_date': today,
-        'prev_day': prev_day.isoformat(),
-        'next_day': next_day.isoformat(),
-        'is_today': True,
-        'today': today,
-        'user': request.user,
-        'active_users': active_users,
-    })
-
-
-@login_required
-@require_POST
-def delete_assignment(request, pk):
-    assignment = get_object_or_404(Assignment, id=pk, deleted_at__isnull=True)
-    if not _is_owner_or_admin(request.user, assignment):
-        return _toast_response('You do not have permission to delete this assignment.', '', 'error')
-    assignment.soft_delete(user=request.user)
-    return _toast_response('Assignment deleted successfully.', reverse('cms:cms-assignments'))
-
-
-# ─── Phase 1: HTMX replacements for JSON-API endpoints ───────────────
-
-@login_required
-def update_assignment_status(request, pk):
-    assignment = get_object_or_404(Assignment, id=pk, deleted_at__isnull=True)
-    if request.method == 'POST':
-        if not (request.user.is_admin or request.user.is_superuser or str(assignment.member_id) == str(request.user.id)):
-            return _toast_response('You do not have permission to change this assignment status.', '', 'error')
-        new_status = request.POST.get('status', '')
-        valid = [s[0] for s in Assignment.STATUS_CHOICES]
-        if new_status in valid:
-            assignment.status = new_status
-            assignment.updated_by = request.user
-            assignment.save()
-            labels = dict(Assignment.STATUS_CHOICES)
-            return _toast_response(
-                'Status updated: %s' % labels.get(new_status, new_status),
-                reverse('cms:cms-assignments')
-            )
-        return _toast_response('Invalid status value.', '', 'error')
-    return redirect(reverse('cms:cms-assignments'))
-
-
-@login_required
-def view_assignment(request, pk):
-    assignment = get_object_or_404(
-        Assignment.objects.select_related('member', 'reporter_user'),
-        id=pk, deleted_at__isnull=True,
-    )
-    content_items = assignment.content_list_items.filter(deleted_at__isnull=True).select_related('member')[:20]
-    scripts = assignment.scripts.filter(deleted_at__isnull=True).select_related('writer')[:20]
-    audio_items = assignment.audio_items.filter(deleted_at__isnull=True).select_related('member')[:20]
-    packages = assignment.final_packages.filter(deleted_at__isnull=True).select_related('member')[:20]
-    entries = assignment.content_entries.filter(deleted_at__isnull=True).select_related('member')[:20]
-
-    return _tab_response(request, 'cms/assignment_detail.html', {
-        'assignment': assignment,
-        'content_items': content_items,
-        'scripts': scripts,
-        'audio_items': audio_items,
-        'packages': packages,
-        'entries': entries,
-        'user': request.user,
-    })
-
-
-@login_required
-def view_content_list(request, pk):
-    item = get_object_or_404(
-        ContentListItem.objects.select_related('member', 'assignment'),
-        id=pk, deleted_at__isnull=True,
-    )
-    return render(request, 'cms/content_list_detail.html', {
-        'item': item,
-        'user': request.user,
-    })
-
-
-@login_required
-def script_detail(request, pk):
-    script = get_object_or_404(Script.objects.select_related('writer', 'approved_by', 'assignment'), id=pk, deleted_at__isnull=True)
-    edit_history = script.edit_history.select_related('editor').all()[:20]
-    return render(request, 'cms/script_detail.html', {
-        'script': script,
-        'edit_history': edit_history,
-        'user': request.user,
-    })
-
-
-@login_required
 def cms_leaderboard_detail(request, user_id):
     target_user = get_object_or_404(User, id=user_id, is_active=True)
     entries = ContentEntry.objects.filter(
@@ -1339,19 +629,6 @@ def cms_leaderboard_detail(request, user_id):
         'target_user': target_user,
         'entries': entries,
         'platforms': PLATFORMS,
-    })
-
-
-@login_required
-def new_script_tab(request):
-    today_assignments = Assignment.objects.filter(
-        assign_date=timezone.now().date(),
-        deleted_at__isnull=True,
-    ).select_related('reporter_user', 'member').order_by('created_at')
-    return _tab_response(request, 'cms/new_script.html', {
-        'today': timezone.now().strftime('%Y-%m-%d'),
-        'today_assignments': today_assignments,
-        'user': request.user,
     })
 
 
@@ -1380,159 +657,6 @@ def cms_admin_logout_session(request, session_id):
         session.save()
         return _admin_response(request, 'Session logged out.')
     return _admin_response(request)
-
-
-
-
-
-@login_required
-def save_script(request):
-    if request.method == 'POST':
-        assignment_id = request.POST.get('assignment_id', '')
-        if assignment_id and not Assignment.objects.filter(id=assignment_id, deleted_at__isnull=True).exists():
-            return _toast_response('Referenced assignment not found.', '', 'error')
-        script_date = request.POST.get('script_date')
-        try:
-            parsed_date = datetime.strptime(script_date, '%Y-%m-%d').date() if script_date else None
-            if parsed_date and parsed_date > timezone.now().date():
-                return _toast_response('Script date cannot be in the future.', '', 'error')
-        except (ValueError, TypeError):
-            return _toast_response('Invalid date format.', '', 'error')
-        headline = request.POST.get('headline', '').strip()
-        if not headline:
-            return _toast_response('Headline is required.', '', 'error')
-        if not parsed_date:
-            return _toast_response('Script date is required.', '', 'error')
-        script_id = request.POST.get('script_id', '')
-        if script_id:
-            script = get_object_or_404(Script, id=script_id, deleted_at__isnull=True)
-            if not _is_owner_or_admin(request.user, script):
-                return _toast_response('You do not have permission to edit this script.', '', 'error')
-            old_headline = script.headline
-            old_body = script.body
-            was_approved = script.status == 'approved'
-            script.script_date = parsed_date
-            script.headline = headline
-            script.source = request.POST.get('source', '')
-            script.district = request.POST.get('district', '')
-            script.district_reporter = request.POST.get('district_reporter', '')
-            script.body = request.POST.get('body', '')
-            script.reporter_name = request.POST.get('reporter_name', '')
-            script.hashtags = request.POST.get('hashtags', '')
-            script.keywords = request.POST.get('keywords', '')
-            script.description = request.POST.get('description', '')
-            script.special_note = request.POST.get('special_note', '')
-            script.assignment_id = assignment_id or None
-            script.updated_by = request.user
-            if was_approved:
-                script.status = 'draft'
-            script.save()
-            if old_headline != script.headline or old_body != script.body:
-                ScriptEditHistory.objects.create(
-                    script=script,
-                    headline=old_headline,
-                    body=old_body,
-                    editor=request.user,
-                    change_summary=request.POST.get('change_summary', ''),
-                    created_by=request.user,
-                    updated_by=request.user,
-                )
-            if was_approved:
-                return _toast_response('Script updated and reset to draft for re-approval.', reverse('cms:cms-scripts'))
-            return _toast_response('Script updated successfully.', reverse('cms:cms-scripts'))
-        Script.objects.create(
-            script_date=parsed_date,
-            headline=headline,
-            source=request.POST.get('source', ''),
-            writer=request.user,
-            district=request.POST.get('district', ''),
-            district_reporter=request.POST.get('district_reporter', ''),
-            body=request.POST.get('body', ''),
-            reporter_name=request.POST.get('reporter_name', ''),
-            hashtags=request.POST.get('hashtags', ''),
-            keywords=request.POST.get('keywords', ''),
-            description=request.POST.get('description', ''),
-            special_note=request.POST.get('special_note', ''),
-            assignment_id=assignment_id or None,
-            created_by=request.user,
-            updated_by=request.user,
-        )
-        return redirect('cms:cms-scripts')
-    return redirect('cms:cms-scripts')
-
-
-@login_required
-def edit_script(request, pk):
-    script = get_object_or_404(Script, id=pk, deleted_at__isnull=True)
-    if not _is_owner_or_admin(request.user, script):
-        return _toast_response('You do not have permission to edit this script.', '', 'error')
-    today_assignments = Assignment.objects.filter(
-        assign_date=timezone.now().date(),
-        deleted_at__isnull=True,
-    ).select_related('reporter_user', 'member').order_by('created_at')
-    return render(request, 'cms/edit_script.html', {
-        'script': script,
-        'today': timezone.now().strftime('%Y-%m-%d'),
-        'today_assignments': today_assignments,
-        'user': request.user,
-    })
-
-
-@login_required
-def submit_script(request, pk):
-    script = get_object_or_404(Script, id=pk, deleted_at__isnull=True)
-    if request.method == 'POST':
-        if script.writer != request.user and not request.user.is_admin:
-            return _toast_response('You cannot submit this script.', '', 'error')
-        if script.status not in ('draft',):
-            return _toast_response('Only draft scripts can be submitted.', '', 'error')
-        script.status = 'pending'
-        script.updated_by = request.user
-        script.save()
-        return _toast_response('Script submitted for approval.', reverse('cms:cms-scripts'))
-    return redirect('cms:cms-scripts')
-
-
-@login_required
-def approve_script(request, pk):
-    script = get_object_or_404(Script, id=pk, deleted_at__isnull=True)
-    if request.method == 'POST':
-        if not request.user.is_admin:
-            return _toast_response('Only admins can approve scripts.', '', 'error')
-        if script.status not in ('pending', 'draft'):
-            return _toast_response('Only pending or draft scripts can be approved.', '', 'error')
-        script.status = 'approved'
-        script.approved_by = request.user
-        script.approved_at = timezone.now()
-        script.updated_by = request.user
-        script.save()
-        return _toast_response('Script approved successfully.', reverse('cms:cms-scripts'))
-    return redirect('cms:cms-scripts')
-
-
-@login_required
-def reject_script(request, pk):
-    script = get_object_or_404(Script, id=pk, deleted_at__isnull=True)
-    if request.method == 'POST':
-        if not request.user.is_admin:
-            return _toast_response('Only admins can reject scripts.', '', 'error')
-        if script.status != 'pending':
-            return _toast_response('Only pending scripts can be rejected.', '', 'error')
-        script.status = 'draft'
-        script.updated_by = request.user
-        script.save()
-        return _toast_response('Script rejected and returned to draft.', reverse('cms:cms-scripts'))
-    return redirect('cms:cms-scripts')
-
-
-@login_required
-@require_POST
-def delete_script(request, pk):
-    script = get_object_or_404(Script, id=pk, deleted_at__isnull=True)
-    if not request.user.is_admin:
-        return _toast_response('Only admins can delete scripts.', '', 'error')
-    script.soft_delete(user=request.user)
-    return _toast_response('Script deleted successfully.', reverse('cms:cms-scripts'))
 
 
 # ─── User Management (Admin) ────────────────────────────────
@@ -1891,11 +1015,6 @@ def user_edit_tab(request, user_id):
 
 MODULE_MAP = [
     ('entries', 'Content Entries', 'bi-file-earmark-text-fill'),
-    ('assignments', 'Assignments', 'bi-pin-angle-fill'),
-    ('contentlist', 'Content Sources', 'bi-card-checklist'),
-    ('audio', 'Media Pool', 'bi-music-note-beamed'),
-    ('scripts', 'Digital Scripts', 'bi-file-earmark-code-fill'),
-    ('finalpackage', 'Final Packages', 'bi-box-seam-fill'),
 ]
 
 MONTH_NAMES = ['', 'January', 'February', 'March', 'April', 'May', 'June',
@@ -1920,58 +1039,13 @@ def deleted_data_tab(request):
         ).select_related('member', 'sponsor', 'updated_by').order_by('-deleted_at')
         count = qs.count()
         items = qs[:100]
-    elif module == 'contentlist':
-        qs = ContentListItem.objects.filter(
-            deleted_at__isnull=False,
-            deleted_at__gte=since,
-        ).select_related('member', 'assignment', 'updated_by').order_by('-deleted_at')
-        count = qs.count()
-        items = qs[:100]
-    elif module == 'scripts':
-        qs = Script.objects.filter(
-            deleted_at__isnull=False,
-            deleted_at__gte=since,
-        ).select_related('writer', 'updated_by').order_by('-deleted_at')
-        count = qs.count()
-        items = qs[:100]
-    elif module == 'audio':
-        qs = AudioItem.objects.filter(
-            deleted_at__isnull=False,
-            deleted_at__gte=since,
-        ).select_related('member', 'assignment', 'updated_by').order_by('-deleted_at')
-        count = qs.count()
-        items = qs[:100]
-    elif module == 'finalpackage':
-        qs = FinalPackage.objects.filter(
-            deleted_at__isnull=False,
-            deleted_at__gte=since,
-        ).select_related('member', 'assignment', 'updated_by').order_by('-deleted_at')
-        count = qs.count()
-        items = qs[:100]
-    elif module == 'assignments':
-        qs = Assignment.objects.filter(
-            deleted_at__isnull=False,
-            deleted_at__gte=since,
-        ).select_related('member', 'reporter_user', 'updated_by').order_by('-deleted_at')
-        count = qs.count()
-        items = qs[:100]
 
     totals = {
         'entries': ContentEntry.objects.filter(deleted_at__isnull=False).count(),
-        'contentlist': ContentListItem.objects.filter(deleted_at__isnull=False).count(),
-        'scripts': Script.objects.filter(deleted_at__isnull=False).count(),
-        'audio': AudioItem.objects.filter(deleted_at__isnull=False).count(),
-        'finalpackage': FinalPackage.objects.filter(deleted_at__isnull=False).count(),
-        'assignments': Assignment.objects.filter(deleted_at__isnull=False).count(),
     }
 
     module_map = [
         ('entries', 'Uploads', 'bi bi-file-earmark-text-fill'),
-        ('contentlist', 'Content Sources', 'bi bi-card-checklist'),
-        ('scripts', 'Scripts', 'bi bi-file-earmark-code-fill'),
-        ('audio', 'Media Pool', 'bi bi-folder-fill'),
-        ('finalpackage', 'Final Packages', 'bi bi-box-seam-fill'),
-        ('assignments', 'Assignments', 'bi bi-pin-angle-fill'),
     ]
 
     days_options = [7, 14, 30, 90]
@@ -1997,11 +1071,6 @@ def restore_deleted_item(request):
         return _toast_response('Missing parameters.', '', 'error')
     model_map = {
         'entry': ContentEntry,
-        'contentlist': ContentListItem,
-        'script': Script,
-        'audio': AudioItem,
-        'finalpackage': FinalPackage,
-        'assignment': Assignment,
     }
     model_class = model_map.get(model_name)
     if not model_class:
@@ -2117,71 +1186,6 @@ def archive_tab(request):
             if i.deleted_at:
                 deleted_ids.add(str(i.id))
 
-    elif module == 'assignments':
-        qs = Assignment.objects.filter(
-            assign_date__gte=start_date,
-            assign_date__lt=end_date,
-        ).select_related('member', 'reporter_user').order_by('-assign_date', '-created_at')
-        if search_q:
-            qs = qs.filter(Q(caption__icontains=search_q) | Q(reporter__icontains=search_q) | Q(district__icontains=search_q))
-        count = qs.count()
-        items = qs[:200]
-        for i in items:
-            if i.deleted_at:
-                deleted_ids.add(str(i.id))
-
-    elif module == 'contentlist':
-        qs = ContentListItem.objects.filter(
-            list_date__gte=start_date,
-            list_date__lt=end_date,
-        ).select_related('member', 'assignment').order_by('-list_date', '-created_at')
-        if search_q:
-            qs = qs.filter(Q(content__icontains=search_q) | Q(district__icontains=search_q) | Q(member__username__icontains=search_q))
-        count = qs.count()
-        items = qs[:200]
-        for i in items:
-            if i.deleted_at:
-                deleted_ids.add(str(i.id))
-
-    elif module == 'audio':
-        qs = AudioItem.objects.filter(
-            created_at__date__gte=start_date,
-            created_at__date__lt=end_date,
-        ).select_related('member', 'assignment').order_by('-created_at')
-        if search_q:
-            qs = qs.filter(Q(member__username__icontains=search_q))
-        count = qs.count()
-        items = qs[:200]
-        for i in items:
-            if i.deleted_at:
-                deleted_ids.add(str(i.id))
-
-    elif module == 'scripts':
-        qs = Script.objects.filter(
-            script_date__gte=start_date,
-            script_date__lt=end_date,
-        ).select_related('writer', 'assignment').order_by('-script_date', '-created_at')
-        if search_q:
-            qs = qs.filter(Q(headline__icontains=search_q) | Q(district__icontains=search_q) | Q(writer__username__icontains=search_q))
-        count = qs.count()
-        items = qs[:200]
-        for i in items:
-            if i.deleted_at:
-                deleted_ids.add(str(i.id))
-
-    elif module == 'finalpackage':
-        qs = FinalPackage.objects.filter(
-            package_date__gte=start_date,
-            package_date__lt=end_date,
-        ).select_related('member', 'assignment').order_by('-package_date', '-created_at')
-        if search_q:
-            qs = qs.filter(Q(title__icontains=search_q) | Q(producer__icontains=search_q) | Q(member__username__icontains=search_q))
-        count = qs.count()
-        items = qs[:200]
-        for i in items:
-            if i.deleted_at:
-                deleted_ids.add(str(i.id))
-
     prev_month = month - 1 if month > 1 else 12
     prev_year = year if month > 1 else year - 1
     next_month = month + 1 if month < 12 else 1
@@ -2222,32 +1226,13 @@ def archive_view_item(request, module, pk):
                 'notes': del_rec.notes,
                 'recorded_by': del_rec.recorded_by,
             }
-    elif module == 'assignments':
-        item = get_object_or_404(Assignment.objects.select_related('member', 'reporter_user'), id=pk)
-    elif module == 'contentlist':
-        item = get_object_or_404(ContentListItem.objects.select_related('member', 'assignment'), id=pk)
-    elif module == 'audio':
-        item = get_object_or_404(AudioItem.objects.select_related('member', 'assignment'), id=pk)
-    elif module == 'scripts':
-        item = get_object_or_404(Script.objects.select_related('writer', 'assignment'), id=pk)
-    elif module == 'finalpackage':
-        item = get_object_or_404(FinalPackage.objects.select_related('member', 'assignment'), id=pk)
     else:
         return HttpResponse('Invalid module', status=400)
-
-    # Load related entries if available
-    related = {}
-    if module == 'assignments':
-        related['content_items'] = ContentListItem.objects.filter(assignment=item, deleted_at__isnull=True)[:20]
-        related['scripts'] = Script.objects.filter(assignment=item, deleted_at__isnull=True)[:20]
-        related['audio_items'] = AudioItem.objects.filter(assignment=item, deleted_at__isnull=True)[:20]
-        related['entries'] = ContentEntry.objects.filter(assignment=item, deleted_at__isnull=True)[:20]
 
     return render(request, 'cms/archive_item_detail.html', {
         'module': module,
         'item': item,
         'deletion_info': deletion_info,
-        'related': related,
     })
 
 
@@ -2826,113 +1811,6 @@ def my_roster_tab(request):
         'today': today,
         'user': request.user,
     })
-
-
-# ─── Attendance (Check In / Check Out) ───────────────────────────
-
-@login_required
-def attendance_tab(request):
-    today = timezone.now().date()
-    day_param = request.GET.get('day')
-    if day_param:
-        try:
-            day_date = datetime.strptime(day_param, '%Y-%m-%d').date()
-        except ValueError:
-            day_date = today
-    else:
-        day_date = today
-
-    records = Attendance.objects.filter(date=day_date).select_related('employee', 'shift').order_by('employee__full_name')
-    my_attendance = Attendance.objects.filter(employee=request.user, date=today).first()
-    employees = User.objects.filter(is_active=True).order_by('full_name')
-    prev_day = day_date - timedelta(days=1)
-    next_day = day_date + timedelta(days=1)
-
-    # Monthly summary
-    month_start = day_date.replace(day=1)
-    if day_date.month == 12:
-        month_end = day_date.replace(year=day_date.year + 1, month=1, day=1) - timedelta(days=1)
-    else:
-        month_end = day_date.replace(month=day_date.month + 1, day=1) - timedelta(days=1)
-    monthly = Attendance.objects.filter(
-        employee=request.user,
-        date__gte=month_start,
-        date__lte=month_end,
-    ).order_by('date')
-
-    present_count = monthly.filter(status='present').count()
-    late_count = monthly.filter(status='late').count()
-
-    return _tab_response(request, 'cms/attendance.html', {
-        'day_date': day_date,
-        'day_label': day_date.strftime('%A, %b %d, %Y'),
-        'prev_day': prev_day.isoformat(),
-        'next_day': next_day.isoformat(),
-        'is_today': day_date == today,
-        'records': records,
-        'my_attendance': my_attendance,
-        'employees': employees,
-        'monthly': monthly,
-        'present_count': present_count,
-        'late_count': late_count,
-        'today': today,
-        'STATUS_CHOICES': Attendance.Status.choices,
-    })
-
-
-@login_required
-@require_POST
-def attendance_check_in(request):
-    today = timezone.now().date()
-    now = timezone.now()
-    existing = Attendance.objects.filter(employee=request.user, date=today).first()
-    if existing and existing.check_in:
-        return _toast_response('Already checked in today.', '', 'error')
-    if existing:
-        existing.check_in = now
-        existing.save(update_fields=['check_in'])
-    else:
-        roster = DutyRoster.objects.filter(employee=request.user, date=today).first()
-        Attendance.objects.create(
-            employee=request.user, date=today,
-            check_in=now, shift=roster.shift if roster else None,
-        )
-    return _toast_response('Check-in recorded.', reverse('cms:cms-attendance'))
-
-
-@login_required
-@require_POST
-def attendance_check_out(request):
-    today = timezone.now().date()
-    now = timezone.now()
-    att = Attendance.objects.filter(employee=request.user, date=today).first()
-    if not att:
-        return _toast_response('No check-in found for today.', '', 'error')
-    if att.check_out:
-        return _toast_response('Already checked out today.', '', 'error')
-    att.check_out = now
-    if att.shift:
-        late_threshold = timedelta(minutes=15)
-        scheduled_start = datetime.combine(today, att.shift.start_time)
-        if timezone.is_naive(scheduled_start):
-            scheduled_start = timezone.make_aware(scheduled_start)
-        if att.check_in and att.check_in > scheduled_start + late_threshold:
-            att.status = Attendance.Status.LATE
-    att.save(update_fields=['check_out', 'status'])
-    return _toast_response('Check-out recorded.', reverse('cms:cms-attendance'))
-
-
-@login_required
-@require_POST
-def attendance_admin_checkout(request, pk):
-    if not request.user.is_admin:
-        return _toast_response('Not Allowed', '', 'error')
-    att = get_object_or_404(Attendance, id=pk)
-    if not att.check_out:
-        att.check_out = timezone.now()
-        att.save(update_fields=['check_out'])
-        return _toast_response(f'Check-out recorded for {att.employee.full_name}.', reverse('cms:cms-attendance'))
-    return _toast_response('Already checked out.', '', 'error')
 
 
 # ─── Shift Management ────────────────────────────────────────────

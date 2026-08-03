@@ -14,11 +14,6 @@ class ContentEntry(BaseModel):
         db_index=True,
     )
     links = models.JSONField('Links', default=dict, blank=True)
-    assignment = models.ForeignKey(
-        'assignments.Assignment', on_delete=models.SET_NULL,
-        null=True, blank=True, db_index=True, related_name='content_entries',
-        verbose_name='Assignment',
-    )
     sponsor = models.ForeignKey(
         'sponsors.Sponsor', on_delete=models.SET_NULL,
         null=True, blank=True, db_index=True, related_name='content_entries',

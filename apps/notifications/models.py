@@ -26,10 +26,6 @@ class DeviceToken(models.Model):
 
 
 NOTIFICATION_TYPES = [
-    ('Assignment', 'Assignment'),
-    ('Script_Submit', 'Script Submit'),
-    ('Script_Approve', 'Script Approval'),
-    ('Script_Reject', 'Script Rejected'),
     ('Notice', 'Notice'),
     ('Registration', 'Registration'),
     ('Welcome', 'Swagtam'),

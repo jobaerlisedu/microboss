@@ -8,7 +8,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('assignments', '0006_add_reporter_name_hashtags_keywords_desc_special_note'),
         ('content', '0007_add_language_field'),
         ('sponsors', '0005_add_reporter_name_hashtags_keywords_desc_special_note'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -43,11 +42,6 @@ class Migration(migrations.Migration):
             model_name='contententry',
             name='special_note',
             field=models.TextField(blank=True, default='', verbose_name='Special Note'),
-        ),
-        migrations.AlterField(
-            model_name='contententry',
-            name='assignment',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='content_entries', to='assignments.assignment', verbose_name='Assignment'),
         ),
         migrations.AlterField(
             model_name='contententry',

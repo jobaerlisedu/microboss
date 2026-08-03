@@ -7,7 +7,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('assignments', '0003_alter_assignment_assign_date_and_more'),
         ('content', '0005_add_assignment_to_contententry_v2'),
         ('sponsors', '0003_remove_sponsor_sponsors_sp_name_f3b95f_idx_and_more'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

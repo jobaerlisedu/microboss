@@ -4,12 +4,7 @@ from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from apps.accounts.models import User
 from apps.sponsors.models import Sponsor
-from apps.assignments.models import Assignment
 from apps.content.models import ContentEntry
-from apps.contentlist.models import ContentListItem
-from apps.audio.models import AudioItem
-from apps.scripts.models import Script
-from apps.finalpackage.models import FinalPackage
 from apps.notices.models import Notice
 from apps.notifications.models import Notification
 
@@ -79,9 +74,8 @@ BODIES = [
 NOTICES = [
     ("Office closed for Eid", "Office will remain closed from 25 July to 28 July for Eid holidays. Everyone is requested to complete content uploads in advance."),
     ("New sponsor added", "Pran-RFL Group has been added as a new sponsor. Please select sponsor when entering content."),
-    ("Script submission guidelines", "Please format headlines and body properly when submitting scripts. Avoid spelling and grammatical errors."),
     ("Training workshop", "A training workshop will be held on 15 August. Everyone is requested to attend. Time: 10 AM to 4 PM."),
-    ("Final package upload process", "Ensure correct format and file size when uploading final packages. Set status to Complete after full upload."),
+    ("Content upload guidelines", "Ensure correct format and file size when uploading content. Set all required fields before submitting."),
 ]
 
 
@@ -165,34 +159,10 @@ class Command(BaseCommand):
             label = '[NEW]' if created else '[SKIP]'
             self.stdout.write(f'  {label} Sponsor {i+1}/10: {name}')
 
-        # ─── 10 SETS: assignment + linked records ───
+        # ─── 10 SETS: content entries ───
         for i in range(10):
-            assign_date = today - timedelta(days=9 - i)
+            entry_date = today - timedelta(days=9 - i)
             reporter_user = users[i + 1]
-            creator = users[(i + 3) % 10 + 1]
-            statuses = ['Assigned', 'Processing', 'Done', 'Done', 'Done',
-                        'Processing', 'Assigned', 'Done', 'Processing', 'Assigned']
-            status = statuses[i]
-
-            assignment, created = Assignment.objects.get_or_create(
-                caption=CAPTIONS[i],
-                assign_date=assign_date,
-                defaults=dict(
-                    source_link=f'https://fb.watch/seed{i+1:03d}',
-                    district=DISTRICTS[i],
-                    reporter=REPORTERS[i],
-                    reporter_user=reporter_user,
-                    status=status,
-                    member=creator,
-                    created_by=creator,
-                ),
-            )
-            if created:
-                assignment.updated_by = creator
-                assignment.save(update_fields=['updated_by'])
-            self.stdout.write(f'  [{"NEW" if created else "SKIP"}] Set {i+1}/10: {assignment.caption[:50]}')
-
-            entry_date = assign_date
 
             # ContentEntry
             ContentEntry.objects.get_or_create(
@@ -207,85 +177,8 @@ class Command(BaseCommand):
                         'facebook': f'https://facebook.com/watch?v=fbreel{i+1:03d}',
                     },
                     sponsor=sponsors[i] if i % 2 == 0 else None,
-                    assignment=assignment,
                     comment=f'Editor note: Video editing required #{i+1}',
                     created_by=reporter_user,
-                ),
-            )
-
-            # ContentListItem
-            ContentListItem.objects.get_or_create(
-                list_date=entry_date,
-                content=HEADLINES[i],
-                defaults=dict(
-                    source=['district', 'reuters', 'social', 'studio'][i % 4],
-                    district=DISTRICTS[i],
-                    footage_source=['FTP', 'WhatsApp', 'Gmail', 'Google Drive', 'Ingest'][i % 5],
-                    member=reporter_user,
-                    assignment=assignment,
-                    created_by=reporter_user,
-                ),
-            )
-
-            # AudioItem
-            AudioItem.objects.get_or_create(
-                member=reporter_user,
-                assignment=assignment,
-                defaults=dict(
-                    media_entries=[
-                        {'type': 'audio', 'file_name': f'{SLUGS[i]}.mp3', 'file_location': f'https://cdn.example.com/audio/{SLUGS[i]}.mp3'},
-                        {'type': 'video', 'file_name': f'{SLUGS[i]}.mp4', 'file_location': f'https://cdn.example.com/video/{SLUGS[i]}.mp4'},
-                    ],
-                    created_by=reporter_user,
-                ),
-            )
-
-            # Script
-            Script.objects.get_or_create(
-                script_date=entry_date,
-                headline=HEADLINES[i],
-                defaults=dict(
-                    source=['district', 'reuters', 'social', 'studio'][(i + 2) % 4],
-                    writer=reporter_user,
-                    district=DISTRICTS[i],
-                    district_reporter=REPORTERS[i],
-                    body=BODIES[i],
-                    assignment=assignment,
-                    status=['draft', 'pending', 'approved'][i % 3],
-                    approved_by=admin if i % 3 == 2 else None,
-                    approved_at=timezone.now() if i % 3 == 2 else None,
-                    created_by=reporter_user,
-                ),
-            )
-
-            # FinalPackage
-            FinalPackage.objects.get_or_create(
-                package_date=entry_date,
-                title=HEADLINES[i],
-                defaults=dict(
-                    producer=REPORTERS[(i + 1) % 10],
-                    editor=REPORTERS[(i + 2) % 10],
-                    runtime=f'{3 + i % 5}:{30 + i * 5:02d}',
-                    file_link=f'https://cdn.example.com/final/{SLUGS[i]}.mp4',
-                    notes=f'Editor: News desk final check done',
-                    status=['draft', 'complete', 'approved'][i % 3],
-                    member=reporter_user,
-                    assignment=assignment,
-                    created_by=reporter_user,
-                ),
-            )
-
-            # Notification
-            Notification.objects.get_or_create(
-                title=CAPTIONS[i],
-                recipient=reporter_user,
-                notification_type='assignment',
-                defaults=dict(
-                    message=f'New assignment for you: {CAPTIONS[i]}',
-                    link=f'/cms/assignments/{assignment.id}/',
-                    is_read=i < 5,
-                    read_at=timezone.now() if i < 5 else None,
-                    created_by=admin,
                 ),
             )
 

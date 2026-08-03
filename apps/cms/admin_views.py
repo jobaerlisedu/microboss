@@ -11,8 +11,6 @@ from django.core.exceptions import ValidationError
 from apps.accounts.models import User, UserSession
 from apps.accounts.utils.config import get_config, set_config
 from apps.content.models import ContentEntry
-from apps.assignments.models import Assignment
-from apps.scripts.models import Script
 from apps.audit.models import AuditLog
 from .views import _csv_response, _toast_response, _htmx_response, PLATFORMS
 
@@ -72,10 +70,6 @@ def admin_system_health(request):
         'pending_users': User.objects.filter(is_active=False, pending_approval=True).count(),
         'total_entries': ContentEntry.objects.filter(deleted_at__isnull=True).count(),
         'today_entries': ContentEntry.objects.filter(deleted_at__isnull=True, entry_date=today).count(),
-        'total_scripts': Script.objects.filter(deleted_at__isnull=True).count(),
-        'pending_scripts': Script.objects.filter(status='pending').count(),
-        'total_assignments': Assignment.objects.filter(deleted_at__isnull=True).count(),
-        'pending_assignments': Assignment.objects.filter(status__in=['Assigned', 'Processing']).count(),
         'audit_log_count': AuditLog.objects.count(),
         'recent_audit': AuditLog.objects.filter(created_at__gte=now - timezone.timedelta(hours=24)).count(),
     }
@@ -112,10 +106,6 @@ def admin_activity_timeline(request):
         target = get_object_or_404(User, id=user_id)
         for e in ContentEntry.objects.filter(member=target, deleted_at__isnull=True).order_by('-created_at')[:30]:
             entries.append({'time': e.created_at, 'text': f'Entry added: {e.headline}', 'type': 'entry'})
-        for a in Assignment.objects.filter(member=target, deleted_at__isnull=True).order_by('-created_at')[:30]:
-            entries.append({'time': a.created_at, 'text': f'Assignment: {a.caption}', 'type': 'assignment'})
-        for s in Script.objects.filter(writer=target, deleted_at__isnull=True).order_by('-created_at')[:30]:
-            entries.append({'time': s.created_at, 'text': f'Script: {s.headline}', 'type': 'script'})
         for log in AuditLog.objects.filter(user=target).order_by('-created_at')[:30]:
             entries.append({'time': log.created_at, 'text': f'[{"created" if log.action=="created" else "updated" if log.action=="updated" else "deleted"}] {log.content_type}: {log.object_repr}', 'type': 'audit'})
         entries.sort(key=lambda x: x['time'], reverse=True)
@@ -141,10 +131,6 @@ def admin_bulk_delete(request):
     count = 0
     if model_name == 'entry':
         count = ContentEntry.objects.filter(id__in=ids, deleted_at__isnull=True).update(deleted_at=now, updated_by=request.user)
-    elif model_name == 'assignment':
-        count = Assignment.objects.filter(id__in=ids, deleted_at__isnull=True).update(deleted_at=now, updated_by=request.user)
-    elif model_name == 'script':
-        count = Script.objects.filter(id__in=ids, deleted_at__isnull=True).update(deleted_at=now, updated_by=request.user)
     return _toast_response(f'{count} item(s) deleted successfully.')
 
 

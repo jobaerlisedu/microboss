@@ -9,14 +9,9 @@ AUDIT_MODELS = {}
 
 def register_audit_models():
     from apps.content.models import ContentEntry
-    from apps.assignments.models import Assignment
-    from apps.scripts.models import Script
-    from apps.audio.models import AudioItem
-    from apps.contentlist.models import ContentListItem
-    from apps.finalpackage.models import FinalPackage
     from apps.sponsors.models import Sponsor
     from apps.notices.models import Notice
-    models = [ContentEntry, Assignment, Script, AudioItem, ContentListItem, FinalPackage, Sponsor, Notice]
+    models = [ContentEntry, Sponsor, Notice]
     for model in models:
         key = f'{model.__module__}.{model.__qualname__}'
         AUDIT_MODELS[key] = model

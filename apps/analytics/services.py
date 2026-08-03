@@ -5,9 +5,6 @@ from django.db.models.functions import TruncDate, TruncMonth, ExtractYear, Extra
 from django.utils import timezone
 from apps.content.models import ContentEntry
 from apps.sponsors.models import Sponsor
-from apps.contentlist.models import ContentListItem
-from apps.assignments.models import Assignment
-from apps.scripts.models import Script
 from apps.notices.models import Notice
 from apps.accounts.models import User, UserSession
 from apps.audit.models import AuditLog
@@ -67,24 +64,12 @@ class AnalyticsService:
             start_date__lte=today, end_date__gte=today
         ).count()
         total_sponsors = Sponsor.objects.filter(deleted_at__isnull=True).count()
-        total_scripts = Script.objects.filter(deleted_at__isnull=True).count()
-        pending_scripts = Script.objects.filter(deleted_at__isnull=True, status='pending').count()
-        total_assignments = Assignment.objects.filter(deleted_at__isnull=True).count()
-        active_assignments = Assignment.objects.filter(
-            deleted_at__isnull=True, status__in=['Assigned', 'Processing']
-        ).count()
-        completed_assignments = Assignment.objects.filter(
-            deleted_at__isnull=True, status='Done'
-        ).count()
         total_users = User.objects.filter(is_active=True).count()
         sponsored_count = ContentEntry.objects.filter(
             deleted_at__isnull=True, sponsor__isnull=False
         ).count()
         organic_count = total_entries - sponsored_count
         total_notices = Notice.objects.filter(deleted_at__isnull=True, is_active=True).count()
-        approved_scripts = Script.objects.filter(
-            deleted_at__isnull=True, status='approved'
-        ).count()
         period_entries = self._entries.count()
         prev_period = ContentEntry.objects.filter(
             deleted_at__isnull=True,
@@ -100,12 +85,6 @@ class AnalyticsService:
             'month_entries': month_entries,
             'active_sponsors': active_sponsors,
             'total_sponsors': total_sponsors,
-            'total_scripts': total_scripts,
-            'pending_scripts': pending_scripts,
-            'total_assignments': total_assignments,
-            'active_assignments': active_assignments,
-            'completed_assignments': completed_assignments,
-            'approved_scripts': approved_scripts,
             'total_users': total_users,
             'total_notices': total_notices,
             'sponsored_entries': sponsored_count,
@@ -305,110 +284,6 @@ class AnalyticsService:
             })
         return data
 
-    def assignment_metrics(self):
-        assignments = Assignment.objects.filter(
-            deleted_at__isnull=True,
-            assign_date__gte=self.start_date,
-            assign_date__lte=self.end_date,
-        )
-        done = assignments.filter(status='Done').count()
-        assigned = assignments.filter(status='Assigned').count()
-        processing = assignments.filter(status='Processing').count()
-        cancelled = assignments.filter(status='Cancel').count()
-        total = assignments.count() or 1
-        completion_rate = round(done / total * 100, 1) if total else 0
-        return {
-            'total': total,
-            'done': done,
-            'assigned': assigned,
-            'processing': processing,
-            'cancelled': cancelled,
-            'done_pct': round(done / total * 100, 1),
-            'assigned_pct': round(assigned / total * 100, 1),
-            'processing_pct': round(processing / total * 100, 1),
-            'cancelled_pct': round(cancelled / total * 100, 1),
-            'completion_rate': completion_rate,
-        }
-
-    def assignment_trend(self):
-        """Daily assignment completion trend."""
-        assignments = Assignment.objects.filter(
-            deleted_at__isnull=True,
-            assign_date__gte=self.start_date,
-            assign_date__lte=self.end_date,
-        )
-        created_trend = assignments.annotate(
-            day=TruncDate('assign_date')
-        ).values('day').annotate(total=Count('id')).order_by('day')
-        created_map = {str(r['day']): r['total'] for r in created_trend if r['day']}
-        done_qs = assignments.filter(status='Done').annotate(
-            day=TruncDate('assign_date')
-        ).values('day').annotate(total=Count('id')).order_by('day')
-        done_map = {str(r['day']): r['total'] for r in done_qs if r['day']}
-        labels, created_vals, done_vals = [], [], []
-        current = self.start_date
-        while current <= self.end_date:
-            labels.append(current.strftime('%d %b'))
-            created_vals.append(created_map.get(str(current), 0))
-            done_vals.append(done_map.get(str(current), 0))
-            current += timedelta(days=1)
-        return {'labels': labels, 'created': created_vals, 'done': done_vals}
-
-    def script_metrics(self):
-        scripts = Script.objects.filter(
-            deleted_at__isnull=True,
-            script_date__gte=self.start_date,
-            script_date__lte=self.end_date,
-        )
-        total = scripts.count() or 1
-        draft = scripts.filter(status='draft').count()
-        pending = scripts.filter(status='pending').count()
-        approved = scripts.filter(status='approved').count()
-        approval_rate = round(approved / total * 100, 1) if total else 0
-        return {
-            'total': total,
-            'draft': draft,
-            'pending': pending,
-            'approved': approved,
-            'draft_pct': round(draft / total * 100, 1),
-            'pending_pct': round(pending / total * 100, 1),
-            'approved_pct': round(approved / total * 100, 1),
-            'approval_rate': approval_rate,
-        }
-
-    def content_list_sources(self):
-        items = ContentListItem.objects.filter(
-            list_date__gte=self.start_date,
-            list_date__lte=self.end_date,
-        )
-        sources = items.values('source').annotate(
-            total=Count('id')
-        ).order_by('-total')
-        total = items.count() or 1
-        result = []
-        for s in sources:
-            result.append({
-                'source': s['source'],
-                'total': s['total'],
-                'pct': round(s['total'] / total * 100, 1),
-            })
-        return {'sources': result, 'total': items.count()}
-
-    def content_list_structure(self):
-        """Composition analysis of content list items."""
-        items = ContentListItem.objects.filter(
-            list_date__gte=self.start_date,
-            list_date__lte=self.end_date,
-        )
-        total = items.count()
-        footage = items.values('footage_source').annotate(
-            total=Count('id')
-        ).filter(footage_source__gt='').order_by('-total')
-        return {
-            'total': total,
-            'footage_breakdown': list(footage),
-        }
-
     def sponsor_performance(self):
         active = Sponsor.objects.filter(
             deleted_at__isnull=True,
@@ -515,32 +390,6 @@ class AnalyticsService:
             },
             'change': change,
             'change_pct': change_pct,
-        }
-
-    def content_list_stats(self):
-        items = ContentListItem.objects.filter(
-            list_date__gte=self.start_date,
-            list_date__lte=self.end_date,
-        )
-        districts = items.values('district').annotate(
-            total=Count('id')
-        ).filter(district__gt='').order_by('-total')[:10]
-        sources = items.values('source').annotate(
-            total=Count('id')
-        ).order_by('-total')
-        daily = items.annotate(
-            period=TruncDate('list_date')
-        ).values('period').annotate(
-            total=Count('id')
-        ).order_by('period')
-        return {
-            'total': items.count(),
-            'top_districts': list(districts),
-            'sources': list(sources),
-            'daily_trend': [
-                {'date': str(r['period']), 'total': r['total']}
-                for r in daily if r['period']
-            ],
         }
 
     def day_of_week_analysis(self):
@@ -652,15 +501,9 @@ def get_dashboard_data(period='month', days=30):
         'sponsored_vs_organic': svc.sponsored_vs_organic(),
         'member_performance': svc.member_performance(limit=10),
         'member_trend': svc.member_trend(limit=5),
-        'assignment_metrics': svc.assignment_metrics(),
-        'assignment_trend': svc.assignment_trend(),
-        'script_metrics': svc.script_metrics(),
-        'content_list_sources': svc.content_list_sources(),
-        'content_list_structure': svc.content_list_structure(),
         'sponsor_performance': svc.sponsor_performance(),
         'monthly_comparison': svc.monthly_comparison(),
         'session_metrics': svc.session_metrics(),
-        'content_list_stats': svc.content_list_stats(),
         'day_of_week': svc.day_of_week_analysis(),
         'hourly': svc.hourly_analysis(),
         'period': {

@@ -155,11 +155,6 @@
       { prefix: '/cms/entries/new/', tab: 'new' },
       // General prefixes (ordered most-to-least specific)
       { prefix: '/cms/dashboard/', tab: 'dashboard' },
-      { prefix: '/cms/assignments/', tab: 'assignment' },
-      { prefix: '/cms/content-sources/', tab: 'contentlist' },
-      { prefix: '/cms/scripts/', tab: 'scripts' },
-      { prefix: '/cms/audio/', tab: 'audio' },
-      { prefix: '/cms/final-packages/', tab: 'finalpackage' },
       { prefix: '/cms/entries/', tab: 'all' },
       { prefix: '/cms/archive/', tab: 'archive' },
       { prefix: '/cms/sponsors/', tab: 'sponsors' },

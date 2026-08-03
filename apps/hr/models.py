@@ -136,48 +136,6 @@ class LeaveRequest(models.Model):
         return f'{self.employee.full_name} – {self.leave_type.name} ({self.start_date}–{self.end_date})'
 
 
-class Attendance(models.Model):
-    class Status(models.TextChoices):
-        PRESENT = 'present', 'Present'
-        LATE = 'late', 'Late'
-        HALF_DAY = 'half_day', 'Half Day'
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    employee = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-        related_name='attendances', verbose_name='Employee',
-    )
-    date = models.DateField('Date', db_index=True)
-    check_in = models.DateTimeField('Check In', null=True, blank=True)
-    check_out = models.DateTimeField('Check Out', null=True, blank=True)
-    status = models.CharField(
-        'Status', max_length=20,
-        choices=Status.choices, default=Status.PRESENT,
-    )
-    shift = models.ForeignKey(
-        Shift, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name='attendances', verbose_name='Shift',
-    )
-    note = models.CharField('Note', max_length=500, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = 'Attendance'
-        verbose_name_plural = 'Attendance Records'
-        unique_together = ['employee', 'date']
-        indexes = [
-            models.Index(fields=['date', 'status']),
-            models.Index(fields=['employee', 'date']),
-        ]
-        ordering = ['-date', 'employee']
-
-    def __str__(self):
-        ci = self.check_in.strftime('%H:%M') if self.check_in else '--'
-        co = self.check_out.strftime('%H:%M') if self.check_out else '--'
-        return f'{self.employee.full_name} — {self.date} ({ci}–{co})'
-
-
 class LeaveBalance(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     employee = models.ForeignKey(

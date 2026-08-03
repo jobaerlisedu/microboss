@@ -4,13 +4,7 @@
       <div>
         <h3 style="margin:0;font-size:17px;display:flex;align-items:center;gap:8px;">
           <i class="bi bi-eye-fill" style="color:#3b82f6;"></i>
-          {% if module == 'entries' %}Upload Details
-          {% elif module == 'assignments' %}Assignment Details
-          {% elif module == 'contentlist' %}Content Source Details
-          {% elif module == 'audio' %}Media Pool Details
-          {% elif module == 'scripts' %}Script Details
-          {% elif module == 'finalpackage' %}Final Package Details
-          {% endif %}
+          Upload Details
         </h3>
       </div>
       <button class="icon-mini" onclick="closeDetail()" title="Close"><i class="bi bi-x-lg"></i></button>
@@ -51,97 +45,6 @@
             {% endfor %}{% endif %}
           </div>
         </div>
-      </div>
-
-      {% elif module == 'assignments' %}
-      <div class="detail-info-grid">
-        <div class="detail-info-item"><span class="detail-label">Caption</span><span style="font-weight:600;">{{ item.caption }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Date</span><span>{{ item.assign_date|date:"Y-m-d" }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Status</span><span class="status-pill status-{{ item.status|lower }}">{{ item.get_status_display }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Reporter</span><span>{{ item.reporter }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Assigned By</span><span>{{ item.member.username }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">District</span><span>{{ item.district|default:'—' }}</span></div>
-        {% if item.source_link %}<div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Source Link</span><span><a href="{{ item.source_link }}" target="_blank" style="font-size:12px;">{{ item.source_link }}</a></span></div>{% endif %}
-      </div>
-
-      {% elif module == 'contentlist' %}
-      <div class="detail-info-grid">
-        <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Content</span><span style="font-weight:600;">{{ item.content }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Date</span><span>{{ item.list_date|date:"Y-m-d" }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Source</span><span class="status-pill status-pending" style="font-size:10px;">{{ item.get_source_display }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">District</span><span>{{ item.district|default:'—' }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Added By</span><span>{{ item.member.username }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Received By</span><span>{{ item.footage_source|default:'—' }}</span></div>
-      </div>
-
-      {% elif module == 'audio' %}
-      <div class="detail-info-grid">
-        <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Assignment</span><span style="font-weight:600;">{{ item.assignment.caption|default:'—' }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Created</span><span>{{ item.created_at|date:"Y-m-d H:i" }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Added By</span><span>{{ item.member.username }}</span></div>
-        <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Media Files</span><span>{{ item.media_entries|length|default:'0' }} file(s)</span></div>
-      </div>
-
-      {% elif module == 'scripts' %}
-      <div class="detail-info-grid">
-        <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Headline</span><span style="font-weight:600;" class="archive-content">{{ item.headline }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Date</span><span>{{ item.script_date|date:"Y-m-d" }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Writer</span><span>{{ item.writer.username }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Source</span><span class="status-pill status-pending" style="font-size:10px;">{{ item.get_source_display }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Status</span><span class="status-pill status-{{ item.status }}">{{ item.get_status_display }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">District</span><span>{{ item.district|default:'—' }}</span></div>
-        {% if item.description %}<div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Description</span><span>{{ item.description }}</span></div>{% endif %}
-      </div>
-      {% if item.body %}
-      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
-        <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;display:flex;align-items:center;gap:6px;"><i class="bi bi-file-text-fill" style="color:#3b82f6;"></i> Script Content</h4>
-        <div class="archive-content" style="padding:14px;background:var(--surface-2);border-radius:8px;font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:400px;overflow-y:auto;">{{ item.body|safe }}</div>
-      </div>
-      {% endif %}
-
-      {% elif module == 'finalpackage' %}
-      <div class="detail-info-grid">
-        <div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Title</span><span style="font-weight:600;">{{ item.title }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Date</span><span>{{ item.package_date|date:"Y-m-d" }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Producer</span><span>{{ item.producer|default:'—' }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Runtime</span><span>{{ item.runtime|default:'—' }}</span></div>
-        <div class="detail-info-item"><span class="detail-label">Status</span><span class="status-pill status-{{ item.status }}">{{ item.get_status_display }}</span></div>
-        {% if item.notes %}<div class="detail-info-item" style="grid-column:span 2;"><span class="detail-label">Notes</span><span>{{ item.notes }}</span></div>{% endif %}
-      </div>
-      {% endif %}
-
-      {% if related.entries or related.content_items or related.scripts or related.audio_items %}
-      <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px;">
-        <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;">Related Items</h4>
-        {% if related.content_items %}
-        <div style="margin-bottom:12px;">
-          <strong style="font-size:11px;color:var(--text-soft);">Content Sources ({{ related.content_items|length }})</strong>
-          <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">
-            {% for ci in related.content_items %}{{ ci.content|truncatechars:30 }}{% if not forloop.last %}, {% endif %}{% endfor %}
-          </div>
-        </div>
-        {% endif %}
-        {% if related.scripts %}
-        <div style="margin-bottom:12px;">
-          <strong style="font-size:11px;color:var(--text-soft);">Scripts ({{ related.scripts|length }})</strong>
-          <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">
-            {% for s in related.scripts %}{{ s.headline|truncatechars:30 }}{% if not forloop.last %}, {% endif %}{% endfor %}
-          </div>
-        </div>
-        {% endif %}
-        {% if related.audio_items %}
-        <div style="margin-bottom:12px;">
-          <strong style="font-size:11px;color:var(--text-soft);">Media Pool ({{ related.audio_items|length }})</strong>
-        </div>
-        {% endif %}
-        {% if related.entries %}
-        <div style="margin-bottom:12px;">
-          <strong style="font-size:11px;color:var(--text-soft);">Published Uploads ({{ related.entries|length }})</strong>
-          <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">
-            {% for e in related.entries %}{{ e.headline|truncatechars:30 }}{% if not forloop.last %}, {% endif %}{% endfor %}
-          </div>
-        </div>
-        {% endif %}
       </div>
       {% endif %}
     </div>

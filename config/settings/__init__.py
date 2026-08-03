@@ -4,8 +4,12 @@ import importlib
 # Determine which settings module to load
 env = os.environ.get('DJANGO_SETTINGS_MODULE', '')
 
-if 'dev' in env:
-    settings_module = 'config.settings.dev'
+if env:
+    try:
+        importlib.import_module(env)
+        settings_module = env
+    except ImportError:
+        settings_module = 'config.settings.dev'
 elif 'prod' in env:
     settings_module = 'config.settings.prod'
 else:

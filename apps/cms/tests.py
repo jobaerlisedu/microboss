@@ -4,7 +4,6 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from apps.content.models import ContentEntry
 from apps.sponsors.models import Sponsor
-from apps.assignments.models import Assignment
 
 User = get_user_model()
 
@@ -71,24 +70,6 @@ class CMSSaveEntryTest(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(ContentEntry.objects.filter(slug='dup-slug').count(), 2)
 
-    def test_save_entry_updates_assignment_status(self):
-        assignment = Assignment.objects.create(
-            assign_date=self.today, caption='Test',
-            status='Pending', member=self.user,
-            created_by=self.user, reporter='Reporter',
-        )
-        resp = self.client.post(self.url, {
-            'entry_date': self.today,
-            'entry_time': '12:00',
-            'slug': 'assigned-entry',
-            'headline': 'Assigned',
-            'links_fb': 'https://facebook.com/assign',
-            'assignment_id': str(assignment.id),
-        })
-        self.assertEqual(resp.status_code, 200)
-        assignment.refresh_from_db()
-        self.assertEqual(assignment.status, 'Done')
-
     def test_save_entry_english_language(self):
         resp = self.client.post(self.url, {
             'entry_date': self.today,
@@ -143,61 +124,3 @@ class CMSSaveSponsorTest(TestCase):
         self.assertEqual(trigger['cms-toast']['type'], 'error')
         self.assertEqual(Sponsor.objects.count(), 0)
 
-
-class CMSSaveAssignmentTest(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username='assigntest', password='test1234',
-            full_name='Assign Tester', office_id='ASG001',
-            designation='Reporter', phone='01733333333',
-            blood_group='B+',
-        )
-        self.client.login(username='assigntest', password='test1234')
-        self.url = '/cms/assignments/save/'
-        self.today = date.today().isoformat()
-
-    def test_save_assignment_success(self):
-        resp = self.client.post(self.url, {
-            'assign_date': self.today,
-            'caption': 'Test assignment',
-            'source_link': 'https://source.example.com',
-            'district': 'Dhaka',
-        })
-        self.assertEqual(resp.status_code, 200)
-        trigger = json.loads(resp['HX-Trigger'])
-        self.assertEqual(trigger['cms-toast']['type'], 'success')
-        self.assertEqual(Assignment.objects.count(), 1)
-        assignment = Assignment.objects.first()
-        self.assertEqual(assignment.caption, 'Test assignment')
-        self.assertEqual(assignment.district, 'Dhaka')
-        self.assertEqual(assignment.member, self.user)
-
-    def test_save_assignment_future_date_fails(self):
-        future = date(2099, 12, 31).isoformat()
-        resp = self.client.post(self.url, {
-            'assign_date': future,
-            'caption': 'Future assignment',
-        })
-        self.assertEqual(resp.status_code, 200)
-        trigger = json.loads(resp['HX-Trigger'])
-        self.assertEqual(trigger['cms-toast']['type'], 'error')
-        self.assertIn('future', trigger['cms-toast']['message'].lower())
-        self.assertEqual(Assignment.objects.count(), 0)
-
-    def test_save_assignment_with_reporter_user(self):
-        reporter = User.objects.create_user(
-            username='reporter1', password='test1234',
-            full_name='Reporter One', office_id='REP001',
-            designation='Reporter', phone='01744444444',
-            blood_group='AB+',
-        )
-        resp = self.client.post(self.url, {
-            'assign_date': self.today,
-            'caption': 'With reporter',
-            'reporter_user': str(reporter.id),
-            'reporter': 'Custom Name',
-        })
-        self.assertEqual(resp.status_code, 200)
-        assignment = Assignment.objects.first()
-        self.assertEqual(assignment.reporter_user, reporter)
-        self.assertEqual(assignment.reporter, 'Custom Name')

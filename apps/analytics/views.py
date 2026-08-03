@@ -79,22 +79,6 @@ def kpi_summary_api(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def assignment_metrics_api(request):
-    start, end = _parse_date_params(request)
-    svc = AnalyticsService(start_date=start, end_date=end)
-    return JsonResponse(svc.assignment_metrics())
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def script_metrics_api(request):
-    start, end = _parse_date_params(request)
-    svc = AnalyticsService(start_date=start, end_date=end)
-    return JsonResponse(svc.script_metrics())
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def sponsored_vs_organic_api(request):
     start, end = _parse_date_params(request)
     svc = AnalyticsService(start_date=start, end_date=end)
@@ -135,11 +119,3 @@ def daily_trend_api(request):
     days = int(request.GET.get('days', 7))
     svc = AnalyticsService()
     return JsonResponse(svc.daily_trend(days=days))
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def content_list_stats_api(request):
-    start, end = _parse_date_params(request)
-    svc = AnalyticsService(start_date=start, end_date=end)
-    return JsonResponse(svc.content_list_stats())

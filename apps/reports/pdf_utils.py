@@ -30,19 +30,6 @@ def generate_content_report(entries, title='Content Report'):
         return _html_fallback(html, 'content_report.html')
 
 
-def generate_script_pdf(script):
-    html = render_to_string('reports/script_pdf.html', {
-        'script': script,
-    })
-    if WEASYPRINT_AVAILABLE:
-        pdf_file = io.BytesIO()
-        HTML(string=html).write_pdf(pdf_file)
-        pdf_file.seek(0)
-        return pdf_file
-    else:
-        return _html_fallback(html, f'{script.filename}.html')
-
-
 def render_to_pdf_response(html_string, filename='report.pdf'):
     """Render HTML to PDF (via WeasyPrint) or fallback to HTML response"""
     if WEASYPRINT_AVAILABLE:

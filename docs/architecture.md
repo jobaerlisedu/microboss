@@ -2,7 +2,7 @@
 
 ## Overview
 
-Content Tracker is a Django 5.2 ERP/CRM system for managing digital content production, including entry tracking, script management, sponsor assignment, and content list management.
+Content Tracker is a Django 5.2 ERP/CRM system for managing digital content production, including entry tracking, sponsor assignment, and content management.
 
 ## Architecture Principles
 
@@ -14,26 +14,25 @@ Content Tracker is a Django 5.2 ERP/CRM system for managing digital content prod
 ## Project Layout
 
 ```
-cms/
+microboss/
 ├── apps/              # Django apps (presentation layer)
 │   ├── accounts/      # Auth: User model, JWT views, session management
 │   ├── cms/           # HTMX web UI: all CMS views and admin panel
+│   ├── content/       # ContentEntry model, CRUD, stats
+│   ├── sponsors/      # Sponsor model, tracking
+│   ├── leaders/       # Leaderboard queries
+│   ├── reports/       # Report builder, PDF generation (WeasyPrint)
+│   ├── analytics/     # Dashboard KPIs and analytics
+│   ├── audit/         # AuditLog, request context middleware
+│   ├── notices/       # Notice model
+│   ├── notifications/ # In-app + FCM push, device tokens
+│   ├── hr/            # Duty roster, shift, leave management
 │   └── common/        # Shared: BaseModel, mixins, pagination, permissions
 ├── config/            # Django configuration
 │   ├── settings/      # Environment-specific settings (base/dev/prod)
 │   ├── urls.py        # Root URL configuration
 │   ├── asgi.py        # ASGI entry point
 │   └── wsgi.py        # WSGI entry point
-├── domains/           # Business logic modules
-│   ├── content/       # ContentEntry model, CRUD, stats
-│   ├── assignments/   # Assignment model, status workflow
-│   ├── scripts/       # Script model, submit/approve workflow
-│   ├── sponsors/      # Sponsor model, tracking
-│   ├── notices/       # Notice model, notifications
-│   ├── notifications/ # In-app + FCM push, device tokens
-│   ├── audit/         # AuditLog, request context middleware
-│   ├── reporting/     # PDF generation (WeasyPrint)
-│   └── leaders/       # Leaderboard queries
 ├── infrastructure/    # Cross-cutting concerns
 │   └── middleware/     # Custom middleware
 ├── templates/         # Django templates

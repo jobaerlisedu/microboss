@@ -34,9 +34,6 @@ LOCAL_APPS = [
     'apps.accounts',
     'apps.content',
     'apps.sponsors',
-    'apps.contentlist',
-    'apps.assignments',
-    'apps.scripts',
     'apps.leaders',
     'apps.reports',
     'apps.cms',
@@ -44,8 +41,6 @@ LOCAL_APPS = [
     'apps.notifications',
     'apps.analytics',
     'apps.audit',
-    'apps.audio',
-    'apps.finalpackage',
     'apps.hr',
 ]
 

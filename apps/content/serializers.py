@@ -12,7 +12,7 @@ class ContentEntrySerializer(serializers.ModelSerializer):
         model = ContentEntry
         fields = (
             'id', 'entry_date', 'entry_time', 'slug', 'headline',
-            'member', 'member_name', 'links', 'assignment', 'sponsor',
+            'member', 'member_name', 'links', 'sponsor',
             'sponsor_name', 'comment', 'language', 'created_at', 'updated_at',
             'created_by', 'updated_by', 'deleted_at',
         )

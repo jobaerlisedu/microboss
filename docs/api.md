@@ -37,33 +37,6 @@ Authentication: Bearer JWT token or Session cookie.
 | `/sponsors/{id}/` | GET, PUT, PATCH, DELETE | Sponsor detail |
 | `/sponsors/{id}/track/` | GET | Sponsor tracking info |
 
-## Content Lists
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/content-lists/` | GET, POST | List / Create content list items |
-| `/content-lists/{id}/` | GET, PUT, PATCH, DELETE | Content list item detail |
-| `/content-lists/stats/` | GET | Content list statistics |
-
-## Assignments
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/assignments/` | GET, POST | List / Create assignments |
-| `/assignments/{id}/` | GET, PUT, PATCH, DELETE | Assignment detail |
-| `/assignments/{id}/status/` | PATCH | Update assignment status |
-| `/assignments/stats/` | GET | Assignment statistics |
-
-## Scripts
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/scripts/` | GET, POST | List / Create scripts |
-| `/scripts/{id}/` | GET, PUT, PATCH, DELETE | Script detail |
-| `/scripts/{id}/submit/` | POST | Submit script for approval |
-| `/scripts/{id}/approve/` | POST | Approve script |
-| `/scripts/stats/` | GET | Script statistics |
-
 ## Notifications
 
 | Endpoint | Method | Description |
@@ -86,7 +59,6 @@ Authentication: Bearer JWT token or Session cookie.
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/reports/content-report/` | GET | Generate content report PDF |
-| `/reports/script-pdf/{id}/` | GET | Generate script PDF |
 
 ## Leaders
 

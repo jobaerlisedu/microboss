@@ -48,46 +48,15 @@
     </div>
   </div>
   <div class="kpi-pill">
-    <div class="kpi-icon" style="background:rgba(99, 102, 241, 0.15);color:#6366f1;"><i class="bi bi-file-earmark-code-fill"></i></div>
-    <div class="kpi-text">
-      <strong>{{ stats.total_scripts }}</strong>
-      <span>Total Scripts</span>
-    </div>
-  </div>
-</div>
-
-<div class="kpi-pills-row">
-  <div class="kpi-pill">
-    <div class="kpi-icon" style="background:rgba(245, 158, 11, 0.15);color:#f59e0b;"><i class="bi bi-clock"></i></div>
-    <div class="kpi-text">
-      <strong>{{ stats.pending_scripts }}</strong>
-      <span>Pending Scripts</span>
-    </div>
-  </div>
-  <div class="kpi-pill">
-    <div class="kpi-icon" style="background:rgba(59, 130, 246, 0.15);color:#3b82f6;"><i class="bi bi-pin-angle-fill"></i></div>
-    <div class="kpi-text">
-      <strong>{{ stats.total_assignments }}</strong>
-      <span>Total Assignments</span>
-    </div>
-  </div>
-  <div class="kpi-pill">
-    <div class="kpi-icon" style="background:rgba(34, 197, 94, 0.15);color:#22c55e;"><i class="bi bi-arrow-repeat"></i></div>
-    <div class="kpi-text">
-      <strong>{{ stats.pending_assignments }}</strong>
-      <span>Active Assignments</span>
-    </div>
-  </div>
-</div>
-
-<div class="kpi-pills-row">
-  <div class="kpi-pill">
     <div class="kpi-icon" style="background:rgba(99, 102, 241, 0.15);color:#6366f1;"><i class="bi bi-journal-text"></i></div>
     <div class="kpi-text">
       <strong>{{ stats.audit_log_count }}</strong>
       <span>Audit Log Records</span>
     </div>
   </div>
+</div>
+
+<div class="kpi-pills-row">
   <div class="kpi-pill">
     <div class="kpi-icon" style="background:rgba(34, 197, 94, 0.15);color:#22c55e;"><i class="bi bi-speedometer2"></i></div>
     <div class="kpi-text">
@@ -98,7 +67,7 @@
   <div class="kpi-pill">
     <div class="kpi-icon" style="background:rgba(59, 130, 246, 0.15);color:#3b82f6;"><i class="bi bi-lightning-charge-fill"></i></div>
     <div class="kpi-text">
-      <strong>{{ stats.today_entries|add:stats.pending_scripts|add:stats.pending_assignments }}</strong>
+      <strong>{{ stats.today_entries }}</strong>
       <span>Today's Total Activity</span>
     </div>
   </div>

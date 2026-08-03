@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='reportconfig',
             name='module',
-            field=models.CharField(choices=[('entries', 'Content Entries'), ('assignments', 'Assignments'), ('scripts', 'Digital Scripts'), ('audio', 'Media Pool'), ('contentlist', 'Content Sources'), ('finalpackage', 'Final Packages'), ('sponsors', 'Sponsors'), ('users', 'Users')], max_length=30),
+            field=models.CharField(choices=[('entries', 'Content Entries'), ('sponsors', 'Sponsors'), ('users', 'Users')], max_length=30),
         ),
     ]

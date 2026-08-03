@@ -4,9 +4,6 @@ from django.contrib.auth.hashers import make_password
 from apps.accounts.models import User
 from apps.content.models import ContentEntry
 from apps.sponsors.models import Sponsor
-from apps.contentlist.models import ContentListItem
-from apps.assignments.models import Assignment
-from apps.scripts.models import Script
 
 
 class Command(BaseCommand):
@@ -83,48 +80,5 @@ class Command(BaseCommand):
                 comment=e.get('comment', ''),
             )
         self.stdout.write(f'  Imported {len(data.get("entries", []))} content entries')
-
-        # Import content list items
-        for cl in data.get('contentList', []):
-            member = user_map.get(cl.get('memberId'))
-            ContentListItem.objects.create(
-                list_date=cl.get('date'),
-                content=cl.get('content', ''),
-                source=cl.get('source', 'social'),
-                district=cl.get('district', ''),
-                footage_source=cl.get('footage', ''),
-                member=member or User.objects.first(),
-            )
-        self.stdout.write(f'  Imported {len(data.get("contentList", []))} content list items')
-
-        # Import assignments
-        for a in data.get('assignments', []):
-            member = user_map.get(a.get('memberId'))
-            Assignment.objects.create(
-                assign_date=a.get('date'),
-                caption=a.get('caption', ''),
-                source_link=a.get('link', ''),
-                district=a.get('district', ''),
-                reporter=a.get('reporter', ''),
-                status=a.get('status', 'Assigned'),
-                member=member or User.objects.first(),
-            )
-        self.stdout.write(f'  Imported {len(data.get("assignments", []))} assignments')
-
-        # Import scripts
-        for s in data.get('scripts', []):
-            writer = user_map.get(s.get('writerId'))
-            Script.objects.create(
-                script_date=s.get('date'),
-                headline=s.get('headline', ''),
-                source=s.get('source', 'social'),
-                writer=writer or User.objects.first(),
-                district=s.get('district', ''),
-                district_reporter=s.get('districtReporter', ''),
-                body=s.get('body', ''),
-                status=s.get('status', 'draft'),
-                approved_at=s.get('approvedAt'),
-            )
-        self.stdout.write(f'  Imported {len(data.get("scripts", []))} scripts')
 
         self.stdout.write(self.style.SUCCESS('Import complete!'))
